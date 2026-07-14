@@ -1,0 +1,289 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Sinan — Accesorios pensados para acompañarte. Bolsos, mochilas, totes y más, con diseño consciente." />
+  <meta name="theme-color" content="#4279B2" />
+  <meta property="og:title" content="Sinan — Llevá tu esencia" />
+  <meta property="og:description" content="Accesorios pensados para acompañarte. Diseño consciente, energía buena." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="assets/logo-vertical.png" />
+  <title>Sinan — Llevá tu esencia</title>
+
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+  <link rel="icon" type="image/png" href="assets/isotipo.png" />
+  <link rel="apple-touch-icon" href="assets/isotipo.png" />
+
+  <!-- Tipografías: Gilda Display para títulos + Poppins para texto -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Gilda+Display&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- ===== BANNER PROMOCIONAL ===== -->
+  <div class="promo-bar" id="promo-bar">
+    <div class="container promo-bar__inner">
+      <p>
+        <span class="promo-bar__icon">✦</span>
+        <strong>10% OFF</strong> en tu primera compra
+        <span class="promo-bar__sep">—</span>
+        <a href="#newsletter" class="promo-bar__link">Sumate al newsletter →</a>
+      </p>
+      <button class="promo-bar__close" id="promo-bar-close" aria-label="Cerrar">×</button>
+    </div>
+  </div>
+
+  <!-- ===== HEADER ===== -->
+  <header class="header" id="top">
+    <div class="container header__inner">
+      <a href="#top" class="header__logo" aria-label="Sinan — inicio">
+        <img src="assets/logo-horizontal.png" alt="Sinan" />
+      </a>
+      <nav class="header__nav" aria-label="Navegación principal">
+        <a href="#catalogo">Catálogo</a>
+        <a href="#sobre">Sobre Sinan</a>
+        <a href="#resenas">Reseñas</a>
+        <a href="#newsletter">10% off</a>
+        <a href="#contacto">Contacto</a>
+      </nav>
+      <button class="header__menu-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobile-menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="header__mobile" id="mobile-menu" hidden>
+      <a href="#catalogo">Catálogo</a>
+      <a href="#sobre">Sobre Sinan</a>
+      <a href="#resenas">Reseñas</a>
+      <a href="#newsletter">10% off</a>
+      <a href="#contacto">Contacto</a>
+    </div>
+  </header>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero">
+    <div class="hero__bg" aria-hidden="true"></div>
+    <div class="container hero__inner">
+      <div class="hero__content">
+        <p class="hero__eyebrow">— Para mujeres en movimiento</p>
+        <h1 class="hero__title">Movete a tu <em>ritmo</em>.</h1>
+        <p class="hero__subtitle" id="hero-subclaim">Accesorios que se adaptan a tu ritmo, especiales para mujeres que buscan comodidad y bienestar.</p>
+        <div class="hero__actions">
+          <a href="#catalogo" class="btn btn--primary">En stock</a>
+          <a href="#sobre" class="btn btn--ghost">Conoceme</a>
+        </div>
+      </div>
+      <div class="hero__visual" aria-hidden="true">
+        <img src="assets/productos/hero.jpg" alt="" class="hero__photo" />
+      </div>
+    </div>
+    <a href="#categorias" class="hero__scroll" aria-label="Bajar a categorías">
+      <span></span>
+    </a>
+  </section>
+
+  <!-- ===== DESTACADOS ===== -->
+  <section class="destacados" id="destacados">
+    <div class="container">
+      <header class="section-head section-head--center">
+        <p class="section-eyebrow">Destacados de la semana</p>
+        <h2 class="section-title">Lo más <em>elegido</em></h2>
+      </header>
+      <div class="productos-grid productos-grid--destacados" id="destacados-grid"></div>
+    </div>
+  </section>
+
+  <!-- ===== CATEGORÍAS ===== -->
+  <section class="categorias" id="categorias">
+    <div class="container">
+      <header class="section-head">
+        <p class="section-eyebrow">Por dónde empezar</p>
+        <h2 class="section-title">¿Qué andás buscando?</h2>
+      </header>
+      <div class="categorias__grid" id="categorias-grid">
+        <!-- inyectado por JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CATÁLOGO ===== -->
+  <section class="catalogo" id="catalogo">
+    <div class="container">
+      <header class="section-head">
+        <p class="section-eyebrow">Todo lo que tengo</p>
+        <h2 class="section-title">El catálogo completo</h2>
+        <p class="section-sub">Tocá un producto y te llevo a la tienda para pagarlo. Cualquier duda escribime por WhatsApp, contesto siempre.</p>
+      </header>
+
+      <div class="filtros" role="tablist" aria-label="Filtrar por categoría" id="filtros">
+        <!-- inyectado por JS -->
+      </div>
+
+      <div class="productos-grid" id="productos-grid" aria-live="polite">
+        <!-- inyectado por JS -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SOBRE SINAN ===== -->
+  <section class="sobre" id="sobre">
+    <div class="container sobre__inner">
+      <div class="sobre__visual sobre__visual--foto">
+        <img src="assets/pame.jpg" alt="Pame, fundadora de Sinan" />
+      </div>
+      <div class="sobre__content">
+        <p class="section-eyebrow">Detrás de Sinan</p>
+        <h2 class="section-title">¡Hola! Soy <em>Pame</em>.</h2>
+        <p class="sobre__lead">La cara, las manos y el corazón detrás de Sinan.</p>
+
+        <div class="sobre__historia" id="sobre-historia-wrap">
+          <p>Sinan nació para acompañarte en tu <strong>ritmo diario</strong>: desde que salís al trabajo temprano hasta que terminás tu rutina en el gimnasio. Mi propósito es <strong>facilitarte el día a día</strong> a través de accesorios que realmente funcionen.</p>
+
+          <blockquote class="sobre__cita">
+            "Busco el equilibrio justo entre <em>comodidad, estética y durabilidad</em>."
+          </blockquote>
+
+          <p>Aunque no diseño los bolsos, me encargo personalmente de <strong>seleccionar y testear</strong> cada mochila, billetera y accesorio que ves acá. Elijo cada pieza pensando en que sea una <strong>solución real para tu rutina</strong>.</p>
+
+          <p>Cuando elegís Sinan, no solo te llevás un producto: te llevás el trabajo de una <strong>emprendedora que arma cada pedido</strong> con atención absoluta al detalle. Detrás de cada envío hay un <em>proceso hecho con amor</em>, dedicado para impulsarte a seguir adelante.</p>
+        </div>
+
+        <ul class="sobre__valores">
+          <li><span class="sobre__valor-icon">✦</span><div><strong>Pruebo todo lo que vendo.</strong> Si no me convence a mí, no llega a vos.</div></li>
+          <li><span class="sobre__valor-icon">✦</span><div><strong>Atención de verdad.</strong> Hablás conmigo, no con un bot.</div></li>
+          <li><span class="sobre__valor-icon">✦</span><div><strong>Cariño en cada envío.</strong> Cada pedido sale prolijo y con buena energía.</div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== RESEÑAS ===== -->
+  <section class="resenas" id="resenas">
+    <div class="container">
+      <header class="section-head section-head--center">
+        <p class="section-eyebrow">Lo que dicen las clientas</p>
+        <h2 class="section-title">Historias <em>reales</em>.</h2>
+      </header>
+      <div class="resenas__grid" id="resenas-grid"></div>
+    </div>
+  </section>
+
+  <!-- ===== NEWSLETTER ===== -->
+  <section class="newsletter" id="newsletter">
+    <div class="container newsletter__inner">
+      <div class="newsletter__copy">
+        <p class="section-eyebrow newsletter__eyebrow">Un regalito para empezar</p>
+        <h2 class="section-title">Dejame tu mail y llevate <em>10% off</em> en tu primera compra.</h2>
+        <p>Te aviso de novedades, descuentos y cositas lindas. Prometo no llenarte la casilla — escribo cuando vale la pena.</p>
+      </div>
+      <form class="newsletter__form" id="newsletter-form">
+        <label for="email-input" class="visually-hidden">Tu mail</label>
+        <input
+          type="email"
+          id="email-input"
+          name="email"
+          placeholder="tunombre@mail.com"
+          required
+          autocomplete="email"
+          pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+          title="Por favor ingresá un mail válido (ejemplo: nombre@mail.com)"
+        />
+        <button type="submit" class="btn btn--primary">Quiero mi 10% off</button>
+        <p class="newsletter__msg" id="newsletter-msg" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer" id="contacto">
+    <div class="container footer__inner">
+      <div class="footer__brand">
+        <img src="assets/logo-horizontal-blanco.png" alt="Sinan" class="footer__logo" />
+        <p>Llevá tu esencia.</p>
+      </div>
+      <div class="footer__col">
+        <h3>Tienda</h3>
+        <a href="#catalogo">Catálogo</a>
+        <a href="#sobre">Sobre Sinan</a>
+        <a href="#newsletter">10% off bienvenida</a>
+      </div>
+      <div class="footer__col">
+        <h3>Contacto</h3>
+        <a id="footer-wa" href="#" target="_blank" rel="noopener">WhatsApp</a>
+        <a id="footer-ig" href="#" target="_blank" rel="noopener">Instagram</a>
+        <a id="footer-tn" href="#" target="_blank" rel="noopener">Tienda Nube</a>
+        <a id="footer-mail" href="#">Mail</a>
+      </div>
+      <div class="footer__col footer__legal">
+        <h3>Sinan</h3>
+        <p id="footer-ciudad">Argentina</p>
+        <p>© <span id="year"></span> Sinan. Todos los derechos reservados.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Botón flotante CARRITO -->
+  <button id="carrito-btn" class="carrito-btn" aria-label="Abrir carrito" data-empty="true">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="9" cy="21" r="1"/>
+      <circle cx="20" cy="21" r="1"/>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+    </svg>
+    <span id="carrito-contador" class="carrito-contador" hidden>0</span>
+  </button>
+
+  <!-- Modal CARRITO -->
+  <div class="carrito-modal" id="carrito-modal" role="dialog" aria-modal="true" aria-labelledby="carrito-titulo">
+    <div class="carrito-overlay" id="carrito-overlay"></div>
+    <div class="carrito-panel">
+      <header class="carrito-header">
+        <h3 id="carrito-titulo">Tu carrito</h3>
+        <button class="carrito-cerrar" id="carrito-cerrar" aria-label="Cerrar carrito">×</button>
+      </header>
+      <div class="carrito-body" id="carrito-body"></div>
+      <footer class="carrito-footer">
+        <div class="carrito-total-wrap">
+          <span>Total</span>
+          <strong id="carrito-total">$0</strong>
+        </div>
+        <button class="btn btn--primary carrito-coordinar" id="carrito-coordinar">
+          Coordinar por WhatsApp
+        </button>
+        <p class="carrito-nota">Te respondo al toque y coordinamos pago + envío 💙</p>
+      </footer>
+    </div>
+  </div>
+
+  <!-- LIGHTBOX (galería de fotos del producto) -->
+  <div class="lightbox" id="lightbox-modal" role="dialog" aria-modal="true" aria-labelledby="lightbox-nombre">
+    <div class="lightbox__panel">
+      <button class="lightbox__cerrar" id="lightbox-cerrar" aria-label="Cerrar">×</button>
+      <button class="lightbox__nav lightbox__nav--prev" id="lightbox-prev" aria-label="Anterior">‹</button>
+      <div class="lightbox__img-wrap" id="lightbox-media-wrap">
+        <img class="lightbox__img" id="lightbox-img" src="" alt="" />
+      </div>
+      <button class="lightbox__nav lightbox__nav--next" id="lightbox-next" aria-label="Siguiente">›</button>
+      <div class="lightbox__info">
+        <p class="lightbox__nombre" id="lightbox-nombre"></p>
+        <p class="lightbox__contador" id="lightbox-contador"></p>
+      </div>
+      <div class="lightbox__thumbs" id="lightbox-thumbs"></div>
+    </div>
+  </div>
+
+  <!-- Botón flotante WhatsApp -->
+  <a id="wa-float" class="wa-float" href="#" target="_blank" rel="noopener" aria-label="Consultar por WhatsApp" hidden>
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true">
+      <path d="M20.52 3.48A11.78 11.78 0 0012.04 0C5.5 0 .2 5.3.2 11.84a11.7 11.7 0 001.62 5.95L0 24l6.36-1.78a11.83 11.83 0 005.68 1.45h.01c6.54 0 11.84-5.3 11.84-11.84 0-3.16-1.23-6.13-3.37-8.35zM12.05 21.5h-.01a9.66 9.66 0 01-4.92-1.35l-.35-.21-3.78 1.06 1.08-3.69-.23-.38a9.65 9.65 0 01-1.48-5.1c0-5.34 4.34-9.68 9.69-9.68 2.59 0 5.02 1.01 6.85 2.84a9.62 9.62 0 012.84 6.85c0 5.34-4.34 9.68-9.69 9.68zm5.31-7.25c-.29-.15-1.72-.85-1.99-.95-.27-.1-.46-.15-.66.15-.2.29-.76.95-.93 1.14-.17.2-.34.22-.63.07-.29-.15-1.22-.45-2.33-1.43-.86-.77-1.44-1.72-1.61-2.01-.17-.29-.02-.45.13-.6.13-.13.29-.34.44-.51.15-.17.2-.29.29-.49.1-.2.05-.37-.02-.51-.07-.15-.66-1.59-.9-2.18-.24-.57-.48-.49-.66-.5-.17-.01-.37-.01-.57-.01-.2 0-.51.07-.78.37-.27.29-1.02 1-1.02 2.43 0 1.43 1.05 2.82 1.2 3.02.15.2 2.07 3.16 5.02 4.43.7.3 1.25.48 1.67.62.7.22 1.34.19 1.84.12.56-.08 1.72-.7 1.96-1.38.24-.68.24-1.27.17-1.38-.07-.12-.27-.2-.56-.34z"/>
+    </svg>
+  </a>
+
+  <script src="data/productos.js"></script>
+  <script src="script.js" defer></script>
+</body>
+</html>
