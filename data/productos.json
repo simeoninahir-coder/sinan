@@ -1,0 +1,147 @@
+{
+  "_instrucciones": "Editá este archivo para agregar/modificar productos. Cada producto necesita: id (único), nombre, categoria (bolsos | mochilas | totes | billeteras | medias | neceser | ofertas), precio (en pesos), descripcion (1-2 frases), imagen (ruta o URL), pagoLink (link de Mercado Pago). Si no tenés foto, dejá imagen como '' y se usa un placeholder elegante.",
+  "categorias": [
+    { "id": "bolsos",     "nombre": "Bolsos",     "descripcion": "Para llevar lo esencial con onda." },
+    { "id": "mochilas",   "nombre": "Mochilas",   "descripcion": "Tu día a día, cómodo y con estilo." },
+    { "id": "totes",      "nombre": "Tote bags", "descripcion": "Lienzo natural con propósito." },
+    { "id": "billeteras", "nombre": "Billeteras", "descripcion": "Lo justo y necesario, siempre a mano." },
+    { "id": "medias",     "nombre": "Medias",     "descripcion": "Detalles que se notan." },
+    { "id": "neceser",    "nombre": "Neceser",    "descripcion": "Orden con buena energía." },
+    { "id": "ofertas",    "nombre": "Ofertas",    "descripcion": "Sinan de antes, ahora con precio especial." }
+  ],
+  "productos": [
+    {
+      "id": "bolso-001",
+      "nombre": "Bolso esencial",
+      "categoria": "bolsos",
+      "precio": 28000,
+      "descripcion": "El compañero ideal para tu día. Cuero vegano y costuras reforzadas.",
+      "imagen": "",
+      "pagoLink": "https://link.mercadopago.com.ar/sinan",
+      "destacado": true
+    },
+    {
+      "id": "bolso-002",
+      "nombre": "Bolso bandolera",
+      "categoria": "bolsos",
+      "precio": 32000,
+      "descripcion": "Liviano, espacioso y con tira ajustable.",
+      "imagen": "",
+      "pagoLink": "https://link.mercadopago.com.ar/sinan"
+    },
+    {
+      "id": "mochila-001",
+      "nombre": "Mochila urbana",
+      "categoria": "mochilas",
+      "precio": 35000,
+      "descripcion": "Con bolsillo acolchado para notebook y compartimentos internos.",
+      "imagen": "",
+      "pagoLink": "https://link.mercadopago.com.ar/sinan",
+      "destacado": true
+    },
+    {
+      "id": "mochila-002",
+      "nombre": "Mochila viaje",
+      "categoria": "mochilas",
+      "precio": 42000,
+      "descripcion": "Capacidad extra, materiales resistentes al agua.",
+      "imagen": "",
+      "pagoLink": "https://link.mercadopago.com.ar/sinan"
+    },
+    {
+      "id": "tote-001",
+      "nombre": "Tote lienzo natural",
+      "categoria": "totes",
+      "precio": 12000,
+      "descripcion": "Lienzo 100% algodón con bordado del isotipo Sinan.",
+      "imagen": "",
+      "pagoLink": "https://link.mercadopago.com.ar/sinan",
+      "destacado": true
+    },
+    {
+      "id": "tote-002",
+      "nombre": "Tote frase motivacional",
+      "categoria": "totes",
+      "precio": 13500,
+      "descripcion": "Cargá tus cosas y un mensaje que te recuerda quién sos.",
+      "imagen": "",
+      "pagoLink": "https://link.mercadopago.com.ar/sinan"
+    },
+    {
+      "id": "billetera-001",
+      "nombre": "Billetera mini",
+      "categoria": "billeteras",
+      "precio": 9500,
+      "descripcion": "Compacta, con espacio para tarjetas y monedero.",
+      "imagen": "",
+      "pagoLink": "https://link.mercadopago.com.ar/sinan"
+    },
+    {
+      "id": "billetera-002",
+      "nombre": "Billetera larga",
+      "categoria": "billeteras",
+      "precio": 14000,
+      "descripcion": "Para los que llevan todo en orden.",
+      "imagen": "",
+      "pagoLink": "https://link.mercadopago.com.ar/sinan"
+    },
+    {
+      "id": "medias-001",
+      "nombre": "Medias bordadas",
+      "categoria": "medias",
+      "precio": 4500,
+      "descripcion": "Algodón premium con detalles que sorprenden.",
+      "imagen": "",
+      "pagoLink": "https://link.mercadopago.com.ar/sinan"
+    },
+    {
+      "id": "medias-002",
+      "nombre": "Medias pack x3",
+      "categoria": "medias",
+      "precio": 12000,
+      "descripcion": "Tres pares para combinar con todo.",
+      "imagen": "",
+      "pagoLink": "https://link.mercadopago.com.ar/sinan"
+    },
+    {
+      "id": "neceser-001",
+      "nombre": "Neceser cápsula",
+      "categoria": "neceser",
+      "precio": 11000,
+      "descripcion": "Interior impermeable, ideal para viaje.",
+      "imagen": "",
+      "pagoLink": "https://link.mercadopago.com.ar/sinan",
+      "destacado": true
+    },
+    {
+      "id": "oferta-001",
+      "nombre": "Cartera (colección anterior)",
+      "categoria": "ofertas",
+      "precio": 18000,
+      "precioAnterior": 28000,
+      "descripcion": "Sinan de antes — última disponibilidad.",
+      "imagen": "",
+      "pagoLink": "https://link.mercadopago.com.ar/sinan"
+    },
+    {
+      "id": "oferta-002",
+      "nombre": "Funda de satén",
+      "categoria": "ofertas",
+      "precio": 8500,
+      "precioAnterior": 14000,
+      "descripcion": "Stock final. Suave al tacto, ideal para regalo.",
+      "imagen": "",
+      "pagoLink": "https://link.mercadopago.com.ar/sinan"
+    }
+  ],
+  "marca": {
+    "claim": "Llevá tu esencia",
+    "subclaim": "Accesorios pensados para acompañarte. Diseño consciente, energía buena.",
+    "historia": "Sinan nació con una idea simple: que lo que llevás todos los días te haga sentir bien. Cada bolso, mochila, tote o billetera está pensado para acompañarte en lo cotidiano y recordarte que las cosas pequeñas también suman. Materiales nobles, diseño que dura, y un guiño a lo esencial.",
+    "instagram": "https://www.instagram.com/sinan",
+    "tiendanube": "https://sinan.mitiendanube.com",
+    "whatsapp": "5491100000000",
+    "email": "hola@sinan.com.ar",
+    "ciudad": "Argentina"
+  }
+}
