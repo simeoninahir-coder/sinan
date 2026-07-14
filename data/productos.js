@@ -204,15 +204,6 @@ window.SINAN_DATA = {
       imagenes: ['assets/productos/medias-offline-1.jpg', 'assets/productos/medias-offline-2.jpg']
     },
     {
-      id: 'medias-rayitas-durazno',
-      nombre: 'Medias Rayitas Durazno',
-      categoria: 'medias',
-      precio: 4000,
-      descripcion: 'Tono durazno calido con dos rayitas blancas en la cana. Ultima pieza. Ajuste anatomico y suaves al tacto.',
-      stock: 1,
-      imagenes: ['assets/productos/medias-rayitas-1.jpg']
-    },
-    {
       id: 'medias-osito-corazon',
       nombre: 'Medias Osito Corazon',
       categoria: 'medias',
@@ -220,15 +211,6 @@ window.SINAN_DATA = {
       descripcion: 'Rosa pastel con osito en corazon fucsia. Tercio de cana reforzado, suaves y con onda tierna.',
       stock: 2,
       imagenes: ['assets/productos/medias-osito-corazon-1.jpg', 'assets/productos/medias-osito-corazon-2.jpg']
-    },
-    {
-      id: 'medias-osito-bebe',
-      nombre: 'Medias Osito Bebe',
-      categoria: 'medias',
-      precio: 4000,
-      descripcion: 'Blancas con rayitas color piel y osito bebe bordado. Unica disponibilidad. Suaves y con tercio de cana reforzado.',
-      stock: 1,
-      imagenes: ['assets/productos/medias-osito-bebe-1.jpg', 'assets/productos/medias-osito-bebe-2.jpg']
     }
   ]
 };
