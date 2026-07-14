@@ -209,7 +209,7 @@ window.SINAN_DATA = {
       categoria: 'medias',
       precio: 4000,
       descripcion: 'Rosa pastel con osito en corazon fucsia. Tercio de cana reforzado, suaves y con onda tierna.',
-      stock: 2,
+      stock: 1,
       imagenes: ['assets/productos/medias-osito-corazon-1.jpg', 'assets/productos/medias-osito-corazon-2.jpg']
     }
   ]
