@@ -211,6 +211,15 @@ window.SINAN_DATA = {
       descripcion: 'Rosa pastel con osito en corazon fucsia. Tercio de cana reforzado, suaves y con onda tierna.',
       stock: 1,
       imagenes: ['assets/productos/medias-osito-corazon-1.jpg', 'assets/productos/medias-osito-corazon-2.jpg']
+    },
+    {
+      id: 'medias-soff',
+      nombre: 'Medias Soff',
+      categoria: 'medias',
+      precio: 4000,
+      descripcion: 'Suaves, hipoalergenicas y con puntera reforzada para el dia a dia. Disponibles en distintos colores con rayitas, escribinos por WhatsApp para elegir el tuyo.',
+      stock: 8,
+      imagenes: ['assets/productos/medias-soff-1.png', 'assets/productos/medias-soff-2.png', 'assets/productos/medias-soff-3.png', 'assets/productos/medias-soff-4.png', 'assets/productos/medias-soff-5.png', 'assets/productos/medias-soff-6.png', 'assets/productos/medias-soff-7.png', 'assets/productos/medias-soff-8.png']
     }
   ]
 };
