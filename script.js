@@ -75,6 +75,7 @@
       var esOferta = p.categoria === 'ofertas' || tieneOferta;
       var stock = (typeof p.stock === 'number') ? p.stock : null;
       var agotado = stock === 0;
+      var proximamente = agotado && p.proximamente === true;
       var pocoStock = stock !== null && stock > 0 && stock <= 3;
       var fotos = fotosProducto(p);
       var imgHtml = fotos.length
@@ -88,7 +89,8 @@
           '</svg></div>'
         : '';
       var badge = '';
-      if (agotado) badge = '<span class="producto-card__badge producto-card__badge--agotado">Agotado</span>';
+      if (proximamente) badge = '<span class="producto-card__badge producto-card__badge--proximamente">Proximamente</span>';
+      else if (agotado) badge = '<span class="producto-card__badge producto-card__badge--agotado">Agotado</span>';
       else if (esOferta) badge = '<span class="producto-card__badge producto-card__badge--oferta">Oferta</span>';
       else badge = '<span class="producto-card__badge">Destacado</span>';
       var videos = videosProducto(p);
@@ -99,6 +101,7 @@
       var precioAnt = tieneOferta ? '<span class="producto-card__precio-anterior">' + formatearPrecio(p.precioAnterior) + '</span>' : '';
       var stockNota = '';
       if (pocoStock) stockNota = '<p class="producto-card__stock-nota">Solo ' + (stock === 1 ? 'queda 1' : 'quedan ' + stock) + '</p>';
+      else if (proximamente) stockNota = '<p class="producto-card__stock-nota producto-card__stock-nota--proximamente">Proximamente</p>';
       else if (agotado) stockNota = '<p class="producto-card__stock-nota producto-card__stock-nota--agotado">Sin stock por ahora</p>';
       return '<article class="producto-card">' +
         '<div class="producto-card__img" data-lightbox="' + escapeHtml(p.id) + '">' + imgHtml + placeholder + badge + multiBadge + '</div>' +
@@ -109,7 +112,7 @@
         stockNota +
         '<div class="producto-card__acciones">' +
         (agotado
-          ? '<button class="producto-card__btn producto-card__btn--disabled" disabled>Sin stock</button>'
+          ? '<button class="producto-card__btn producto-card__btn--disabled" disabled>' + (proximamente ? 'Proximamente' : 'Sin stock') + '</button>'
           : '<button class="producto-card__btn producto-card__btn--primary" data-comprar="' + escapeHtml(p.id) + '">Lo quiero ya</button>' +
             '<button class="producto-card__btn producto-card__btn--ghost" data-sumar="' + escapeHtml(p.id) + '">+ Carrito</button>'
         ) + '</div></div></article>';
@@ -245,6 +248,7 @@
       // Stock: undefined o no definido = sin límite; 0 = agotado; <=3 = pocos
       var stock = (typeof p.stock === 'number') ? p.stock : null;
       var agotado = stock === 0;
+      var proximamente = agotado && p.proximamente === true;
       var pocoStock = stock !== null && stock > 0 && stock <= 3;
 
       var fotos = fotosProducto(p);
@@ -260,7 +264,8 @@
         : '';
 
       var badge = '';
-      if (agotado) badge = '<span class="producto-card__badge producto-card__badge--agotado">Agotado</span>';
+      if (proximamente) badge = '<span class="producto-card__badge producto-card__badge--proximamente">Proximamente</span>';
+      else if (agotado) badge = '<span class="producto-card__badge producto-card__badge--agotado">Agotado</span>';
       else if (esOferta) badge = '<span class="producto-card__badge producto-card__badge--oferta">Oferta</span>';
       else if (esDestacado) badge = '<span class="producto-card__badge">Destacado</span>';
 
@@ -268,6 +273,8 @@
       var stockNota = '';
       if (pocoStock) {
         stockNota = '<p class="producto-card__stock-nota">¡Solo ' + (stock === 1 ? 'queda 1' : 'quedan ' + stock) + '!</p>';
+      } else if (proximamente) {
+        stockNota = '<p class="producto-card__stock-nota producto-card__stock-nota--proximamente">Proximamente</p>';
       } else if (agotado) {
         stockNota = '<p class="producto-card__stock-nota producto-card__stock-nota--agotado">Sin stock por ahora</p>';
       }
@@ -305,7 +312,7 @@
           stockNota +
           '<div class="producto-card__acciones">' +
             (agotado
-              ? '<button class="producto-card__btn producto-card__btn--disabled" disabled>Sin stock</button>'
+              ? '<button class="producto-card__btn producto-card__btn--disabled" disabled>' + (proximamente ? 'Proximamente' : 'Sin stock') + '</button>'
               : '<button class="producto-card__btn producto-card__btn--primary" data-comprar="' + escapeHtml(p.id) + '">Lo quiero ya</button>' +
                 '<button class="producto-card__btn producto-card__btn--ghost" data-sumar="' + escapeHtml(p.id) + '">+ Carrito</button>'
             ) +

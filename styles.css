@@ -1918,6 +1918,16 @@ h1 em, h2 em, h3 em {
   font-style: italic;
 }
 
+.producto-card__badge--proximamente {
+  background: var(--color-azul) !important;
+  color: var(--color-blanco) !important;
+}
+
+.producto-card__stock-nota--proximamente {
+  color: var(--color-azul);
+  font-style: italic;
+}
+
 .producto-card__btn--disabled {
   background: #E5E7EB;
   color: #9CA3AF;
