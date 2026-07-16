@@ -60,7 +60,7 @@ window.SINAN_DATA = {
       categoria: 'billeteras',
       precio: 14500,
       descripcion: 'Nylon resistente y super liviana. Chiquita, comoda y perfecta para el dia a dia.',
-      stock: 1,
+      stock: 2,
       imagenes: ['assets/productos/billetera-kira-1.jpg', 'assets/productos/billetera-kira-2.jpg', 'assets/productos/billetera-kira-3.jpg']
     },
     {
@@ -181,7 +181,7 @@ window.SINAN_DATA = {
       categoria: 'accesorios',
       precio: 8000,
       descripcion: 'Cuida tu pelo y piel mientras dormis. Reduce el frizz, evita marcas y mantiene la hidratacion.',
-      stock: 3,
+      stock: 1,
       imagenes: ['assets/productos/funda-saten-1.jpg']
     },
     {
