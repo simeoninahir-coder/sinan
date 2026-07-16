@@ -73,15 +73,6 @@ window.SINAN_DATA = {
       imagenes: ['assets/productos/billetera-pocket-1.jpg', 'assets/productos/billetera-pocket-2.jpg']
     },
     {
-      id: 'bolso-kala4',
-      nombre: 'Bolso Kala',
-      categoria: 'bolsos',
-      precio: 38700,
-      descripcion: 'Bolso deportivo impermeable. Bolsillo lateral para zapatillas y compartimento para lo humedo. Plegable y resistente.',
-      stock: 1,
-      imagenes: ['assets/productos/bolso-kala-1.jpg', 'assets/productos/bolso-kala-2.jpg']
-    },
-    {
       id: 'bolso-cielo',
       nombre: 'Bolso Cielo',
       categoria: 'bolsos',
