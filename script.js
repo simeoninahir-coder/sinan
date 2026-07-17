@@ -91,6 +91,7 @@
       var badge = '';
       if (proximamente) badge = '<span class="producto-card__badge producto-card__badge--proximamente">Proximamente</span>';
       else if (agotado) badge = '<span class="producto-card__badge producto-card__badge--agotado">Agotado</span>';
+      else if (p.nuevo) badge = '<span class="producto-card__badge producto-card__badge--nuevo">Nuevo</span>';
       else if (esOferta) badge = '<span class="producto-card__badge producto-card__badge--oferta">Oferta</span>';
       else badge = '<span class="producto-card__badge">Destacado</span>';
       var videos = videosProducto(p);
@@ -99,6 +100,7 @@
       else if (videos.length > 0) multiBadge = '<span class="producto-card__multi-badge">Video</span>';
       else if (fotos.length > 1) multiBadge = '<span class="producto-card__multi-badge">+' + (fotos.length - 1) + ' fotos</span>';
       var precioAnt = tieneOferta ? '<span class="producto-card__precio-anterior">' + formatearPrecio(p.precioAnterior) + '</span>' : '';
+      var descuentoPct = tieneOferta ? '<span class="producto-card__descuento-pct">-' + Math.round((1 - p.precio / p.precioAnterior) * 100) + '%</span>' : '';
       var stockNota = '';
       if (pocoStock) stockNota = '<p class="producto-card__stock-nota">Solo ' + (stock === 1 ? 'queda 1' : 'quedan ' + stock) + '</p>';
       else if (proximamente) stockNota = '<p class="producto-card__stock-nota producto-card__stock-nota--proximamente">Proximamente</p>';
@@ -108,7 +110,7 @@
         '<div class="producto-card__body">' +
         '<h3 class="producto-card__nombre">' + escapeHtml(p.nombre) + '</h3>' +
         '<p class="producto-card__desc">' + escapeHtml(p.descripcion || '') + '</p>' +
-        '<div class="producto-card__precio-wrap"><span class="producto-card__precio">' + formatearPrecio(p.precio) + '</span>' + precioAnt + '</div>' +
+        '<div class="producto-card__precio-wrap"><span class="producto-card__precio">' + formatearPrecio(p.precio) + '</span>' + precioAnt + descuentoPct + '</div>' +
         stockNota +
         '<div class="producto-card__acciones">' +
         (agotado
@@ -123,19 +125,22 @@
   }
 
   // ===== PROMO BAR (banner top con código 10% off) =====
+  var PROMO_OCULTA_MS = 48 * 60 * 60 * 1000; // 48 horas
+
   function activarPromoBar() {
     var bar = document.getElementById('promo-bar');
     var close = document.getElementById('promo-bar-close');
     if (!bar) return;
     try {
-      if (localStorage.getItem('sinan_promo_closed') === 'true') {
+      var cerradaEn = parseInt(localStorage.getItem('sinan_promo_closed_at') || '0', 10);
+      if (cerradaEn && (Date.now() - cerradaEn) < PROMO_OCULTA_MS) {
         bar.style.display = 'none';
       }
     } catch (_) {}
     if (close) {
       close.addEventListener('click', function () {
         bar.style.display = 'none';
-        try { localStorage.setItem('sinan_promo_closed', 'true'); } catch (_) {}
+        try { localStorage.setItem('sinan_promo_closed_at', String(Date.now())); } catch (_) {}
       });
     }
   }
@@ -266,6 +271,7 @@
       var badge = '';
       if (proximamente) badge = '<span class="producto-card__badge producto-card__badge--proximamente">Proximamente</span>';
       else if (agotado) badge = '<span class="producto-card__badge producto-card__badge--agotado">Agotado</span>';
+      else if (p.nuevo) badge = '<span class="producto-card__badge producto-card__badge--nuevo">Nuevo</span>';
       else if (esOferta) badge = '<span class="producto-card__badge producto-card__badge--oferta">Oferta</span>';
       else if (esDestacado) badge = '<span class="producto-card__badge">Destacado</span>';
 
@@ -297,6 +303,9 @@
       var precioAnt = tieneOferta
         ? '<span class="producto-card__precio-anterior">' + formatearPrecio(p.precioAnterior) + '</span>'
         : '';
+      var descuentoPct = tieneOferta
+        ? '<span class="producto-card__descuento-pct">-' + Math.round((1 - p.precio / p.precioAnterior) * 100) + '%</span>'
+        : '';
 
       return '<article class="producto-card fade-in">' +
         '<div class="producto-card__img" data-lightbox="' + escapeHtml(p.id) + '">' +
@@ -307,7 +316,7 @@
           '<p class="producto-card__desc">' + escapeHtml(p.descripcion || '') + '</p>' +
           '<div class="producto-card__precio-wrap">' +
             '<span class="producto-card__precio">' + formatearPrecio(p.precio) + '</span>' +
-            precioAnt +
+            precioAnt + descuentoPct +
           '</div>' +
           stockNota +
           '<div class="producto-card__acciones">' +
@@ -396,6 +405,33 @@
     if (nombre) nombre.textContent = p.nombre;
     if (contador) {
       contador.textContent = media.length > 1 ? (lightboxState.idx + 1) + ' / ' + media.length : '';
+    }
+
+    // Precio + stock + CTA de compra
+    var stock = (typeof p.stock === 'number') ? p.stock : null;
+    var agotado = stock === 0;
+    var proximamente = agotado && p.proximamente === true;
+    var tieneOferta = p.precioAnterior && p.precioAnterior > p.precio;
+
+    var precioEl = $('#lightbox-precio');
+    var precioAntEl = $('#lightbox-precio-anterior');
+    var stockNotaEl = $('#lightbox-stock-nota');
+    var btnComprar = $('#lightbox-btn-comprar');
+
+    if (precioEl) precioEl.textContent = formatearPrecio(p.precio);
+    if (precioAntEl) precioAntEl.textContent = tieneOferta ? formatearPrecio(p.precioAnterior) : '';
+
+    if (stockNotaEl) {
+      if (proximamente) { stockNotaEl.textContent = 'Proximamente'; stockNotaEl.hidden = false; }
+      else if (agotado) { stockNotaEl.textContent = 'Sin stock por ahora'; stockNotaEl.hidden = false; }
+      else if (stock !== null && stock > 0 && stock <= 3) { stockNotaEl.textContent = stock === 1 ? '¡Solo queda 1!' : '¡Solo quedan ' + stock + '!'; stockNotaEl.hidden = false; }
+      else { stockNotaEl.textContent = ''; stockNotaEl.hidden = true; }
+    }
+
+    if (btnComprar) {
+      btnComprar.disabled = agotado;
+      btnComprar.textContent = proximamente ? 'Proximamente' : (agotado ? 'Sin stock' : 'Lo quiero ya');
+      btnComprar.onclick = agotado ? null : function () { comprarAhora(p.id); };
     }
     var hayMultiple = media.length > 1;
     if (navPrev) navPrev.style.display = hayMultiple ? 'flex' : 'none';

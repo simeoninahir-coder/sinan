@@ -456,6 +456,15 @@ h1 em, h2 em, h3 em {
   margin-bottom: 36px;
 }
 
+.filtros--sticky {
+  position: sticky;
+  top: 70px;
+  z-index: 80;
+  background: var(--color-blanco);
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
 .filtro {
   padding: 10px 22px;
   border-radius: var(--radius-pill);
@@ -550,6 +559,10 @@ h1 em, h2 em, h3 em {
   background: #B24242;
 }
 
+.producto-card__badge--nuevo {
+  background: var(--color-azul);
+}
+
 .producto-card__body {
   padding: 22px 22px 24px;
   display: flex;
@@ -590,6 +603,15 @@ h1 em, h2 em, h3 em {
   font-size: 0.9rem;
   color: var(--color-texto-soft);
   text-decoration: line-through;
+}
+
+.producto-card__descuento-pct {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #B24242;
+  background: rgba(178, 66, 66, 0.1);
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
 }
 
 .producto-card__btn {
@@ -965,25 +987,28 @@ h1 em, h2 em, h3 em {
 }
 
 /* ============================================
-   v2: BOTÓN FLOTANTE CARRITO
+   v2: BOTÓN DE CARRITO (en la cabecera)
    ============================================ */
 
+.header__acciones {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .carrito-btn {
-  position: fixed;
-  bottom: 24px;
-  left: 24px;
-  z-index: 95;
-  width: 58px;
-  height: 58px;
-  background: var(--color-azul);
-  color: var(--color-blanco);
+  position: relative;
+  width: 42px;
+  height: 42px;
+  background: var(--color-celeste-soft);
+  color: var(--color-azul);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 6px 24px rgba(66, 121, 178, 0.4);
   transition: var(--transition);
   cursor: pointer;
+  flex-shrink: 0;
 }
 .carrito-btn:hover {
   transform: scale(1.06);
@@ -1282,7 +1307,6 @@ h1 em, h2 em, h3 em {
 }
 
 @media (max-width: 480px) {
-  .carrito-btn { left: 16px; bottom: 16px; }
   .wa-float { right: 16px; bottom: 16px; }
 }
 
@@ -1423,13 +1447,7 @@ h1 em, h2 em, h3 em {
   .footer { padding: 40px 0 24px; }
   .footer__inner { gap: 1.5rem; }
 
-  /* Botones flotantes en mobile */
-  .carrito-btn {
-    left: 14px;
-    bottom: 14px;
-    width: 52px;
-    height: 52px;
-  }
+  /* WhatsApp flotante en mobile */
   .wa-float {
     right: 14px;
     bottom: 14px;
@@ -1437,7 +1455,11 @@ h1 em, h2 em, h3 em {
     height: 52px;
   }
   .wa-float svg { width: 24px; height: 24px; }
-  .carrito-btn svg { width: 20px; height: 20px; }
+
+  /* Carrito en la cabecera, un toque mas chico en mobile */
+  .carrito-btn { width: 38px; height: 38px; }
+  .carrito-btn svg { width: 18px; height: 18px; }
+  .header__acciones { gap: 8px; }
 
   /* Modal carrito ocupa pantalla completa */
   .carrito-panel {
@@ -1637,11 +1659,51 @@ h1 em, h2 em, h3 em {
   opacity: 1;
 }
 
+/* Precio + compra dentro del visor de fotos */
+.lightbox__compra {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  text-align: center;
+}
+.lightbox__precio-wrap {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.lightbox__precio {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--color-blanco);
+}
+.lightbox__precio-anterior {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: line-through;
+}
+.lightbox__stock-nota {
+  font-size: 0.8rem;
+  color: var(--color-celeste);
+  margin-bottom: 12px;
+}
+.lightbox__btn-comprar {
+  min-width: 220px;
+}
+.lightbox__btn-comprar:disabled {
+  background: rgba(255, 255, 255, 0.15);
+  color: rgba(255, 255, 255, 0.6);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
   .lightbox__nav--prev { left: 8px; }
   .lightbox__nav--next { right: 8px; }
   .lightbox__cerrar { top: 14px; right: 14px; }
   .lightbox__thumb { width: 42px; height: 42px; }
+  .lightbox__btn-comprar { min-width: 0; width: 100%; }
 }
 
 /* Mini-galería en producto-card (thumbs debajo de la foto principal) */

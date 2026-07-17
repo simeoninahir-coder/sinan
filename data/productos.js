@@ -210,6 +210,7 @@ window.SINAN_DATA = {
       precio: 4000,
       descripcion: 'Suaves, hipoalergenicas y con puntera reforzada para el dia a dia. Disponibles en distintos colores con rayitas, escribinos por WhatsApp para elegir el tuyo.',
       stock: 8,
+      nuevo: true,
       imagenes: ['assets/productos/medias-soff-1.png', 'assets/productos/medias-soff-2.png', 'assets/productos/medias-soff-3.png', 'assets/productos/medias-soff-4.png', 'assets/productos/medias-soff-5.png', 'assets/productos/medias-soff-6.png', 'assets/productos/medias-soff-7.png', 'assets/productos/medias-soff-8.png']
     },
     {
@@ -220,6 +221,7 @@ window.SINAN_DATA = {
       descripcion: 'De regalo, una media Sinan. Bolso deportivo de nylon resistente, 32 litros (50x28x23 cm), tres compartimentos internos, correa ajustable y desmontable, plegable. Violeta liso.',
       stock: 0,
       proximamente: true,
+      nuevo: true,
       imagenes: ['assets/productos/bolso-rufina-1.jpg', 'assets/productos/bolso-rufina-2.jpg', 'assets/productos/bolso-rufina-3.jpg', 'assets/productos/bolso-rufina-4.jpg', 'assets/productos/bolso-rufina-5.jpg']
     }
   ]
