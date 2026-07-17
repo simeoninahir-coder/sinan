@@ -260,27 +260,42 @@
     </div>
   </div>
 
-  <!-- LIGHTBOX (galería de fotos del producto) -->
-  <div class="lightbox" id="lightbox-modal" role="dialog" aria-modal="true" aria-labelledby="lightbox-nombre">
-    <div class="lightbox__panel">
-      <button class="lightbox__cerrar" id="lightbox-cerrar" aria-label="Cerrar">×</button>
-      <button class="lightbox__nav lightbox__nav--prev" id="lightbox-prev" aria-label="Anterior">‹</button>
-      <div class="lightbox__img-wrap" id="lightbox-media-wrap">
-        <img class="lightbox__img" id="lightbox-img" src="" alt="" />
+  <!-- PÁGINA DE PRODUCTO (fotos + info completa + reseñas) -->
+  <div class="producto-pagina" id="producto-pagina" role="dialog" aria-modal="true" aria-labelledby="pp-nombre">
+    <div class="producto-pagina__scroll">
+      <div class="producto-pagina__topbar">
+        <button class="producto-pagina__cerrar" id="pp-cerrar" aria-label="Volver al catálogo">← Volver al catálogo</button>
       </div>
-      <button class="lightbox__nav lightbox__nav--next" id="lightbox-next" aria-label="Siguiente">›</button>
-      <div class="lightbox__info">
-        <p class="lightbox__nombre" id="lightbox-nombre"></p>
-        <p class="lightbox__contador" id="lightbox-contador"></p>
-      </div>
-      <div class="lightbox__thumbs" id="lightbox-thumbs"></div>
-      <div class="lightbox__compra" id="lightbox-compra">
-        <div class="lightbox__precio-wrap">
-          <span class="lightbox__precio" id="lightbox-precio"></span>
-          <span class="lightbox__precio-anterior" id="lightbox-precio-anterior"></span>
+
+      <div class="producto-pagina__galeria">
+        <span class="producto-pagina__badge" id="pp-badge"></span>
+        <button class="producto-pagina__nav producto-pagina__nav--prev" id="pp-prev" aria-label="Foto anterior">‹</button>
+        <div class="producto-pagina__img-wrap" id="pp-media-wrap">
+          <img class="producto-pagina__img" id="pp-img" src="" alt="" />
         </div>
-        <p class="lightbox__stock-nota" id="lightbox-stock-nota"></p>
-        <button class="btn btn--primary lightbox__btn-comprar" id="lightbox-btn-comprar">Lo quiero ya</button>
+        <button class="producto-pagina__nav producto-pagina__nav--next" id="pp-next" aria-label="Foto siguiente">›</button>
+      </div>
+      <p class="producto-pagina__contador" id="pp-contador"></p>
+      <div class="producto-pagina__thumbs" id="pp-thumbs"></div>
+
+      <div class="producto-pagina__info">
+        <h2 class="producto-pagina__nombre" id="pp-nombre"></h2>
+        <div class="producto-pagina__precio-wrap">
+          <span class="producto-pagina__precio" id="pp-precio"></span>
+          <span class="producto-pagina__precio-anterior" id="pp-precio-anterior"></span>
+          <span class="producto-pagina__descuento" id="pp-descuento"></span>
+        </div>
+        <p class="producto-pagina__stock-nota" id="pp-stock-nota"></p>
+        <p class="producto-pagina__desc" id="pp-desc"></p>
+        <div class="producto-pagina__acciones">
+          <button class="btn btn--primary" id="pp-btn-comprar">Lo quiero ya</button>
+          <button class="btn btn--ghost" id="pp-btn-carrito">+ Carrito</button>
+        </div>
+      </div>
+
+      <div class="producto-pagina__resenas" id="pp-resenas" hidden>
+        <h3>Lo que dicen las clientas</h3>
+        <div class="resenas__grid" id="pp-resenas-grid"></div>
       </div>
     </div>
   </div>

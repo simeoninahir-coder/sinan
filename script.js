@@ -1,4 +1,4 @@
-﻿/* SINAN — Lógica de la web (v3: galería + lightbox + carrito + WhatsApp + reseñas + Brevo) */
+﻿/* SINAN — Lógica de la web (v4: página de producto + carrito + WhatsApp + reseñas + Brevo) */
 (function () {
   'use strict';
 
@@ -12,7 +12,7 @@
   var DATA = null;
   var categoriaActiva = 'todas';
   var carrito = [];
-  var lightboxState = { producto: null, idx: 0 };
+  var productoPaginaState = { producto: null, idx: 0 };
 
   function cargarCarrito() {
     try { carrito = JSON.parse(localStorage.getItem('sinan_carrito') || '[]'); }
@@ -50,9 +50,10 @@
     activarMobileMenu();
     activarNewsletter();
     activarCarrito();
-    activarLightbox();
+    activarProductoPagina();
     activarPromoBar();
     activarAnimacionesScroll();
+    abrirProductoPaginaDesdeHash();
   }
 
   // ===== DESTACADOS =====
@@ -105,8 +106,8 @@
       if (pocoStock) stockNota = '<p class="producto-card__stock-nota">Solo ' + (stock === 1 ? 'queda 1' : 'quedan ' + stock) + '</p>';
       else if (proximamente) stockNota = '<p class="producto-card__stock-nota producto-card__stock-nota--proximamente">Proximamente</p>';
       else if (agotado) stockNota = '<p class="producto-card__stock-nota producto-card__stock-nota--agotado">Sin stock por ahora</p>';
-      return '<article class="producto-card">' +
-        '<div class="producto-card__img" data-lightbox="' + escapeHtml(p.id) + '">' + imgHtml + placeholder + badge + multiBadge + '</div>' +
+      return '<article class="producto-card" data-producto="' + escapeHtml(p.id) + '">' +
+        '<div class="producto-card__img">' + imgHtml + placeholder + badge + multiBadge + '</div>' +
         '<div class="producto-card__body">' +
         '<h3 class="producto-card__nombre">' + escapeHtml(p.nombre) + '</h3>' +
         '<p class="producto-card__desc">' + escapeHtml(p.descripcion || '') + '</p>' +
@@ -119,9 +120,11 @@
             '<button class="producto-card__btn producto-card__btn--ghost" data-sumar="' + escapeHtml(p.id) + '">+ Carrito</button>'
         ) + '</div></div></article>';
     }).join('');
-    $$('[data-comprar]', grid).forEach(function (b) { b.addEventListener('click', function () { comprarAhora(b.dataset.comprar); }); });
-    $$('[data-sumar]', grid).forEach(function (b) { b.addEventListener('click', function () { sumarAlCarrito(b.dataset.sumar, b); }); });
-    $$('[data-lightbox]', grid).forEach(function (i) { i.addEventListener('click', function () { abrirLightbox(i.dataset.lightbox, 0); }); });
+    $$('[data-comprar]', grid).forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); comprarAhora(b.dataset.comprar); }); });
+    $$('[data-sumar]', grid).forEach(function (b) { b.addEventListener('click', function (e) { e.stopPropagation(); sumarAlCarrito(b.dataset.sumar, b); }); });
+    $$('[data-producto]', grid).forEach(function (card) {
+      card.addEventListener('click', function () { abrirProductoPagina(card.dataset.producto); });
+    });
   }
 
   // ===== PROMO BAR (banner top con código 10% off) =====
@@ -307,8 +310,8 @@
         ? '<span class="producto-card__descuento-pct">-' + Math.round((1 - p.precio / p.precioAnterior) * 100) + '%</span>'
         : '';
 
-      return '<article class="producto-card fade-in">' +
-        '<div class="producto-card__img" data-lightbox="' + escapeHtml(p.id) + '">' +
+      return '<article class="producto-card fade-in" data-producto="' + escapeHtml(p.id) + '">' +
+        '<div class="producto-card__img">' +
           imgHtml + placeholder + badge + multiBadge + zoomHint +
         '</div>' +
         '<div class="producto-card__body">' +
@@ -331,101 +334,149 @@
     }).join('');
 
     $$('[data-comprar]', grid).forEach(function (btn) {
-      btn.addEventListener('click', function () { comprarAhora(btn.dataset.comprar); });
+      btn.addEventListener('click', function (e) { e.stopPropagation(); comprarAhora(btn.dataset.comprar); });
     });
     $$('[data-sumar]', grid).forEach(function (btn) {
-      btn.addEventListener('click', function () { sumarAlCarrito(btn.dataset.sumar, btn); });
+      btn.addEventListener('click', function (e) { e.stopPropagation(); sumarAlCarrito(btn.dataset.sumar, btn); });
     });
-    $$('[data-lightbox]', grid).forEach(function (img) {
-      img.addEventListener('click', function () { abrirLightbox(img.dataset.lightbox, 0); });
+    $$('[data-producto]', grid).forEach(function (card) {
+      card.addEventListener('click', function () { abrirProductoPagina(card.dataset.producto); });
     });
 
     activarAnimacionesScroll();
   }
 
   // ===== LIGHTBOX (fotos + videos) =====
-  function abrirLightbox(productoId, idx) {
+  function abrirProductoPagina(productoId, opts) {
     var p = DATA.productos.find(function (x) { return x.id === productoId; });
     if (!p) return;
-    var media = mediaProducto(p);
-    if (!media.length) return;
-    lightboxState.producto = p;
-    lightboxState.idx = idx || 0;
-    renderLightbox();
-    var modal = $('#lightbox-modal');
+    opts = opts || {};
+    productoPaginaState.producto = p;
+    productoPaginaState.idx = 0;
+    renderProductoPagina();
+    var modal = $('#producto-pagina');
     if (modal) {
       modal.classList.add('open');
+      modal.scrollTop = 0;
       document.body.style.overflow = 'hidden';
+    }
+    if (!opts.skipPush) {
+      try { history.pushState({ producto: productoId }, '', '#producto/' + productoId); } catch (_) {}
     }
   }
 
-  function cerrarLightbox() {
-    var modal = $('#lightbox-modal');
+  function cerrarProductoPaginaUI() {
+    var modal = $('#producto-pagina');
     if (modal) modal.classList.remove('open');
     document.body.style.overflow = '';
-    // Pausar cualquier video activo
-    var v = $('#lightbox-modal video');
+    var v = $('#producto-pagina video');
     if (v) { try { v.pause(); } catch (_) {} }
-    lightboxState.producto = null;
+    productoPaginaState.producto = null;
   }
 
-  function navegarLightbox(delta) {
-    if (!lightboxState.producto) return;
-    var media = mediaProducto(lightboxState.producto);
+  function cerrarProductoPagina() {
+    if (history.state && history.state.producto) {
+      history.back();
+    } else {
+      cerrarProductoPaginaUI();
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (_) {}
+    }
+  }
+
+  function abrirProductoPaginaDesdeHash() {
+    var m = /^#producto\/(.+)$/.exec(location.hash);
+    if (m) abrirProductoPagina(decodeURIComponent(m[1]), { skipPush: true });
+  }
+
+  window.addEventListener('popstate', function () {
+    var m = /^#producto\/(.+)$/.exec(location.hash);
+    if (m) abrirProductoPagina(decodeURIComponent(m[1]), { skipPush: true });
+    else cerrarProductoPaginaUI();
+  });
+
+  function navegarProductoPaginaFoto(delta) {
+    if (!productoPaginaState.producto) return;
+    var media = mediaProducto(productoPaginaState.producto);
     if (!media.length) return;
-    lightboxState.idx = (lightboxState.idx + delta + media.length) % media.length;
-    renderLightbox();
+    productoPaginaState.idx = (productoPaginaState.idx + delta + media.length) % media.length;
+    renderProductoPagina();
   }
 
-  function renderLightbox() {
-    var p = lightboxState.producto;
+  // Reseñas relacionadas a la categoría del producto (sin inventar nada: solo si hay match real)
+  function resenasParaProducto(p) {
+    if (!DATA.resenas || !DATA.resenas.length || !DATA.categorias) return [];
+    var cat = DATA.categorias.find(function (c) { return c.id === p.categoria; });
+    var catNombre = cat ? cat.nombre.toLowerCase() : '';
+    return DATA.resenas.filter(function (r) {
+      if (!r.producto) return false;
+      var rp = r.producto.toLowerCase();
+      return rp === catNombre || catNombre.indexOf(rp) !== -1 || rp.indexOf(catNombre) !== -1;
+    });
+  }
+
+  function renderProductoPagina() {
+    var p = productoPaginaState.producto;
     if (!p) return;
     var media = mediaProducto(p);
-    if (!media.length) return;
 
-    var wrap = $('#lightbox-media-wrap');
-    var nombre = $('#lightbox-nombre');
-    var contador = $('#lightbox-contador');
-    var thumbs = $('#lightbox-thumbs');
-    var navPrev = $('#lightbox-prev');
-    var navNext = $('#lightbox-next');
+    var wrap = $('#pp-media-wrap');
+    var nombre = $('#pp-nombre');
+    var contador = $('#pp-contador');
+    var thumbs = $('#pp-thumbs');
+    var navPrev = $('#pp-prev');
+    var navNext = $('#pp-next');
+    var badgeEl = $('#pp-badge');
 
-    var item = media[lightboxState.idx];
-    if (wrap) {
-      // Pausar video previo si había
+    var item = media[productoPaginaState.idx];
+    if (wrap && item) {
       var prevV = wrap.querySelector('video');
       if (prevV) { try { prevV.pause(); } catch (_) {} }
       if (item.tipo === 'video') {
-        wrap.innerHTML = '<video class="lightbox__video" controls autoplay playsinline preload="metadata" src="' + escapeHtml(item.src) + '"></video>';
+        wrap.innerHTML = '<video class="producto-pagina__video" controls autoplay playsinline preload="metadata" src="' + escapeHtml(item.src) + '"></video>';
       } else {
-        wrap.innerHTML = '<img class="lightbox__img" id="lightbox-img" src="' + escapeHtml(item.src) + '" alt="' + escapeHtml(p.nombre) + '" />';
+        wrap.innerHTML = '<img class="producto-pagina__img" id="pp-img" src="' + escapeHtml(item.src) + '" alt="' + escapeHtml(p.nombre) + '" />';
       }
+    } else if (wrap) {
+      wrap.innerHTML = '';
     }
 
     if (nombre) nombre.textContent = p.nombre;
-    if (contador) {
-      contador.textContent = media.length > 1 ? (lightboxState.idx + 1) + ' / ' + media.length : '';
-    }
+    if (contador) contador.textContent = media.length > 1 ? (productoPaginaState.idx + 1) + ' / ' + media.length : '';
 
-    // Precio + stock + CTA de compra
     var stock = (typeof p.stock === 'number') ? p.stock : null;
     var agotado = stock === 0;
     var proximamente = agotado && p.proximamente === true;
     var tieneOferta = p.precioAnterior && p.precioAnterior > p.precio;
+    var esOferta = p.categoria === 'ofertas' || tieneOferta;
 
-    var precioEl = $('#lightbox-precio');
-    var precioAntEl = $('#lightbox-precio-anterior');
-    var stockNotaEl = $('#lightbox-stock-nota');
-    var btnComprar = $('#lightbox-btn-comprar');
+    if (badgeEl) {
+      badgeEl.className = 'producto-pagina__badge';
+      if (proximamente) { badgeEl.textContent = 'Proximamente'; badgeEl.classList.add('producto-pagina__badge--proximamente'); }
+      else if (agotado) { badgeEl.textContent = 'Agotado'; badgeEl.classList.add('producto-pagina__badge--agotado'); }
+      else if (p.nuevo) { badgeEl.textContent = 'Nuevo'; badgeEl.classList.add('producto-pagina__badge--nuevo'); }
+      else if (esOferta) { badgeEl.textContent = 'Oferta'; badgeEl.classList.add('producto-pagina__badge--oferta'); }
+      else if (p.destacado) { badgeEl.textContent = 'Destacado'; }
+      else { badgeEl.textContent = ''; }
+    }
+
+    var precioEl = $('#pp-precio');
+    var precioAntEl = $('#pp-precio-anterior');
+    var descuentoEl = $('#pp-descuento');
+    var stockNotaEl = $('#pp-stock-nota');
+    var descEl = $('#pp-desc');
+    var btnComprar = $('#pp-btn-comprar');
+    var btnCarrito = $('#pp-btn-carrito');
 
     if (precioEl) precioEl.textContent = formatearPrecio(p.precio);
     if (precioAntEl) precioAntEl.textContent = tieneOferta ? formatearPrecio(p.precioAnterior) : '';
+    if (descuentoEl) descuentoEl.textContent = tieneOferta ? '-' + Math.round((1 - p.precio / p.precioAnterior) * 100) + '%' : '';
+    if (descEl) descEl.textContent = p.descripcion || '';
 
     if (stockNotaEl) {
-      if (proximamente) { stockNotaEl.textContent = 'Proximamente'; stockNotaEl.hidden = false; }
-      else if (agotado) { stockNotaEl.textContent = 'Sin stock por ahora'; stockNotaEl.hidden = false; }
-      else if (stock !== null && stock > 0 && stock <= 3) { stockNotaEl.textContent = stock === 1 ? '¡Solo queda 1!' : '¡Solo quedan ' + stock + '!'; stockNotaEl.hidden = false; }
-      else { stockNotaEl.textContent = ''; stockNotaEl.hidden = true; }
+      if (proximamente) stockNotaEl.textContent = 'Proximamente';
+      else if (agotado) stockNotaEl.textContent = 'Sin stock por ahora';
+      else if (stock !== null && stock > 0 && stock <= 3) stockNotaEl.textContent = stock === 1 ? '¡Solo queda 1!' : '¡Solo quedan ' + stock + '!';
+      else stockNotaEl.textContent = '';
     }
 
     if (btnComprar) {
@@ -433,6 +484,12 @@
       btnComprar.textContent = proximamente ? 'Proximamente' : (agotado ? 'Sin stock' : 'Lo quiero ya');
       btnComprar.onclick = agotado ? null : function () { comprarAhora(p.id); };
     }
+    if (btnCarrito) {
+      btnCarrito.hidden = agotado;
+      btnCarrito.textContent = '+ Carrito';
+      btnCarrito.onclick = function () { sumarAlCarrito(p.id, btnCarrito); };
+    }
+
     var hayMultiple = media.length > 1;
     if (navPrev) navPrev.style.display = hayMultiple ? 'flex' : 'none';
     if (navNext) navNext.style.display = hayMultiple ? 'flex' : 'none';
@@ -441,41 +498,60 @@
       if (hayMultiple) {
         thumbs.innerHTML = media.map(function (m, i) {
           var inner = m.tipo === 'video'
-            ? '<div class="lightbox__thumb-video"><span>▶</span></div>'
+            ? '<div class="producto-pagina__thumb-video"><span>▶</span></div>'
             : '<img src="' + escapeHtml(m.src) + '" alt="" />';
-          return '<button class="lightbox__thumb ' + (i === lightboxState.idx ? 'active' : '') + '" data-thumb="' + i + '">' +
+          return '<button class="producto-pagina__thumb ' + (i === productoPaginaState.idx ? 'active' : '') + '" data-thumb="' + i + '">' +
             inner +
             '</button>';
         }).join('');
         $$('[data-thumb]', thumbs).forEach(function (b) {
           b.addEventListener('click', function () {
-            lightboxState.idx = parseInt(b.dataset.thumb, 10);
-            renderLightbox();
+            productoPaginaState.idx = parseInt(b.dataset.thumb, 10);
+            renderProductoPagina();
           });
         });
       } else {
         thumbs.innerHTML = '';
       }
     }
+
+    // Reseñas relacionadas (solo si hay match real, nunca inventadas)
+    var resenasWrap = $('#pp-resenas');
+    var resenasGrid = $('#pp-resenas-grid');
+    if (resenasWrap && resenasGrid) {
+      var relacionadas = resenasParaProducto(p);
+      if (relacionadas.length) {
+        resenasWrap.hidden = false;
+        resenasGrid.innerHTML = relacionadas.map(function (r) {
+          var estrellas = '';
+          for (var i = 1; i <= 5; i++) estrellas += '<span class="estrella ' + (i <= r.estrellas ? 'on' : '') + '">★</span>';
+          return '<article class="resena">' +
+            '<div class="resena__estrellas">' + estrellas + '</div>' +
+            '<p class="resena__texto">"' + escapeHtml(r.texto) + '"</p>' +
+            '<p class="resena__autor">— ' + escapeHtml(r.autor) + '</p>' +
+          '</article>';
+        }).join('');
+      } else {
+        resenasWrap.hidden = true;
+        resenasGrid.innerHTML = '';
+      }
+    }
   }
 
-  function activarLightbox() {
-    var modal = $('#lightbox-modal');
+  function activarProductoPagina() {
+    var modal = $('#producto-pagina');
     if (!modal) return;
-    var cerrar = $('#lightbox-cerrar');
-    var prev = $('#lightbox-prev');
-    var next = $('#lightbox-next');
-    if (cerrar) cerrar.addEventListener('click', cerrarLightbox);
-    if (prev) prev.addEventListener('click', function () { navegarLightbox(-1); });
-    if (next) next.addEventListener('click', function () { navegarLightbox(1); });
-    modal.addEventListener('click', function (e) {
-      if (e.target === modal) cerrarLightbox();
-    });
+    var cerrar = $('#pp-cerrar');
+    var prev = $('#pp-prev');
+    var next = $('#pp-next');
+    if (cerrar) cerrar.addEventListener('click', cerrarProductoPagina);
+    if (prev) prev.addEventListener('click', function () { navegarProductoPaginaFoto(-1); });
+    if (next) next.addEventListener('click', function () { navegarProductoPaginaFoto(1); });
     document.addEventListener('keydown', function (e) {
       if (!modal.classList.contains('open')) return;
-      if (e.key === 'Escape') cerrarLightbox();
-      else if (e.key === 'ArrowLeft') navegarLightbox(-1);
-      else if (e.key === 'ArrowRight') navegarLightbox(1);
+      if (e.key === 'Escape') cerrarProductoPagina();
+      else if (e.key === 'ArrowLeft') navegarProductoPaginaFoto(-1);
+      else if (e.key === 'ArrowRight') navegarProductoPaginaFoto(1);
     });
   }
 
