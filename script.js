@@ -368,6 +368,7 @@
   function cerrarProductoPaginaUI() {
     var modal = $('#producto-pagina');
     if (modal) modal.classList.remove('open');
+    cerrarZoomFoto();
     document.body.style.overflow = '';
     var v = $('#producto-pagina video');
     if (v) { try { v.pause(); } catch (_) {} }
@@ -400,6 +401,29 @@
     if (!media.length) return;
     productoPaginaState.idx = (productoPaginaState.idx + delta + media.length) % media.length;
     renderProductoPagina();
+  }
+
+  // ===== ZOOM de foto (pantalla completa) =====
+  function abrirZoomFoto() {
+    if (!productoPaginaState.producto) return;
+    var media = mediaProducto(productoPaginaState.producto);
+    var item = media[productoPaginaState.idx];
+    if (!item || item.tipo === 'video') return;
+    var img = $('#pp-zoom-img');
+    if (img) img.src = item.src;
+    var zoom = $('#pp-zoom');
+    if (zoom) zoom.classList.add('open');
+  }
+  function cerrarZoomFoto() {
+    var zoom = $('#pp-zoom');
+    if (zoom) zoom.classList.remove('open');
+  }
+  function navegarZoomFoto(delta) {
+    navegarProductoPaginaFoto(delta);
+    var media = mediaProducto(productoPaginaState.producto);
+    var item = media[productoPaginaState.idx];
+    var img = $('#pp-zoom-img');
+    if (img && item && item.tipo !== 'video') img.src = item.src;
   }
 
   // Reseñas relacionadas a la categoría del producto (sin inventar nada: solo si hay match real)
@@ -544,10 +568,27 @@
     var cerrar = $('#pp-cerrar');
     var prev = $('#pp-prev');
     var next = $('#pp-next');
+    var mediaWrap = $('#pp-media-wrap');
     if (cerrar) cerrar.addEventListener('click', cerrarProductoPagina);
     if (prev) prev.addEventListener('click', function () { navegarProductoPaginaFoto(-1); });
     if (next) next.addEventListener('click', function () { navegarProductoPaginaFoto(1); });
+    if (mediaWrap) mediaWrap.addEventListener('click', abrirZoomFoto);
+
+    var zoom = $('#pp-zoom');
+    var zoomCerrar = $('#pp-zoom-cerrar');
+    var zoomPrev = $('#pp-zoom-prev');
+    var zoomNext = $('#pp-zoom-next');
+    if (zoomCerrar) zoomCerrar.addEventListener('click', cerrarZoomFoto);
+    if (zoomPrev) zoomPrev.addEventListener('click', function () { navegarZoomFoto(-1); });
+    if (zoomNext) zoomNext.addEventListener('click', function () { navegarZoomFoto(1); });
+
     document.addEventListener('keydown', function (e) {
+      if (zoom && zoom.classList.contains('open')) {
+        if (e.key === 'Escape') cerrarZoomFoto();
+        else if (e.key === 'ArrowLeft') navegarZoomFoto(-1);
+        else if (e.key === 'ArrowRight') navegarZoomFoto(1);
+        return;
+      }
       if (!modal.classList.contains('open')) return;
       if (e.key === 'Escape') cerrarProductoPagina();
       else if (e.key === 'ArrowLeft') navegarProductoPaginaFoto(-1);

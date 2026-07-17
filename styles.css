@@ -1598,18 +1598,20 @@ h1 em, h2 em, h3 em {
 
 .producto-pagina__img-wrap {
   width: 100%;
-  aspect-ratio: 1;
+  max-height: 62vh;
+  min-height: 260px;
   border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--color-celeste-bg);
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: zoom-in;
 }
 .producto-pagina__img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   animation: zoomIn 0.25s ease;
 }
 @keyframes zoomIn {
@@ -1747,6 +1749,69 @@ h1 em, h2 em, h3 em {
   .producto-pagina__scroll { padding: 0 20px 48px; }
   .producto-pagina__nombre { font-size: 1.4rem; }
   .producto-pagina__acciones { flex-direction: column; }
+}
+
+/* Zoom de foto a pantalla completa, lanzado desde la pagina de producto */
+.pp-zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 260;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 16, 24, 0.92);
+}
+.pp-zoom.open {
+  display: flex;
+  animation: fadeIn 0.2s ease;
+}
+.pp-zoom__img {
+  max-width: 92vw;
+  max-height: 92vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.pp-zoom__cerrar {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.95);
+  color: var(--color-texto);
+  font-size: 1.6rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+}
+.pp-zoom__nav {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.92);
+  color: var(--color-texto);
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+}
+.pp-zoom__nav--prev { left: 16px; }
+.pp-zoom__nav--next { right: 16px; }
+
+@media (max-width: 768px) {
+  .pp-zoom__nav--prev { left: 8px; }
+  .pp-zoom__nav--next { right: 8px; }
 }
 
 /* Mini-galería en producto-card (thumbs debajo de la foto principal) */
@@ -2055,7 +2120,7 @@ h1 em, h2 em, h3 em {
 .producto-pagina__video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   background: #000;
   outline: none;
 }
