@@ -188,7 +188,6 @@ window.SINAN_DATA = {
       nombre: 'Medias Offline',
       categoria: 'medias',
       precio: 4000,
-      destacado: true,
       descripcion: 'Diseno minimalista blanco con detalle lavanda y OFFLINE en la cana. Hipoalergenicas y suaves.',
       stock: 1,
       imagenes: ['assets/productos/medias-offline-1.jpg', 'assets/productos/medias-offline-2.jpg']
@@ -217,10 +216,41 @@ window.SINAN_DATA = {
       nombre: 'Bolso Rufina',
       categoria: 'bolsos',
       precio: 37500,
+      destacado: true,
       descripcion: 'De regalo, una media Sinan. Bolso deportivo de nylon resistente, 32 litros (50x28x23 cm), tres compartimentos internos, correa ajustable y desmontable, plegable. Violeta liso.',
       stock: 2,
       nuevo: true,
       imagenes: ['assets/productos/bolso-rufina-1.jpg', 'assets/productos/bolso-rufina-2.jpg', 'assets/productos/bolso-rufina-3.jpg', 'assets/productos/bolso-rufina-4.jpg', 'assets/productos/bolso-rufina-5.jpg']
+    },
+    {
+      id: 'neceser-rosita',
+      nombre: 'Neceser (Rosita)',
+      categoria: 'accesorios',
+      precio: 15500,
+      nuevo: true,
+      descripcion: 'Neceser super practicos e infaltables 3 en 1. Confeccionado en poliester y PVC super resistente, es compacto, seguro e ideal para mantener tus cosas todas ordenadas en tus viajes o en el dia a dia. Ideal tambien para regalar!',
+      stock: 1,
+      imagenes: ['assets/productos/neceser-rosita-1.jpg', 'assets/productos/neceser-rosita-2.jpg', 'assets/productos/neceser-rosita-3.jpg']
+    },
+    {
+      id: 'neceser-celeste',
+      nombre: 'Neceser (Celeste)',
+      categoria: 'accesorios',
+      precio: 15500,
+      nuevo: true,
+      descripcion: 'Neceser super practicos e infaltables 3 en 1. Confeccionado en poliester y PVC super resistente, es compacto, seguro e ideal para mantener tus cosas todas ordenadas en tus viajes o en el dia a dia. Ideal tambien para regalar!',
+      stock: 1,
+      imagenes: ['assets/productos/neceser-celeste-1.jpg', 'assets/productos/neceser-celeste-2.jpg', 'assets/productos/neceser-celeste-3.jpg']
+    },
+    {
+      id: 'neceser-negro',
+      nombre: 'Neceser (Negro)',
+      categoria: 'accesorios',
+      precio: 15500,
+      nuevo: true,
+      descripcion: 'Neceser super practicos e infaltables 3 en 1. Confeccionado en poliester y PVC super resistente, es compacto, seguro e ideal para mantener tus cosas todas ordenadas en tus viajes o en el dia a dia. Ideal tambien para regalar!',
+      stock: 2,
+      imagenes: ['assets/productos/neceser-negro-1.jpg', 'assets/productos/neceser-negro-2.jpg', 'assets/productos/neceser-negro-3.jpg']
     }
   ]
 };
