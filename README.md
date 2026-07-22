@@ -39,9 +39,6 @@ En el array `resenas:`, sumá un objeto:
 }
 ```
 
-### Cambiar el código de descuento
-En `marca:`, cambiá `codigoBienvenida: 'BIENVENIDA10'` por el que vos quieras.
-
 ---
 
 ## 📧 Conectar Brevo (newsletter te llega a vos)
@@ -112,7 +109,7 @@ Sinan-Web/
 - ✓ Compra por WhatsApp con mensaje pre-armado (cero comisiones)
 - ✓ Mini-carrito multi-producto que arma un solo mensaje
 - ✓ Sección de reseñas con estrellas
-- ✓ Newsletter listo para conectar Brevo (10% off automático)
+- ✓ Newsletter listo para conectar Brevo
 - ✓ Botón flotante WhatsApp para consultas
 - ✓ Mobile responsive
 - ✓ Headers de seguridad (CSP, nosniff, referrer policy)

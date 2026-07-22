@@ -51,7 +51,6 @@
     activarNewsletter();
     activarCarrito();
     activarProductoPagina();
-    activarPromoBar();
     activarAnimacionesScroll();
     abrirProductoPaginaDesdeHash();
   }
@@ -125,27 +124,6 @@
     $$('[data-producto]', grid).forEach(function (card) {
       card.addEventListener('click', function () { abrirProductoPagina(card.dataset.producto); });
     });
-  }
-
-  // ===== PROMO BAR (banner top con código 10% off) =====
-  var PROMO_OCULTA_MS = 48 * 60 * 60 * 1000; // 48 horas
-
-  function activarPromoBar() {
-    var bar = document.getElementById('promo-bar');
-    var close = document.getElementById('promo-bar-close');
-    if (!bar) return;
-    try {
-      var cerradaEn = parseInt(localStorage.getItem('sinan_promo_closed_at') || '0', 10);
-      if (cerradaEn && (Date.now() - cerradaEn) < PROMO_OCULTA_MS) {
-        bar.style.display = 'none';
-      }
-    } catch (_) {}
-    if (close) {
-      close.addEventListener('click', function () {
-        bar.style.display = 'none';
-        try { localStorage.setItem('sinan_promo_closed_at', String(Date.now())); } catch (_) {}
-      });
-    }
   }
 
   // ===== Helper para media del producto (fotos + videos) =====
@@ -828,8 +806,7 @@
     });
   }
   function mostrarMsgExito(msg) {
-    var codigo = (DATA.marca && DATA.marca.codigoBienvenida) || 'BIENVENIDA10';
-    msg.innerHTML = '<strong>¡Bienvenida! 💙</strong><br/>Tu código es <span class="newsletter__codigo">' + codigo + '</span><br/>Mencionalo cuando me escribas por WhatsApp y te aplico el 10% de descuento.';
+    msg.innerHTML = '<strong>¡Bienvenida! 💙</strong><br/>Ya te sumaste a la lista, te voy a avisar de las novedades.';
     msg.dataset.status = 'success';
   }
 

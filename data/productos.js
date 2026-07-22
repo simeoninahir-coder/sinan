@@ -12,8 +12,7 @@ window.SINAN_DATA = {
     tiendanube: 'https://sinan.mitiendanube.com',
     whatsapp: '5491126724433',
     email: 'hola@sinan.com.ar',
-    ciudad: 'Argentina',
-    codigoBienvenida: 'BIENVENIDA10'
+    ciudad: 'Argentina'
   },
 
   config: {
@@ -219,8 +218,7 @@ window.SINAN_DATA = {
       categoria: 'bolsos',
       precio: 37500,
       descripcion: 'De regalo, una media Sinan. Bolso deportivo de nylon resistente, 32 litros (50x28x23 cm), tres compartimentos internos, correa ajustable y desmontable, plegable. Violeta liso.',
-      stock: 0,
-      proximamente: true,
+      stock: 2,
       nuevo: true,
       imagenes: ['assets/productos/bolso-rufina-1.jpg', 'assets/productos/bolso-rufina-2.jpg', 'assets/productos/bolso-rufina-3.jpg', 'assets/productos/bolso-rufina-4.jpg', 'assets/productos/bolso-rufina-5.jpg']
     }
