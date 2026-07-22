@@ -1280,6 +1280,15 @@ h1 em, h2 em, h3 em {
   box-shadow: var(--shadow-md);
 }
 
+.resena__foto {
+  display: block;
+  width: calc(100% + 48px);
+  max-height: 220px;
+  object-fit: cover;
+  margin: -28px -24px 16px;
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+}
+
 .resena__estrellas {
   display: flex;
   gap: 2px;
@@ -1438,6 +1447,10 @@ h1 em, h2 em, h3 em {
   }
   .resena {
     padding: 22px 18px;
+  }
+  .resena__foto {
+    width: calc(100% + 36px);
+    margin: -22px -18px 14px;
   }
   .resena__texto {
     font-size: 1rem;

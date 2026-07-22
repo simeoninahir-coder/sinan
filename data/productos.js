@@ -39,6 +39,19 @@ window.SINAN_DATA = {
       texto: 'Las medias son re comodas.',
       autor: 'Sonia M.',
       producto: 'Medias'
+    },
+    {
+      estrellas: 5,
+      texto: 'Son hermosas realmente. Hoy senti el pelo mas sedoso que nunca, la solucion de las pelos finoli jajaja',
+      autor: 'Giovanna E.',
+      producto: 'Funda de saten'
+    },
+    {
+      estrellas: 5,
+      texto: 'Gracias !! Pame esta hermoso el bolso 💗',
+      autor: 'Mariaelena G.',
+      producto: 'Bolso Cielo',
+      foto: 'assets/resenas/resena-mariaelena-bolso-cielo.jpg'
     }
   ],
 
@@ -224,7 +237,7 @@ window.SINAN_DATA = {
     },
     {
       id: 'neceser-rosita',
-      nombre: 'Neceser (Rosita)',
+      nombre: 'Neceser Lua',
       categoria: 'accesorios',
       precio: 15500,
       nuevo: true,
@@ -234,7 +247,7 @@ window.SINAN_DATA = {
     },
     {
       id: 'neceser-celeste',
-      nombre: 'Neceser (Celeste)',
+      nombre: 'Neceser Lua',
       categoria: 'accesorios',
       precio: 15500,
       nuevo: true,
@@ -244,7 +257,7 @@ window.SINAN_DATA = {
     },
     {
       id: 'neceser-negro',
-      nombre: 'Neceser (Negro)',
+      nombre: 'Neceser Lua',
       categoria: 'accesorios',
       precio: 15500,
       nuevo: true,

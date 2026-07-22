@@ -404,14 +404,16 @@
     if (img && item && item.tipo !== 'video') img.src = item.src;
   }
 
-  // Reseñas relacionadas a la categoría del producto (sin inventar nada: solo si hay match real)
+  // Reseñas relacionadas al producto (por nombre exacto, o si no, por categoría) — sin inventar nada, solo si hay match real
   function resenasParaProducto(p) {
-    if (!DATA.resenas || !DATA.resenas.length || !DATA.categorias) return [];
-    var cat = DATA.categorias.find(function (c) { return c.id === p.categoria; });
+    if (!DATA.resenas || !DATA.resenas.length) return [];
+    var nombreProducto = (p.nombre || '').toLowerCase();
+    var cat = DATA.categorias ? DATA.categorias.find(function (c) { return c.id === p.categoria; }) : null;
     var catNombre = cat ? cat.nombre.toLowerCase() : '';
     return DATA.resenas.filter(function (r) {
       if (!r.producto) return false;
       var rp = r.producto.toLowerCase();
+      if (rp === nombreProducto) return true;
       return rp === catNombre || catNombre.indexOf(rp) !== -1 || rp.indexOf(catNombre) !== -1;
     });
   }
@@ -527,7 +529,9 @@
         resenasGrid.innerHTML = relacionadas.map(function (r) {
           var estrellas = '';
           for (var i = 1; i <= 5; i++) estrellas += '<span class="estrella ' + (i <= r.estrellas ? 'on' : '') + '">★</span>';
+          var foto = r.foto ? '<img class="resena__foto" src="' + escapeHtml(r.foto) + '" alt="Foto de ' + escapeHtml(r.autor) + '" loading="lazy" />' : '';
           return '<article class="resena">' +
+            foto +
             '<div class="resena__estrellas">' + estrellas + '</div>' +
             '<p class="resena__texto">"' + escapeHtml(r.texto) + '"</p>' +
             '<p class="resena__autor">— ' + escapeHtml(r.autor) + '</p>' +
@@ -724,7 +728,9 @@
       for (var i = 1; i <= 5; i++) {
         estrellas += '<span class="estrella ' + (i <= r.estrellas ? 'on' : '') + '">★</span>';
       }
+      var foto = r.foto ? '<img class="resena__foto" src="' + escapeHtml(r.foto) + '" alt="Foto de ' + escapeHtml(r.autor) + '" loading="lazy" />' : '';
       return '<article class="resena fade-in">' +
+        foto +
         '<div class="resena__estrellas">' + estrellas + '</div>' +
         '<p class="resena__texto">"' + escapeHtml(r.texto) + '"</p>' +
         '<p class="resena__autor">— ' + escapeHtml(r.autor) + (r.producto ? ' · <span>' + escapeHtml(r.producto) + '</span>' : '') + '</p>' +
