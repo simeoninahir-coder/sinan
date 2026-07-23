@@ -76,7 +76,9 @@
         </div>
       </div>
       <div class="hero__visual" aria-hidden="true">
-        <img src="assets/productos/hero.jpg" alt="" class="hero__photo" />
+        <div class="hero__photo-stack" id="hero-photo-stack">
+          <img src="assets/productos/hero.jpg" alt="" class="hero__photo is-active" />
+        </div>
       </div>
     </div>
     <a href="#categorias" class="hero__scroll" aria-label="Bajar a categorías">
@@ -114,7 +116,7 @@
       <header class="section-head">
         <p class="section-eyebrow">Todo lo que tengo</p>
         <h2 class="section-title">El catálogo completo</h2>
-        <p class="section-sub">Tocá un producto y te llevo a la tienda para pagarlo. Cualquier duda escribime por WhatsApp, contesto siempre.</p>
+        <p class="section-sub">Tocá un producto y agregalo al carrito. Una vez finalizada la compra te lleva al WhatsApp donde coordinamos el pago y el envío.</p>
         <p class="section-sub section-sub--confianza">Envíos dentro de mi zona (coordinamos por WhatsApp) · Cambios a coordinar caso a caso · Te respondo el mismo día</p>
       </header>
 
@@ -240,7 +242,7 @@
           <strong id="carrito-total">$0</strong>
         </div>
         <button class="btn btn--primary carrito-coordinar" id="carrito-coordinar">
-          Coordinar por WhatsApp
+          Abonar
         </button>
         <p class="carrito-nota">Te respondo al toque y coordinamos pago + envío 💙</p>
       </footer>
@@ -284,6 +286,23 @@
         <h3>Lo que dicen las clientas</h3>
         <div class="resenas__grid" id="pp-resenas-grid"></div>
       </div>
+
+      <div class="resena-form-wrap">
+        <h3>¿Ya lo compraste? Dejá tu reseña</h3>
+        <div class="resena-form" id="resena-form">
+          <div class="resena-form__estrellas" id="resena-form-estrellas" role="radiogroup" aria-label="Tu calificacion">
+            <button type="button" class="resena-form__estrella" data-star="1" aria-label="1 estrella">★</button>
+            <button type="button" class="resena-form__estrella" data-star="2" aria-label="2 estrellas">★</button>
+            <button type="button" class="resena-form__estrella" data-star="3" aria-label="3 estrellas">★</button>
+            <button type="button" class="resena-form__estrella" data-star="4" aria-label="4 estrellas">★</button>
+            <button type="button" class="resena-form__estrella" data-star="5" aria-label="5 estrellas">★</button>
+          </div>
+          <input type="text" class="resena-form__input" id="resena-form-nombre" placeholder="Tu nombre" maxlength="40" />
+          <textarea class="resena-form__textarea" id="resena-form-texto" placeholder="Contanos que te parecio" maxlength="300" rows="3"></textarea>
+          <button type="button" class="btn btn--ghost resena-form__enviar" id="resena-form-enviar">Enviar por WhatsApp</button>
+          <p class="resena-form__nota">La recibo por WhatsApp y la sumo a la pagina.</p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -297,10 +316,20 @@
 
   <!-- Botón flotante WhatsApp -->
   <a id="wa-float" class="wa-float" href="#" target="_blank" rel="noopener" aria-label="Consultar por WhatsApp" hidden>
+    <svg class="wa-float__label" viewBox="0 0 84 84" aria-hidden="true">
+      <path id="wa-label-path" d="M 10,44 A 32,32 0 0 1 74,44" fill="none" />
+      <text><textPath href="#wa-label-path" startOffset="50%" text-anchor="middle">consultas</textPath></text>
+    </svg>
     <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true">
       <path d="M20.52 3.48A11.78 11.78 0 0012.04 0C5.5 0 .2 5.3.2 11.84a11.7 11.7 0 001.62 5.95L0 24l6.36-1.78a11.83 11.83 0 005.68 1.45h.01c6.54 0 11.84-5.3 11.84-11.84 0-3.16-1.23-6.13-3.37-8.35zM12.05 21.5h-.01a9.66 9.66 0 01-4.92-1.35l-.35-.21-3.78 1.06 1.08-3.69-.23-.38a9.65 9.65 0 01-1.48-5.1c0-5.34 4.34-9.68 9.69-9.68 2.59 0 5.02 1.01 6.85 2.84a9.62 9.62 0 012.84 6.85c0 5.34-4.34 9.68-9.69 9.68zm5.31-7.25c-.29-.15-1.72-.85-1.99-.95-.27-.1-.46-.15-.66.15-.2.29-.76.95-.93 1.14-.17.2-.34.22-.63.07-.29-.15-1.22-.45-2.33-1.43-.86-.77-1.44-1.72-1.61-2.01-.17-.29-.02-.45.13-.6.13-.13.29-.34.44-.51.15-.17.2-.29.29-.49.1-.2.05-.37-.02-.51-.07-.15-.66-1.59-.9-2.18-.24-.57-.48-.49-.66-.5-.17-.01-.37-.01-.57-.01-.2 0-.51.07-.78.37-.27.29-1.02 1-1.02 2.43 0 1.43 1.05 2.82 1.2 3.02.15.2 2.07 3.16 5.02 4.43.7.3 1.25.48 1.67.62.7.22 1.34.19 1.84.12.56-.08 1.72-.7 1.96-1.38.24-.68.24-1.27.17-1.38-.07-.12-.27-.2-.56-.34z"/>
     </svg>
   </a>
+
+  <!-- ZOOM de foto de resena (tamano completo) -->
+  <div class="resena-zoom" id="resena-zoom">
+    <button class="resena-zoom__cerrar" id="resena-zoom-cerrar" aria-label="Cerrar">×</button>
+    <img class="resena-zoom__img" id="resena-zoom-img" src="" alt="" />
+  </div>
 
   <script src="data/productos.js"></script>
   <script src="script.js" defer></script>

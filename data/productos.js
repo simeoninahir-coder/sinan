@@ -7,12 +7,13 @@ window.SINAN_DATA = {
   marca: {
     claim: 'Movete a tu ritmo',
     subclaim: 'Accesorios que se adaptan a tu ritmo, especiales para mujeres que buscan comodidad y bienestar.',
-    historia: 'Sinan nacio porque creo que lo que llevas todos los dias te tiene que hacer sentir bien. Cada bolso, mochila o billetera lo elijo y lo armo pensandote: que sea comodo, lindo y que dure.',
+    historia: 'Sinan nació porque creo que lo que llevás todos los días te tiene que hacer sentir bien. Cada bolso, mochila o billetera lo elijo y lo armo pensándote: que sea cómodo, lindo y que dure.',
     instagram: 'https://www.instagram.com/sinan.bags/',
     tiendanube: 'https://sinan.mitiendanube.com',
     whatsapp: '5491126724433',
     email: 'hola@sinan.com.ar',
-    ciudad: 'Argentina'
+    ciudad: 'Argentina',
+    heroFotos: ['assets/productos/hero.jpg']
   },
 
   config: {
@@ -24,8 +25,8 @@ window.SINAN_DATA = {
 
   categorias: [
     { id: 'bolsos',     nombre: 'Bolsos',     descripcion: 'Para llevar lo importante sin renunciar al estilo.' },
-    { id: 'mochilas',   nombre: 'Mochilas',   descripcion: 'Comodas, organizadas, listas para tu dia.' },
-    { id: 'carteras',   nombre: 'Carteras',   descripcion: 'Companeras de salidas, citas y momentos especiales.' },
+    { id: 'mochilas',   nombre: 'Mochilas',   descripcion: 'Cómodas, organizadas, listas para tu día.' },
+    { id: 'carteras',   nombre: 'Carteras',   descripcion: 'Compañeras de salidas, citas y momentos especiales.' },
     { id: 'billeteras', nombre: 'Billeteras', descripcion: 'Lo justo y necesario, siempre a mano.' },
     { id: 'llaveros',   nombre: 'Llaveros',   descripcion: 'Detalles que hacen la diferencia.' },
     { id: 'accesorios', nombre: 'Accesorios', descripcion: 'Esos toques especiales para vos o para regalar.' },
@@ -36,22 +37,34 @@ window.SINAN_DATA = {
   resenas: [
     {
       estrellas: 5,
-      texto: 'Las medias son re comodas.',
+      texto: 'Las medias son re cómodas.',
       autor: 'Sonia M.',
       producto: 'Medias'
     },
     {
       estrellas: 5,
-      texto: 'Son hermosas realmente. Hoy senti el pelo mas sedoso que nunca, la solucion de las pelos finoli jajaja',
-      autor: 'Giovanna E.',
-      producto: 'Funda de saten'
+      texto: 'Muy lindas las medias, linda calidad.',
+      autor: 'Cecilia S.',
+      producto: 'Medias'
     },
     {
       estrellas: 5,
-      texto: 'Gracias !! Pame esta hermoso el bolso 💗',
+      texto: 'Son hermosas realmente. Hoy sentí el pelo más sedoso que nunca, la solución de las pelo finoli jajaja',
+      autor: 'Giovanna E.',
+      producto: 'Funda de satén'
+    },
+    {
+      estrellas: 5,
+      texto: 'Gracias !! Pame está hermoso el bolso 💗',
       autor: 'Mariaelena G.',
       producto: 'Bolso Cielo',
       foto: 'assets/resenas/resena-mariaelena-bolso-cielo.jpg'
+    },
+    {
+      estrellas: 5,
+      texto: 'Mi mejor amiga me regaló una mochila de Sinan y la uso para el trabajo, la amooo',
+      autor: 'Dai F.',
+      producto: 'Mochila Zafira'
     }
   ],
 
@@ -62,7 +75,7 @@ window.SINAN_DATA = {
       categoria: 'billeteras',
       precio: 14500,
       destacado: true,
-      descripcion: 'De material sintetico resistente, con un diseno moderno en relieve. Compacta, practica y con todo organizado para tu dia.',
+      descripcion: 'De material sintético resistente, con un diseño moderno en relieve. Compacta, práctica y con todo organizado para tu día.',
       stock: 2,
       imagenes: ['assets/productos/billetera-kaira-1.jpg']
     },
@@ -71,7 +84,7 @@ window.SINAN_DATA = {
       nombre: 'Billetera Kira',
       categoria: 'billeteras',
       precio: 14500,
-      descripcion: 'Nylon resistente y super liviana. Chiquita, comoda y perfecta para el dia a dia.',
+      descripcion: 'Nylon resistente y súper liviana. Chiquita, cómoda y perfecta para el día a día.',
       stock: 2,
       imagenes: ['assets/productos/billetera-kira-1.jpg', 'assets/productos/billetera-kira-2.jpg', 'assets/productos/billetera-kira-3.jpg']
     },
@@ -99,7 +112,7 @@ window.SINAN_DATA = {
       nombre: 'Tote Bag Cherry',
       categoria: 'bolsos',
       precio: 8300,
-      descripcion: 'Lienzo natural con estampa You are a cherry on top. Ideal para llevar lo del dia con onda y fresca.',
+      descripcion: 'Lienzo natural con estampa You are a cherry on top. Ideal para llevar lo del día con onda y fresca.',
       stock: 3,
       imagenes: ['assets/productos/tote-bag-cherry.jpg']
     },
@@ -109,7 +122,7 @@ window.SINAN_DATA = {
       categoria: 'mochilas',
       precio: 30000,
       destacado: true,
-      descripcion: 'Tela de avion ultra liviana. Bolsillo interno, externo con cierre y laterales. Simple, comoda y lista para moverte.',
+      descripcion: 'Tela de avión ultra liviana. Bolsillo interno, externo con cierre y laterales. Simple, cómoda y lista para moverte.',
       stock: 1,
       imagenes: ['assets/productos/mochila-zafira-1.jpg', 'assets/productos/mochila-zafira-2.jpg', 'assets/productos/mochila-zafira-3.jpg']
     },
@@ -156,7 +169,7 @@ window.SINAN_DATA = {
       categoria: 'ofertas',
       precio: 24000,
       precioAnterior: 25900,
-      descripcion: 'Diseno con hebilla desmontable, forrada en su interior, ideal para levantar cualquier look.',
+      descripcion: 'Diseño con hebilla desmontable, forrada en su interior, ideal para levantar cualquier look.',
       stock: 2,
       imagenes: ['assets/productos/mini-bag-lucy-1.jpg', 'assets/productos/mini-bag-lucy-2.jpg']
     },
@@ -174,7 +187,7 @@ window.SINAN_DATA = {
       nombre: 'Llavero Lua',
       categoria: 'llaveros',
       precio: 5600,
-      descripcion: 'Disponible en negro y rosa. Pequenito y con onda.',
+      descripcion: 'Disponible en negro y rosa. Pequeñito y con onda.',
       stock: 2,
       imagenes: ['assets/productos/llavero-lua-1.jpg', 'assets/productos/llavero-lua-2.jpg', 'assets/productos/llavero-lua-3.jpg', 'assets/productos/llavero-lua-4.jpg']
     },
@@ -189,10 +202,10 @@ window.SINAN_DATA = {
     },
     {
       id: 'funda-de-saten',
-      nombre: 'Funda de saten',
+      nombre: 'Funda de satén',
       categoria: 'accesorios',
       precio: 8000,
-      descripcion: 'Cuida tu pelo y piel mientras dormis. Reduce el frizz, evita marcas y mantiene la hidratacion.',
+      descripcion: 'Cuida tu pelo y piel mientras dormís. Reduce el frizz, evita marcas y mantiene la hidratación.',
       stock: 1,
       imagenes: ['assets/productos/funda-saten-1.jpg']
     },
@@ -201,16 +214,16 @@ window.SINAN_DATA = {
       nombre: 'Medias Offline',
       categoria: 'medias',
       precio: 4000,
-      descripcion: 'Diseno minimalista blanco con detalle lavanda y OFFLINE en la cana. Hipoalergenicas y suaves.',
+      descripcion: 'Diseño minimalista blanco con detalle lavanda y OFFLINE en la caña. Hipoalergénicas y suaves.',
       stock: 1,
       imagenes: ['assets/productos/medias-offline-1.jpg', 'assets/productos/medias-offline-2.jpg']
     },
     {
       id: 'medias-osito-corazon',
-      nombre: 'Medias Osito Corazon',
+      nombre: 'Medias Osito Corazón',
       categoria: 'medias',
       precio: 4000,
-      descripcion: 'Rosa pastel con osito en corazon fucsia. Tercio de cana reforzado, suaves y con onda tierna.',
+      descripcion: 'Rosa pastel con osito en corazón fucsia. Tercio de caña reforzado, suaves y con onda tierna.',
       stock: 1,
       imagenes: ['assets/productos/medias-osito-corazon-1.jpg', 'assets/productos/medias-osito-corazon-2.jpg']
     },
@@ -219,7 +232,7 @@ window.SINAN_DATA = {
       nombre: 'Medias Soff',
       categoria: 'medias',
       precio: 4000,
-      descripcion: 'Suaves, hipoalergenicas y con puntera reforzada para el dia a dia. Disponibles en distintos colores con rayitas, escribinos por WhatsApp para elegir el tuyo.',
+      descripcion: 'Suaves, hipoalergénicas y con puntera reforzada para el día a día. Disponibles en distintos colores con rayitas, escribinos por WhatsApp para elegir el tuyo.',
       stock: 8,
       nuevo: true,
       imagenes: ['assets/productos/medias-soff-1.png', 'assets/productos/medias-soff-2.png', 'assets/productos/medias-soff-3.png', 'assets/productos/medias-soff-4.png', 'assets/productos/medias-soff-5.png', 'assets/productos/medias-soff-6.png', 'assets/productos/medias-soff-7.png', 'assets/productos/medias-soff-8.png']
@@ -230,7 +243,7 @@ window.SINAN_DATA = {
       categoria: 'bolsos',
       precio: 37500,
       destacado: true,
-      descripcion: 'De regalo, una media Sinan. Bolso deportivo de nylon resistente, 32 litros (50x28x23 cm), tres compartimentos internos, correa ajustable y desmontable, plegable. Violeta liso.',
+      descripcion: 'Bolso deportivo de nylon resistente, 32 litros (50x28x23 cm), tres compartimentos internos, correa ajustable y desmontable, plegable. Violeta liso. **+ una media de regalo**',
       stock: 2,
       nuevo: true,
       imagenes: ['assets/productos/bolso-rufina-1.jpg', 'assets/productos/bolso-rufina-2.jpg', 'assets/productos/bolso-rufina-3.jpg', 'assets/productos/bolso-rufina-4.jpg', 'assets/productos/bolso-rufina-5.jpg']
@@ -241,7 +254,7 @@ window.SINAN_DATA = {
       categoria: 'accesorios',
       precio: 15500,
       nuevo: true,
-      descripcion: 'Neceser super practicos e infaltables 3 en 1. Confeccionado en poliester y PVC super resistente, es compacto, seguro e ideal para mantener tus cosas todas ordenadas en tus viajes o en el dia a dia. Ideal tambien para regalar!',
+      descripcion: 'Neceser 3 en 1 en tono rosa con detalles verde menta. Confeccionado en poliéster y PVC súper resistente, compacto y seguro para llevar todo ordenado en tus viajes o en el día a día. ¡Ideal también para regalar!',
       stock: 1,
       imagenes: ['assets/productos/neceser-rosita-1.jpg', 'assets/productos/neceser-rosita-2.jpg', 'assets/productos/neceser-rosita-3.jpg']
     },
@@ -251,7 +264,7 @@ window.SINAN_DATA = {
       categoria: 'accesorios',
       precio: 15500,
       nuevo: true,
-      descripcion: 'Neceser super practicos e infaltables 3 en 1. Confeccionado en poliester y PVC super resistente, es compacto, seguro e ideal para mantener tus cosas todas ordenadas en tus viajes o en el dia a dia. Ideal tambien para regalar!',
+      descripcion: 'Neceser 3 en 1 en tono celeste con detalle lila. Confeccionado en poliéster y PVC súper resistente, compacto y seguro para llevar todo ordenado en tus viajes o en el día a día. ¡Ideal también para regalar!',
       stock: 1,
       imagenes: ['assets/productos/neceser-celeste-1.jpg', 'assets/productos/neceser-celeste-2.jpg', 'assets/productos/neceser-celeste-3.jpg']
     },
@@ -261,7 +274,7 @@ window.SINAN_DATA = {
       categoria: 'accesorios',
       precio: 15500,
       nuevo: true,
-      descripcion: 'Neceser super practicos e infaltables 3 en 1. Confeccionado en poliester y PVC super resistente, es compacto, seguro e ideal para mantener tus cosas todas ordenadas en tus viajes o en el dia a dia. Ideal tambien para regalar!',
+      descripcion: 'Neceser 3 en 1 todo en negro, súper versátil y combinable con todo. Confeccionado en poliéster y PVC súper resistente, compacto y seguro para llevar todo ordenado en tus viajes o en el día a día. ¡Ideal también para regalar!',
       stock: 2,
       imagenes: ['assets/productos/neceser-negro-1.jpg', 'assets/productos/neceser-negro-2.jpg', 'assets/productos/neceser-negro-3.jpg']
     }

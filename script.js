@@ -51,6 +51,8 @@
     activarNewsletter();
     activarCarrito();
     activarProductoPagina();
+    activarResenaZoom();
+    activarResenaForm();
     activarAnimacionesScroll();
     abrirProductoPaginaDesdeHash();
   }
@@ -109,7 +111,7 @@
         '<div class="producto-card__img">' + imgHtml + placeholder + badge + multiBadge + '</div>' +
         '<div class="producto-card__body">' +
         '<h3 class="producto-card__nombre">' + escapeHtml(p.nombre) + '</h3>' +
-        '<p class="producto-card__desc">' + escapeHtml(p.descripcion || '') + '</p>' +
+        '<p class="producto-card__desc">' + formatDescripcion(p.descripcion || '') + '</p>' +
         '<div class="producto-card__precio-wrap"><span class="producto-card__precio">' + formatearPrecio(p.precio) + '</span>' + precioAnt + descuentoPct + '</div>' +
         stockNota +
         '<div class="producto-card__acciones">' +
@@ -170,6 +172,24 @@
       waFloat.href = 'https://wa.me/' + soloDigitos(m.whatsapp) + '?text=' + msg;
       waFloat.hidden = false;
     }
+
+    activarHeroFotos(m.heroFotos);
+  }
+
+  // Alterna las fotos del hero cada 3 segundos (si hay mas de una)
+  function activarHeroFotos(fotos) {
+    var stack = $('#hero-photo-stack');
+    if (!stack || !fotos || fotos.length < 2) return;
+    stack.innerHTML = fotos.map(function (src, i) {
+      return '<img src="' + escapeHtml(src) + '" alt="" class="hero__photo' + (i === 0 ? ' is-active' : '') + '" />';
+    }).join('');
+    var imgs = $$('.hero__photo', stack);
+    var idx = 0;
+    setInterval(function () {
+      imgs[idx].classList.remove('is-active');
+      idx = (idx + 1) % imgs.length;
+      imgs[idx].classList.add('is-active');
+    }, 3000);
   }
 
   // ===== CATEGORÍAS =====
@@ -294,7 +314,7 @@
         '</div>' +
         '<div class="producto-card__body">' +
           '<h3 class="producto-card__nombre">' + escapeHtml(p.nombre) + '</h3>' +
-          '<p class="producto-card__desc">' + escapeHtml(p.descripcion || '') + '</p>' +
+          '<p class="producto-card__desc">' + formatDescripcion(p.descripcion || '') + '</p>' +
           '<div class="producto-card__precio-wrap">' +
             '<span class="producto-card__precio">' + formatearPrecio(p.precio) + '</span>' +
             precioAnt + descuentoPct +
@@ -332,6 +352,7 @@
     productoPaginaState.producto = p;
     productoPaginaState.idx = 0;
     renderProductoPagina();
+    resetResenaForm();
     var modal = $('#producto-pagina');
     if (modal) {
       modal.classList.add('open');
@@ -404,6 +425,80 @@
     if (img && item && item.tipo !== 'video') img.src = item.src;
   }
 
+  // ===== ZOOM de foto de reseña =====
+  function abrirResenaZoom(src) {
+    var img = $('#resena-zoom-img');
+    if (img) img.src = src;
+    var z = $('#resena-zoom');
+    if (z) z.classList.add('open');
+  }
+  function cerrarResenaZoom() {
+    var z = $('#resena-zoom');
+    if (z) z.classList.remove('open');
+  }
+  function activarZoomEnResenas(wrap) {
+    $$('.resena__foto', wrap).forEach(function (img) {
+      img.addEventListener('click', function () { abrirResenaZoom(img.src); });
+    });
+  }
+  function activarResenaZoom() {
+    var z = $('#resena-zoom');
+    if (!z) return;
+    var cerrar = $('#resena-zoom-cerrar');
+    if (cerrar) cerrar.addEventListener('click', cerrarResenaZoom);
+    z.addEventListener('click', function (e) { if (e.target === z) cerrarResenaZoom(); });
+    document.addEventListener('keydown', function (e) {
+      if (z.classList.contains('open') && e.key === 'Escape') cerrarResenaZoom();
+    });
+  }
+
+  // ===== Formulario para que clientas dejen su reseña (se envia por WhatsApp) =====
+  var resenaFormRating = 0;
+
+  function pintarEstrellasForm() {
+    $$('.resena-form__estrella').forEach(function (b) {
+      b.classList.toggle('on', parseInt(b.dataset.star, 10) <= resenaFormRating);
+    });
+  }
+
+  function resetResenaForm() {
+    resenaFormRating = 0;
+    pintarEstrellasForm();
+    var nombre = $('#resena-form-nombre');
+    var texto = $('#resena-form-texto');
+    if (nombre) nombre.value = '';
+    if (texto) texto.value = '';
+  }
+
+  function activarResenaForm() {
+    $$('.resena-form__estrella').forEach(function (b) {
+      b.addEventListener('click', function () {
+        resenaFormRating = parseInt(b.dataset.star, 10);
+        pintarEstrellasForm();
+      });
+    });
+    var enviar = $('#resena-form-enviar');
+    if (enviar) {
+      enviar.addEventListener('click', function () {
+        var p = productoPaginaState.producto;
+        if (!p) return;
+        var nombre = ($('#resena-form-nombre').value || '').trim();
+        var texto = ($('#resena-form-texto').value || '').trim();
+        if (!nombre || !texto || resenaFormRating === 0) {
+          alert('Completá tu nombre, un comentario y las estrellas antes de enviar.');
+          return;
+        }
+        var estrellasTxt = '⭐'.repeat(resenaFormRating);
+        var msg = '¡Hola Sinan! Quiero dejar mi reseña de ' + p.nombre + ':\n\n' +
+          estrellasTxt + '\n' +
+          'Nombre: ' + nombre + '\n' +
+          '"' + texto + '"';
+        abrirWhatsApp(msg);
+        resetResenaForm();
+      });
+    }
+  }
+
   // Reseñas relacionadas al producto (por nombre exacto, o si no, por categoría) — sin inventar nada, solo si hay match real
   function resenasParaProducto(p) {
     if (!DATA.resenas || !DATA.resenas.length) return [];
@@ -474,7 +569,7 @@
     if (precioEl) precioEl.textContent = formatearPrecio(p.precio);
     if (precioAntEl) precioAntEl.textContent = tieneOferta ? formatearPrecio(p.precioAnterior) : '';
     if (descuentoEl) descuentoEl.textContent = tieneOferta ? '-' + Math.round((1 - p.precio / p.precioAnterior) * 100) + '%' : '';
-    if (descEl) descEl.textContent = p.descripcion || '';
+    if (descEl) descEl.innerHTML = formatDescripcion(p.descripcion || '');
 
     if (stockNotaEl) {
       if (proximamente) stockNotaEl.textContent = 'Proximamente';
@@ -537,6 +632,7 @@
             '<p class="resena__autor">— ' + escapeHtml(r.autor) + '</p>' +
           '</article>';
         }).join('');
+        activarZoomEnResenas(resenasGrid);
       } else {
         resenasWrap.hidden = true;
         resenasGrid.innerHTML = '';
@@ -736,6 +832,7 @@
         '<p class="resena__autor">— ' + escapeHtml(r.autor) + (r.producto ? ' · <span>' + escapeHtml(r.producto) + '</span>' : '') + '</p>' +
       '</article>';
     }).join('');
+    activarZoomEnResenas(wrap);
   }
 
   // ===== MOBILE MENU =====
@@ -849,6 +946,10 @@
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+  // Permite **negrita** dentro de un texto ya escapado (nada mas de HTML pasa)
+  function formatDescripcion(s) {
+    return escapeHtml(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   }
   function validarEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
   function soloDigitos(s) { return String(s || '').replace(/\D/g, ''); }

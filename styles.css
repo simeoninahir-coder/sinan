@@ -908,6 +908,28 @@ h1 em, h2 em, h3 em {
   transition: var(--transition);
   animation: pulseWa 2.5s ease-in-out infinite;
 }
+
+.wa-float__label {
+  position: absolute;
+  top: -13px;
+  left: -13px;
+  width: 84px;
+  height: 84px;
+  pointer-events: none;
+  overflow: visible;
+}
+.wa-float__label text {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  fill: var(--color-texto-soft);
+  paint-order: stroke fill;
+  stroke: rgba(255, 255, 255, 0.9);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
 .wa-float:hover {
   transform: scale(1.08);
   box-shadow: 0 10px 32px rgba(37, 211, 102, 0.55);
@@ -1473,7 +1495,8 @@ h1 em, h2 em, h3 em {
     width: 52px;
     height: 52px;
   }
-  .wa-float svg { width: 24px; height: 24px; }
+  .wa-float svg:not(.wa-float__label) { width: 24px; height: 24px; }
+  .wa-float__label { top: -16px; left: -16px; }
 
   /* Carrito en la cabecera, un toque mas chico en mobile */
   .carrito-btn { width: 38px; height: 38px; }
@@ -1522,19 +1545,32 @@ h1 em, h2 em, h3 em {
    v2.2: HERO PHOTO (reemplaza el logo central)
    ============================================ */
 
-.hero__photo {
+.hero__photo-stack {
+  position: relative;
   width: 100%;
   max-width: 460px;
   aspect-ratio: 4 / 5;
-  object-fit: cover;
   border-radius: var(--radius-lg);
+  overflow: hidden;
   box-shadow:
     0 30px 60px -20px rgba(66, 121, 178, 0.35),
     0 0 0 8px rgba(255, 255, 255, 0.6);
 }
+.hero__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+.hero__photo.is-active {
+  opacity: 1;
+}
 
 @media (max-width: 768px) {
-  .hero__photo {
+  .hero__photo-stack {
     max-width: 280px;
     aspect-ratio: 1;
     margin: 0 auto;
@@ -1758,6 +1794,59 @@ h1 em, h2 em, h3 em {
   margin-bottom: 16px;
 }
 
+.resena-form-wrap {
+  margin-top: 40px;
+  padding-top: 32px;
+  border-top: 1px solid var(--color-borde);
+}
+.resena-form-wrap h3 {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  margin-bottom: 14px;
+}
+.resena-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 420px;
+}
+.resena-form__estrellas {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+.resena-form__estrella {
+  font-size: 1.6rem;
+  line-height: 1;
+  color: #DDD;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+.resena-form__estrella:hover { transform: scale(1.1); }
+.resena-form__estrella.on { color: #F4B942; }
+.resena-form__input,
+.resena-form__textarea {
+  border: 1.5px solid var(--color-borde);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  color: var(--color-texto);
+  resize: vertical;
+}
+.resena-form__input:focus,
+.resena-form__textarea:focus {
+  outline: none;
+  border-color: var(--color-azul);
+}
+.resena-form__enviar {
+  align-self: flex-start;
+}
+.resena-form__nota {
+  font-size: 0.78rem;
+  color: var(--color-texto-soft);
+}
+
 @media (max-width: 768px) {
   .producto-pagina__scroll { padding: 0 20px 48px; }
   .producto-pagina__nombre { font-size: 1.4rem; }
@@ -1825,6 +1914,50 @@ h1 em, h2 em, h3 em {
 @media (max-width: 768px) {
   .pp-zoom__nav--prev { left: 8px; }
   .pp-zoom__nav--next { right: 8px; }
+}
+
+/* Zoom de foto de resena a tamano completo */
+.resena__foto {
+  cursor: zoom-in;
+}
+.resena-zoom {
+  position: fixed;
+  inset: 0;
+  z-index: 270;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 16, 24, 0.92);
+}
+.resena-zoom.open {
+  display: flex;
+  animation: fadeIn 0.2s ease;
+}
+.resena-zoom__img {
+  max-width: 92vw;
+  max-height: 92vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.resena-zoom__cerrar {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.95);
+  color: var(--color-texto);
+  font-size: 1.6rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
 }
 
 /* Mini-galería en producto-card (thumbs debajo de la foto principal) */
