@@ -1766,6 +1766,29 @@ h1 em, h2 em, h3 em {
   margin-bottom: 16px;
 }
 .producto-pagina__stock-nota:empty { display: none; }
+
+.producto-pagina__colores {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.pp-color-swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-borde);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  padding: 0;
+}
+.pp-color-swatch:hover {
+  transform: scale(1.1);
+}
+.pp-color-swatch.active {
+  box-shadow: 0 0 0 2px var(--color-blanco), 0 0 0 4px var(--color-azul);
+}
+
 .producto-pagina__desc {
   color: var(--color-texto-soft);
   line-height: 1.7;

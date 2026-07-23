@@ -69,7 +69,11 @@ window.SINAN_DATA = {
       destacado: true,
       descripcion: 'De material sintético resistente, con un diseño moderno en relieve. Compacta, práctica y con todo organizado para tu día.',
       stock: 2,
-      imagenes: ['assets/productos/billetera-kaira-1.jpg']
+      imagenes: ['assets/productos/billetera-kaira-1.jpg'],
+      colores: [
+        { nombre: 'Negro', hex: '#1A1A1A', imagenes: ['assets/productos/billetera-kaira-1.jpg', 'assets/productos/billetera-kaira-negro-2.jpg'] },
+        { nombre: 'Celeste', hex: '#9CC9E8', imagenes: ['assets/productos/billetera-kaira-celeste-1.jpg', 'assets/productos/billetera-kaira-celeste-2.jpg'] }
+      ]
     },
     {
       id: 'billera-kira',
@@ -87,7 +91,7 @@ window.SINAN_DATA = {
       precio: 18900,
       descripcion: 'Eco cuero con cierre. Seis compartimientos para tarjetas y dos para billetes.',
       stock: 2,
-      imagenes: ['assets/productos/billetera-pocket-1.jpg', 'assets/productos/billetera-pocket-2.jpg']
+      imagenes: ['assets/productos/billetera-pocket-0.jpg', 'assets/productos/billetera-pocket-1.jpg', 'assets/productos/billetera-pocket-2.jpg']
     },
     {
       id: 'bolso-cielo',
@@ -147,13 +151,17 @@ window.SINAN_DATA = {
     },
     {
       id: 'cartera-venice',
-      nombre: 'Cartera Venice (Blanco)',
+      nombre: 'Cartera Venice',
       categoria: 'ofertas',
       precio: 28000,
       precioAnterior: 31500,
-      descripcion: 'Estructurada, con correa regulable. Disponible en blanco. 21,5 x 12 x 6,5 cm.',
+      descripcion: 'Estructurada, con correa regulable. 21,5 x 12 x 6,5 cm.',
       stock: 2,
-      imagenes: ['assets/productos/cartera-venice-blanco.jpg']
+      imagenes: ['assets/productos/cartera-venice-blanco.jpg'],
+      colores: [
+        { nombre: 'Blanco', hex: '#F2F0EA', imagenes: ['assets/productos/cartera-venice-blanco.jpg'] },
+        { nombre: 'Negro', hex: '#1A1A1A', imagenes: ['assets/productos/cartera-venice-negro-1.jpg'] }
+      ]
     },
     {
       id: 'mini-bag-lucy',
@@ -238,7 +246,7 @@ window.SINAN_DATA = {
       descripcion: 'Bolso deportivo de nylon resistente, 32 litros (50x28x23 cm), tres compartimentos internos, correa ajustable y desmontable, plegable. Violeta liso. **+ una media de regalo**',
       stock: 2,
       nuevo: true,
-      imagenes: ['assets/productos/bolso-rufina-1.jpg', 'assets/productos/bolso-rufina-2.jpg', 'assets/productos/bolso-rufina-3.jpg', 'assets/productos/bolso-rufina-4.jpg', 'assets/productos/bolso-rufina-5.jpg']
+      imagenes: ['assets/productos/bolso-rufina-1.jpg', 'assets/productos/bolso-rufina-2.jpg', 'assets/productos/bolso-rufina-3.jpg', 'assets/productos/bolso-rufina-4.jpg', 'assets/productos/bolso-rufina-5.jpg', 'assets/productos/bolso-rufina-6.jpg']
     },
     {
       id: 'neceser-rosita',
