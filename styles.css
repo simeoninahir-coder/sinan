@@ -1846,6 +1846,12 @@ h1 em, h2 em, h3 em {
   font-size: 0.78rem;
   color: var(--color-texto-soft);
 }
+.resena-form__msg {
+  font-size: 0.85rem;
+  min-height: 1.2em;
+}
+.resena-form__msg[data-status="success"] { color: #2E8B57; }
+.resena-form__msg[data-status="error"] { color: #B24242; }
 
 @media (max-width: 768px) {
   .producto-pagina__scroll { padding: 0 20px 48px; }

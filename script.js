@@ -155,11 +155,10 @@
     // Nota: la sección "Sobre Sinan" ahora está escrita directamente en el HTML
     // con resaltes visuales, no se sobrescribe desde JS.
 
-    var wa = $('#footer-wa'), ig = $('#footer-ig'), tn = $('#footer-tn'), mail = $('#footer-mail');
+    var wa = $('#footer-wa'), ig = $('#footer-ig'), tn = $('#footer-tn');
     if (wa && m.whatsapp) wa.href = 'https://wa.me/' + soloDigitos(m.whatsapp);
     if (ig && m.instagram) ig.href = m.instagram;
     if (tn && m.tiendanube) tn.href = m.tiendanube;
-    if (mail && m.email) mail.href = 'mailto:' + m.email;
 
     var ciudad = $('#footer-ciudad');
     if (ciudad && m.ciudad) ciudad.textContent = m.ciudad;
@@ -344,7 +343,7 @@
     activarAnimacionesScroll();
   }
 
-  // ===== LIGHTBOX (fotos + videos) =====
+  // ===== PÁGINA DE PRODUCTO (fotos + info + reseñas) =====
   function abrirProductoPagina(productoId, opts) {
     var p = DATA.productos.find(function (x) { return x.id === productoId; });
     if (!p) return;
@@ -353,6 +352,8 @@
     productoPaginaState.idx = 0;
     renderProductoPagina();
     resetResenaForm();
+    var resenaMsgEl = $('#resena-form-msg');
+    if (resenaMsgEl) { resenaMsgEl.textContent = ''; resenaMsgEl.dataset.status = ''; }
     var modal = $('#producto-pagina');
     if (modal) {
       modal.classList.add('open');
@@ -481,20 +482,32 @@
     if (enviar) {
       enviar.addEventListener('click', function () {
         var p = productoPaginaState.producto;
+        var msgEl = $('#resena-form-msg');
         if (!p) return;
         var nombre = ($('#resena-form-nombre').value || '').trim();
         var texto = ($('#resena-form-texto').value || '').trim();
         if (!nombre || !texto || resenaFormRating === 0) {
-          alert('Completá tu nombre, un comentario y las estrellas antes de enviar.');
+          if (msgEl) { msgEl.textContent = 'Completá tu nombre, un comentario y las estrellas antes de enviar.'; msgEl.dataset.status = 'error'; }
           return;
         }
-        var estrellasTxt = '⭐'.repeat(resenaFormRating);
-        var msg = '¡Hola Sinan! Quiero dejar mi reseña de ' + p.nombre + ':\n\n' +
-          estrellasTxt + '\n' +
-          'Nombre: ' + nombre + '\n' +
-          '"' + texto + '"';
-        abrirWhatsApp(msg);
-        resetResenaForm();
+        enviar.disabled = true;
+        if (msgEl) { msgEl.textContent = 'Enviando...'; msgEl.dataset.status = ''; }
+        fetch('/api/resena', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ producto: p.nombre, nombre: nombre, texto: texto, estrellas: resenaFormRating })
+        }).then(function (r) { return r.json(); }).then(function (data) {
+          enviar.disabled = false;
+          if (data && data.ok) {
+            if (msgEl) { msgEl.innerHTML = '<strong>¡Gracias! 💙</strong> Ya me llegó tu reseña.'; msgEl.dataset.status = 'success'; }
+            resetResenaForm();
+          } else {
+            if (msgEl) { msgEl.textContent = 'No se pudo enviar, probá de nuevo en un rato.'; msgEl.dataset.status = 'error'; }
+          }
+        }).catch(function () {
+          enviar.disabled = false;
+          if (msgEl) { msgEl.textContent = 'No se pudo enviar, probá de nuevo en un rato.'; msgEl.dataset.status = 'error'; }
+        });
       });
     }
   }
@@ -895,16 +908,11 @@
         if (lista.indexOf(email) === -1) lista.push(email);
         localStorage.setItem('sinan_emails', JSON.stringify(lista));
       } catch (_) {}
-      var brevo = (DATA.config && DATA.config.brevo) || null;
-      if (brevo && brevo.apiKey && brevo.listId) {
-        fetch('https://api.brevo.com/v3/contacts', {
-          method: 'POST',
-          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'api-key': brevo.apiKey },
-          body: JSON.stringify({ email: email, listIds: [parseInt(brevo.listId, 10)], updateEnabled: true, attributes: { ORIGEN: 'sinan-web' } })
-        }).then(function () { mostrarMsgExito(msg); }).catch(function () { mostrarMsgExito(msg); });
-      } else {
-        setTimeout(function () { mostrarMsgExito(msg); }, 400);
-      }
+      fetch('/api/newsletter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email })
+      }).then(function () { mostrarMsgExito(msg); }).catch(function () { mostrarMsgExito(msg); });
       form.reset();
     });
   }

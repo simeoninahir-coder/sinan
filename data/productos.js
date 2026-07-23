@@ -11,16 +11,8 @@ window.SINAN_DATA = {
     instagram: 'https://www.instagram.com/sinan.bags/',
     tiendanube: 'https://sinan.mitiendanube.com',
     whatsapp: '5491126724433',
-    email: 'hola@sinan.com.ar',
     ciudad: 'Argentina',
     heroFotos: ['assets/productos/hero.jpg']
-  },
-
-  config: {
-    brevo: {
-      apiKey: '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',
-      listId: '3'
-    }
   },
 
   categorias: [
