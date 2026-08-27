@@ -188,6 +188,13 @@
       waFloat.hidden = false;
     }
 
+    // Evento especial (temporal — sacar despues del 19/9, junto con su HTML/CSS)
+    var eventoBtn = $('#evento-btn');
+    if (eventoBtn && m.whatsapp) {
+      var msgEvento = encodeURIComponent('¡Hola! Quiero anotarme al primer encuentro Sinan del 19/9 🌸');
+      eventoBtn.href = 'https://wa.me/' + soloDigitos(m.whatsapp) + '?text=' + msgEvento;
+    }
+
     activarHeroFotos(m.heroFotos);
   }
 
