@@ -146,13 +146,32 @@
     return media;
   }
 
-  // Igual que mediaProducto, pero si el producto tiene variantes de color usa las fotos del color elegido
+  // Igual que mediaProducto, pero si el producto tiene variantes de color muestra las fotos de todos los colores juntas (sin repetir)
   function mediaProductoConColor(p) {
     if (p.colores && p.colores.length) {
-      var color = p.colores[productoPaginaState.colorIdx] || p.colores[0];
-      return (color.imagenes || []).map(function (src) { return { tipo: 'imagen', src: src }; });
+      var vistas = {};
+      var media = [];
+      p.colores.forEach(function (c) {
+        (c.imagenes || []).forEach(function (src) {
+          if (vistas[src]) return;
+          vistas[src] = true;
+          media.push({ tipo: 'imagen', src: src });
+        });
+      });
+      return media;
     }
     return mediaProducto(p);
+  }
+
+  // Posición en la galería de la primera foto de un color
+  function idxPrimeraFotoColor(p, colorIdx) {
+    var c = p.colores[colorIdx];
+    if (!c || !c.imagenes || !c.imagenes.length) return 0;
+    var media = mediaProductoConColor(p);
+    for (var i = 0; i < media.length; i++) {
+      if (media[i].src === c.imagenes[0]) return i;
+    }
+    return 0;
   }
 
   function colorActivo(p) {
@@ -636,7 +655,7 @@
         $$('.pp-color-swatch', coloresEl).forEach(function (b) {
           b.addEventListener('click', function () {
             productoPaginaState.colorIdx = parseInt(b.dataset.colorIdx, 10);
-            productoPaginaState.idx = 0;
+            productoPaginaState.idx = idxPrimeraFotoColor(p, productoPaginaState.colorIdx);
             renderProductoPagina();
           });
         });
