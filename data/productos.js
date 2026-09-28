@@ -98,7 +98,6 @@ window.SINAN_DATA = {
       nombre: 'Bolso Cielo',
       categoria: 'bolsos',
       precio: 36700,
-      destacado: true,
       descripcion: 'Un bolso que se adapta a tu movimiento. Dos compartimentos principales con cierre, espacio para zapatillas y bolsillos para lo esencial.',
       stock: 1,
       imagenes: ['assets/productos/bolso-cielo-1.jpg', 'assets/productos/bolso-cielo-2.jpg', 'assets/productos/bolso-cielo-3.jpg']
@@ -136,6 +135,7 @@ window.SINAN_DATA = {
       nombre: 'Mochila Lira (Negro)',
       categoria: 'mochilas',
       precio: 47900,
+      destacado: true,
       descripcion: 'La misma Lira que enamora, ahora en negro. Estructura organizada, materiales que duran y versatilidad total.',
       stock: 1,
       imagenes: ['assets/productos/mochila-lira-negro-1.jpg', 'assets/productos/mochila-lira-negro-2.jpg', 'assets/productos/mochila-lira-negro-3.jpg', 'assets/productos/mochila-lira-negro-4.jpg']
