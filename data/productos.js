@@ -71,8 +71,8 @@ window.SINAN_DATA = {
       stock: 2,
       imagenes: ['assets/productos/billetera-kaira-1.jpg'],
       colores: [
-        { nombre: 'Negro', hex: '#1A1A1A', imagenes: ['assets/productos/billetera-kaira-1.jpg', 'assets/productos/billetera-kaira-negro-2.jpg'] },
-        { nombre: 'Celeste', hex: '#9CC9E8', imagenes: ['assets/productos/billetera-kaira-celeste-1.jpg', 'assets/productos/billetera-kaira-celeste-2.jpg'] }
+        { nombre: 'Negro', hex: '#1A1A1A', imagenes: ['assets/productos/billetera-kaira-1.jpg', 'assets/productos/billetera-kaira-negro-2.jpg', 'assets/productos/billetera-kaira-colores.jpg'] },
+        { nombre: 'Celeste', hex: '#9CC9E8', imagenes: ['assets/productos/billetera-kaira-celeste-1.jpg', 'assets/productos/billetera-kaira-celeste-2.jpg', 'assets/productos/billetera-kaira-celeste-3.jpg', 'assets/productos/billetera-kaira-celeste-4.jpg', 'assets/productos/billetera-kaira-colores.jpg'] }
       ]
     },
     {
@@ -100,7 +100,7 @@ window.SINAN_DATA = {
       precio: 36700,
       descripcion: 'Un bolso que se adapta a tu movimiento. Dos compartimentos principales con cierre, espacio para zapatillas y bolsillos para lo esencial.',
       stock: 1,
-      imagenes: ['assets/productos/bolso-cielo-1.jpg', 'assets/productos/bolso-cielo-2.jpg', 'assets/productos/bolso-cielo-3.jpg']
+      imagenes: ['assets/productos/bolso-cielo-1.jpg', 'assets/productos/bolso-cielo-2.jpg', 'assets/productos/bolso-cielo-3.jpg', 'assets/productos/bolso-cielo-4.jpg']
     },
     {
       id: 'tote-bag-lienzo',
@@ -147,7 +147,7 @@ window.SINAN_DATA = {
       precio: 25900,
       descripcion: 'Tela impermeable, forrada por dentro con bolsillo interno con cierre. Mide 21x25 cm.',
       stock: 1,
-      imagenes: ['assets/productos/bandolera-anita-1.jpg']
+      imagenes: ['assets/productos/bandolera-anita-2.jpg', 'assets/productos/bandolera-anita-3.jpg', 'assets/productos/bandolera-anita-1.jpg']
     },
     {
       id: 'cartera-venice',
@@ -160,7 +160,7 @@ window.SINAN_DATA = {
       imagenes: ['assets/productos/cartera-venice-blanco.jpg'],
       colores: [
         { nombre: 'Blanco', hex: '#F2F0EA', imagenes: ['assets/productos/cartera-venice-blanco.jpg'] },
-        { nombre: 'Negro', hex: '#1A1A1A', imagenes: ['assets/productos/cartera-venice-negro-1.jpg'] }
+        { nombre: 'Negro', hex: '#1A1A1A', imagenes: ['assets/productos/cartera-venice-negro-1.jpg', 'assets/productos/cartera-venice-negro-2.jpg'] }
       ]
     },
     {
@@ -235,7 +235,7 @@ window.SINAN_DATA = {
       descripcion: 'Suaves, hipoalergénicas y con puntera reforzada para el día a día. Disponibles en distintos colores con rayitas, escribinos por WhatsApp para elegir el tuyo.',
       stock: 8,
       nuevo: true,
-      imagenes: ['assets/productos/medias-soff-1.png', 'assets/productos/medias-soff-2.png', 'assets/productos/medias-soff-3.png', 'assets/productos/medias-soff-4.png', 'assets/productos/medias-soff-5.png', 'assets/productos/medias-soff-6.png', 'assets/productos/medias-soff-7.png', 'assets/productos/medias-soff-8.png']
+      imagenes: ['assets/productos/medias-soff-1.png', 'assets/productos/medias-soff-4.png', 'assets/productos/medias-soff-7.png', 'assets/productos/medias-soff-8.png']
     },
     {
       id: 'bolso-rufina',
