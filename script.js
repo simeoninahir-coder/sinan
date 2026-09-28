@@ -189,6 +189,22 @@
     }
 
     activarHeroFotos(m.heroFotos);
+    activarDiaMadre(m);
+  }
+
+  // Sección Día de la Madre (temporal): se oculta sola desde el 19/10/2026
+  function activarDiaMadre(m) {
+    var sec = $('#dia-madre');
+    if (!sec) return;
+    if (new Date() >= new Date(2026, 9, 19)) { sec.remove(); return; }
+    $$('[data-dia-madre]', sec).forEach(function (card) {
+      card.addEventListener('click', function () { abrirProductoPagina(card.dataset.diaMadre); });
+    });
+    var wa = $('#dia-madre-wa');
+    if (wa && m.whatsapp) {
+      var msg = encodeURIComponent('¡Hola Sinan! Estoy buscando un regalo para el Día de la Madre 💙');
+      wa.href = 'https://wa.me/' + soloDigitos(m.whatsapp) + '?text=' + msg;
+    }
   }
 
   // Alterna las fotos del hero cada 3 segundos (si hay mas de una)
