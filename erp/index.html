@@ -22,11 +22,14 @@
     <form autocomplete="on">
       <div class="campo">
         <label for="login-email" class="campo-etiqueta">Email</label>
-        <input id="login-email" name="email" type="email" autocomplete="username" required>
+        <input id="login-email" name="email" type="email" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required>
       </div>
       <div class="campo">
         <label for="login-clave" class="campo-etiqueta">Contraseña</label>
-        <input id="login-clave" name="clave" type="password" autocomplete="current-password" required>
+        <div class="con-ojito">
+          <input id="login-clave" name="clave" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" required>
+          <button type="button" class="ojito" id="ver-clave" aria-label="Mostrar contraseña" aria-pressed="false">Ver</button>
+        </div>
       </div>
       <p class="form-error" hidden></p>
       <button type="submit" class="boton boton-ancho">Entrar</button>

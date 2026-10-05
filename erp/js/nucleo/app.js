@@ -121,12 +121,23 @@
       }
     };
 
+    // Botón "Ver" para mostrar la contraseña mientras se escribe
+    const ver = document.getElementById('ver-clave');
+    if (ver) ver.onclick = () => {
+      const c = document.getElementById('login-clave');
+      const mostrar = c.type === 'password';
+      c.type = mostrar ? 'text' : 'password';
+      ver.textContent = mostrar ? 'Ocultar' : 'Ver';
+      ver.setAttribute('aria-pressed', mostrar);
+    };
+
     login.querySelector('form').addEventListener('submit', async (e) => {
       e.preventDefault();
       const f = e.target; const boton = f.querySelector('button');
       boton.disabled = true; boton.classList.add('cargando');
       try {
-        const r = await DB.auth.entrar(f.email.value.trim(), f.clave.value);
+        // El email siempre en minúsculas y sin espacios (el celu a veces pone mayúscula al principio)
+        const r = await DB.auth.entrar(f.email.value.trim().toLowerCase(), f.clave.value);
         f.clave.value = '';
         entrarApp(r.session);
       } catch (ex) { mostrarLogin(ex.message); } finally { boton.disabled = false; boton.classList.remove('cargando'); }
