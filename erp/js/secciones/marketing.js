@@ -1,7 +1,7 @@
 /* =====================================================================
-   SECCIÓN · CONTENIDO / MARKETING
-   Calendario de publicaciones, banco de ideas, pilares de contenido
-   y métricas mensuales de Instagram.
+   SECCIÓN · MARKETING
+   Estrategia, objetivos, campañas, calendario de publicaciones,
+   banco de ideas, pilares de contenido y métricas de Instagram.
    ===================================================================== */
 (function () {
   const camposPublicacion = (pilares) => [
@@ -217,17 +217,136 @@
     });
   }
 
+  // ---------- Estrategia (el "plan" de marketing) ----------
+  async function pestanaEstrategia(cuerpo) {
+    const [est, pilares, objetivos, campanas, metricas] = await Promise.all([
+      DB.obtener('estrategia_mkt', 1), DB.listar('pilares_contenido'), DB.listar('objetivos_mkt'),
+      DB.listar('campanas'), DB.listar('metricas_instagram', { orden: 'fecha', asc: false })
+    ]);
+    const campos = [
+      { campo: 'objetivo_general', etiqueta: '🎯 Objetivo principal', tipo: 'area', filas: 2, placeholder: 'Ej: que más mujeres conozcan Sinan y vuelvan a comprar' },
+      { campo: 'publico_objetivo', etiqueta: '👩 Público objetivo (a quién le hablamos)', tipo: 'area', filas: 3, placeholder: 'Edad, zona, qué hace, qué le importa, qué problema le resolvemos…' },
+      { campo: 'propuesta_valor', etiqueta: '💙 Propuesta de valor', tipo: 'area', filas: 2, placeholder: 'Por qué elegir Sinan y no otra marca' },
+      { campo: 'diferenciales', etiqueta: '✨ Diferenciales', tipo: 'area', filas: 2 },
+      { campo: 'tono', etiqueta: '🗣️ Tono de comunicación', tipo: 'area', filas: 2, placeholder: 'Cercano, cálido, motivador…' },
+      { campo: 'canales', etiqueta: '📣 Canales y frecuencia', tipo: 'area', filas: 2, placeholder: 'Ej: Instagram 3 posts + historias diarias, WhatsApp, ferias…' },
+      { campo: 'competencia', etiqueta: '👀 Competencia y referentes', tipo: 'area', filas: 2 },
+      { campo: 'notas', etiqueta: '📝 Notas', tipo: 'area', filas: 2 }
+    ];
+    const ult = metricas[0];
+    cuerpo.innerHTML = `
+      <div class="grilla grilla-4">
+        ${UI.numeroDestacado('Seguidores', ult ? U.numero(ult.seguidores) : '—', ult ? U.nombreMes(U.mes(ult.fecha)) : 'cargalos en Métricas')}
+        ${UI.numeroDestacado('Campañas activas', campanas.filter((c) => c.estado === 'Activa').length, `${campanas.filter((c) => c.estado === 'Planificada').length} planificadas`)}
+        ${UI.numeroDestacado('Objetivos logrados', `${objetivos.filter((o) => o.estado === 'Logrado').length} / ${objetivos.length}`)}
+        ${UI.numeroDestacado('Pilares de contenido', pilares.length, pilares.map((p) => U.esc(p.nombre)).join(' · ') || 'definilos en Pilares')}
+      </div>
+      <form class="formulario tarjeta separado form-estrategia">
+        <div class="tarjeta-cabecera"><h2>Estrategia de marketing</h2><span class="muted chico">${est && est.actualizado ? 'Actualizada ' + U.fecha(est.actualizado.slice(0, 10)) : ''}</span></div>
+        <div class="grilla-form">${campos.map((c) => UI.campoHTML(c, est || {})).join('')}</div>
+        <p class="form-error" hidden></p>
+        <div class="acciones-form" style="justify-content:flex-start"><button type="submit" class="boton">Guardar estrategia</button></div>
+      </form>`;
+    const form = cuerpo.querySelector('form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const b = form.querySelector('[type=submit]'); b.disabled = true; b.classList.add('cargando');
+      try {
+        const datos = {};
+        campos.forEach((c) => { datos[c.campo] = form.elements[c.campo].value.trim() || null; });
+        await DB.actualizar('estrategia_mkt', 1, { ...datos, actualizado: new Date().toISOString() });
+        UI.aviso('Estrategia guardada');
+      } catch (ex) { const er = form.querySelector('.form-error'); er.textContent = ex.message; er.hidden = false; }
+      finally { b.disabled = false; b.classList.remove('cargando'); }
+    });
+  }
+
+  // ---------- Objetivos medibles ----------
+  function pestanaObjetivos(cuerpo) {
+    Seccion.crud({
+      contenedor: cuerpo, tabla: 'objetivos_mkt', nombre: 'objetivo', orden: 'fecha_limite',
+      buscar: (o) => [o.objetivo, o.metrica].join(' '),
+      filtros: [{ id: 'estado', etiqueta: 'Estado', opciones: N.ESTADOS_OBJETIVO, valor: (o) => o.estado }],
+      columnas: [
+        { titulo: 'Objetivo', valor: (o) => `<b style="font-weight:500">${U.esc(o.objetivo)}</b>${o.metrica ? `<br><small class="muted">Se mide con: ${U.esc(o.metrica)}</small>` : ''}` },
+        { titulo: 'Avance', valor: (o) => {
+          if (!o.meta) return U.numero(o.actual);
+          const pct = Math.max(0, Math.min(100, (Number(o.actual) || 0) / o.meta * 100));
+          return `<div style="min-width:150px">${U.numero(o.actual)} de ${U.numero(o.meta)} <small class="muted">(${U.porcentaje(pct)})</small>
+            <div class="barra-progreso"><span style="width:${pct}%"></span></div></div>`;
+        } },
+        { titulo: 'Fecha límite', valor: (o) => U.fecha(o.fecha_limite) },
+        { titulo: 'Estado', valor: (o) => UI.etiqueta(o.estado, { Logrado: 'ok', 'En curso': 'info', Pendiente: 'neutro', 'No logrado': 'alerta' }[o.estado]) }
+      ],
+      campos: [
+        { campo: 'objetivo', etiqueta: 'Objetivo', requerido: true, ancho: 'completo', placeholder: 'Ej: Llegar a 1.500 seguidores' },
+        { campo: 'metrica', etiqueta: 'Cómo se mide', placeholder: 'Ej: seguidores de Instagram' },
+        { campo: 'fecha_limite', etiqueta: 'Fecha límite', tipo: 'fecha' },
+        { campo: 'meta', etiqueta: 'Meta (número)', tipo: 'numero', min: 0 },
+        { campo: 'actual', etiqueta: 'Valor actual', tipo: 'numero', min: 0 },
+        { campo: 'estado', etiqueta: 'Estado', tipo: 'select', opciones: N.ESTADOS_OBJETIVO, vacio: false, defecto: 'En curso' }
+      ]
+    });
+  }
+
+  // ---------- Campañas (promos, sorteos, lanzamientos…) ----------
+  function pestanaCampanas(cuerpo) {
+    Seccion.crud({
+      contenedor: cuerpo, tabla: 'campanas', nombre: 'campaña', textoNuevo: 'Nueva campaña', orden: 'fecha_inicio', asc: false,
+      async cargar() {
+        const [filas, movs, pedidos] = await Promise.all([
+          DB.listar('campanas', { orden: 'fecha_inicio', asc: false }), DB.listar('movimientos_financieros'), DB.listar('pedidos')]);
+        const validos = pedidos.filter(N.pedidoValido);
+        filas.forEach((c) => {
+          c._gasto = U.sumar(movs.filter((m) => m.campana_id === c.id && m.tipo === 'egreso'), (m) => m.monto);
+          const enPeriodo = c.fecha_inicio ? validos.filter((p) => p.fecha >= c.fecha_inicio && p.fecha <= (c.fecha_fin || c.fecha_inicio)) : [];
+          c._ventas = U.sumar(enPeriodo, (p) => p.total);
+          c._nVentas = enPeriodo.length;
+        });
+        return { filas };
+      },
+      buscar: (c) => [c.nombre, c.tipo, c.canal, c.objetivo, c.resultado].join(' '),
+      filtros: [
+        { id: 'estado', etiqueta: 'Estado', opciones: N.ESTADOS_CAMPANA, valor: (c) => c.estado },
+        { id: 'tipo', etiqueta: 'Tipo', opciones: N.TIPOS_CAMPANA, valor: (c) => c.tipo }
+      ],
+      columnas: [
+        { titulo: 'Campaña', valor: (c) => `<b style="font-weight:500">${U.esc(c.nombre)}</b><br><small class="muted">${[c.tipo, c.canal].filter(Boolean).map(U.esc).join(' · ')}</small>` },
+        { titulo: 'Fechas', valor: (c) => c.fecha_inicio ? `${U.fecha(c.fecha_inicio)}${c.fecha_fin && c.fecha_fin !== c.fecha_inicio ? '<br>al ' + U.fecha(c.fecha_fin) : ''}` : '—' },
+        { titulo: 'Gasto vs. presupuesto', valor: (c) => c.presupuesto ? `${U.pesos(c._gasto)} <small class="muted">de ${U.pesos(c.presupuesto)}</small>
+            <div class="barra-progreso ${c._gasto > c.presupuesto ? 'pasado' : ''}"><span style="width:${Math.min(100, c._gasto / c.presupuesto * 100)}%"></span></div>` : U.pesos(c._gasto) },
+        { titulo: 'Ventas en esas fechas', clase: 'num', valor: (c) => c._nVentas ? `${U.pesos(c._ventas)}<br><small class="muted">${c._nVentas} ventas</small>` : '—' },
+        { titulo: 'Estado', valor: (c) => UI.etiqueta(c.estado, { Activa: 'ok', Planificada: 'info', Terminada: 'neutro', Cancelada: 'neutro' }[c.estado]) }
+      ],
+      campos: [
+        { campo: 'nombre', etiqueta: 'Nombre', requerido: true, placeholder: 'Ej: Día de la Madre 2026' },
+        { campo: 'tipo', etiqueta: 'Tipo', tipo: 'select', opciones: N.TIPOS_CAMPANA },
+        { campo: 'fecha_inicio', etiqueta: 'Desde', tipo: 'fecha' },
+        { campo: 'fecha_fin', etiqueta: 'Hasta', tipo: 'fecha' },
+        { campo: 'canal', etiqueta: 'Canal', sugerencias: N.REDES.concat(['WhatsApp', 'Ferias']) },
+        { campo: 'presupuesto', etiqueta: 'Presupuesto', tipo: 'pesos', min: 0, defecto: 0, requerido: true, ayuda: 'El gasto real se carga en Finanzas eligiendo esta campaña.' },
+        { campo: 'estado', etiqueta: 'Estado', tipo: 'select', opciones: N.ESTADOS_CAMPANA, vacio: false, defecto: 'Planificada' },
+        { campo: 'objetivo', etiqueta: 'Objetivo', tipo: 'area', filas: 2 },
+        { campo: 'resultado', etiqueta: 'Cómo salió', tipo: 'area', filas: 2 }
+      ],
+      mensajeBorrar: () => 'Los gastos asociados quedan en Finanzas pero sin campaña.'
+    });
+  }
+
   App.registrar({
-    id: 'contenido', titulo: 'Contenido', icono: 'contenido',
-    descripcion: 'Calendario de publicaciones, ideas, pilares y métricas de Instagram.',
+    id: 'marketing', titulo: 'Marketing', icono: 'contenido',
+    descripcion: 'Estrategia, objetivos, campañas, calendario de contenido y métricas.',
     render(cont) {
       UI.pestanas(cont, [
+        { id: 'estrategia', titulo: 'Estrategia', render: pestanaEstrategia },
+        { id: 'objetivos', titulo: 'Objetivos', render: pestanaObjetivos },
+        { id: 'campanas', titulo: 'Campañas', render: pestanaCampanas },
         { id: 'calendario', titulo: 'Calendario', render: pestanaCalendario },
         { id: 'publicaciones', titulo: 'Publicaciones', render: pestanaPublicaciones },
         { id: 'ideas', titulo: 'Banco de ideas', render: pestanaIdeas },
         { id: 'pilares', titulo: 'Pilares', render: pestanaPilares },
         { id: 'metricas', titulo: 'Métricas de Instagram', render: pestanaMetricas }
-      ], 'contenido');
+      ], 'marketing');
     }
   });
 })();

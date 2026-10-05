@@ -10,5 +10,6 @@ truncate table
   pedido_items, pedidos, movimientos_stock, stock, productos, clientes,
   evento_tareas, evento_colaboradores, movimientos_financieros, eventos,
   proveedores, publicaciones, ideas_contenido, pilares_contenido,
-  metricas_instagram, tareas, personas, insumos
+  metricas_instagram, tareas, personas, insumos, cliente_interacciones,
+  objetivos_mkt, campanas
 restart identity cascade;

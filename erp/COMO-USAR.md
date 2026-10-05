@@ -17,15 +17,16 @@ Pensalo como una **casa**:
 | **Inicio** | El living: ventas del mes, próximo evento, tareas, alertas y tu frase. |
 | **Productos** | Catálogo con precio, costo, margen (se calcula solo), stock, estado y foto. |
 | **Inventario** | Stock por producto y color, entradas/salidas y stock mínimo. |
+| **Insumos** | Packaging y regalitos (bolsas, stickers, tarjetas): stock, costo, proveedor y aviso de "Reponer". |
 | **Ventas** | Pedidos con uno o varios productos. **Al guardar una venta se descuenta el stock solo.** |
-| **Clientes** | Contacto, por dónde llegó, historial de compras y total gastado. |
-| **Eventos** | Fecha, lugar, entradas, cupos, checklist, colaboradores, presupuesto vs. gasto real y resultado. |
-| **Contenido** | Calendario de publicaciones, banco de ideas, pilares y métricas de Instagram. |
-| **Finanzas** | Gastos y otros ingresos, resultado de cada mes y qué producto deja más ganancia. |
+| **Clientes (CRM)** | Ficha de cada clienta (contacto, cumpleaños, etiquetas, gustos), segmentos (nueva, recurrente, frecuente, inactiva), registro de contactos, seguimientos agendados y reportes con gráficos. |
+| **Eventos** | Encuentros, talleres y **ferias**: fecha, lugar, entrada o costo del puesto, checklist, colaboradores, ventas en el evento, gastos y resultado. |
+| **Marketing** | Estrategia (público, propuesta de valor, tono…), objetivos medibles, campañas con su gasto y ventas, calendario de publicaciones, ideas, pilares y métricas de Instagram. |
+| **Finanzas** | Todas las ventas (automáticas) + otros ingresos + gastos, resultado de cada mes y qué producto deja más ganancia. |
 | **Proveedores** | Quién te vende qué, en cuánto tiempo y cómo se le paga. |
 | **Equipo** | Personas, roles y tareas (lista para cuando se sumen empleadas). |
 | **Reportes** | Gráficos: más vendido, ventas por canal, resultado por evento, evolución mensual. |
-| **Alertas** | Stock bajo, pedidos quietos hace más de 3 días y eventos que se acercan. |
+| **Alertas** | Stock bajo, insumos para reponer, pedidos quietos, eventos y ferias que se acercan, clientas para contactar y cumpleaños. |
 | **Configuración** | Datos de la marca, redes, datos del negocio y stock mínimo general. |
 
 - **Los planos → la carpeta `erp/`** de este proyecto:
@@ -103,10 +104,24 @@ Te aparece la pantalla de **Panel de gestión**: poné tu email y tu contraseña
 **Inventario** → lápiz ✎ en la fila → escribí la **cantidad real** → Guardar. Queda registrado como "Ajuste" en **Movimientos**.
 
 ### Gastos
-**Finanzas** → **+ Cargar gasto o ingreso**. Si es de un evento, elegí el evento: así se suma al balance del evento. Las **ventas no se cargan acá** (se suman solas desde Ventas).
+**Finanzas** → **+ Cargar gasto o ingreso**. Si es de un evento o feria, elegilo: se suma a su balance. Si es de una campaña de marketing, elegí la campaña. Las **ventas no se cargan acá**: aparecen solas en la lista (con la etiqueta "Venta") y se editan desde Ventas.
 
-### Eventos
-**Eventos** → **+ Nuevo evento**. Después, con **Ver** abrís el detalle: tildás tareas del checklist, sumás colaboradores y ves presupuesto vs. gasto real y el resultado.
+### Eventos y ferias
+**Eventos** → **+ Nuevo evento** → en **Tipo** elegí **Feria**, **Encuentro**, **Taller** u **Otro**.
+- En una **feria** cargás el **valor de la entrada / puesto** (lo que pagás vos): se guarda solo como gasto en Finanzas.
+- Cuando vendas en la feria, en **Ventas** elegí el canal **Feria**: se asocia sola a la feria de ese día.
+- Con **Ver** abrís el detalle: checklist, colaboradores, lo vendido, los gastos y el resultado. Arriba de la lista, el filtro **Tipo: Feria** te muestra solo las ferias con su resultado total.
+
+### Clientas (CRM)
+- **Clientes** → **Ficha** en cada clienta: datos, cumpleaños, gustos, qué compró, botones para escribirle por WhatsApp o Instagram, y el **registro de contactos** (anotá qué hablaron).
+- Poné una fecha en **Próximo contacto** y te aparece en **Seguimientos** y en **Alertas** ese día. Al registrar el contacto, se limpia solo.
+- **Seguimientos**: a quién contactar, cumpleaños del mes y clientas para reactivar (las que hace más de 120 días no compran).
+- **Reportes**: clientas nuevas por mes, las que más compran, segmentos y cómo llegaron.
+
+### Marketing
+- **Estrategia**: tu plan (objetivo, público, propuesta de valor, tono, canales). Escribilo una vez y actualizalo cuando cambie.
+- **Objetivos**: metas con número (ej: 1.500 seguidores) y su avance.
+- **Campañas**: promos, sorteos, fechas especiales. Te muestra lo gastado (lo que cargues en Finanzas con esa campaña) y lo vendido entre esas fechas.
 
 ### Ver reportes
 **Reportes** → arriba elegí el período (últimos 3, 6 o 12 meses, o este año). Pasá el mouse (o tocá) las barras para ver el número exacto. En cada gráfico de columnas tenés **Ver en tabla**.

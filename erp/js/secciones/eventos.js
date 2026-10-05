@@ -49,7 +49,9 @@
           · ${UI.etiqueta(e.estado, N.tonoEvento(e.estado))} ${dias >= 0 && e.estado !== 'Realizado' ? `<b>${dias === 0 ? 'Es hoy' : 'Faltan ' + dias + ' días'}</b>` : ''}</p>
         ${e.descripcion ? `<p>${U.esc(e.descripcion)}</p>` : ''}
         <div class="grilla grilla-3">
-          ${UI.numeroDestacado('Inscriptas', e.cupos ? `${e.inscriptos} / ${e.cupos}` : e.inscriptos, e.precio_entrada ? `Entrada ${U.pesos(e.precio_entrada)} · estimado ${U.pesos(e.precio_entrada * e.inscriptos)}` : 'Entrada libre')}
+          ${e.tipo === 'Feria'
+            ? UI.numeroDestacado('Vendido en la feria', U.pesos(e._ventas), `${e._pedidos} ventas · puesto ${U.pesos(e.costo_puesto)}`)
+            : UI.numeroDestacado('Inscriptas', e.cupos ? `${e.inscriptos} / ${e.cupos}` : e.inscriptos, e.precio_entrada ? `Entrada ${U.pesos(e.precio_entrada)} · estimado ${U.pesos(e.precio_entrada * e.inscriptos)}` : 'Entrada libre')}
           ${UI.numeroDestacado('Gasto real', U.pesos(e._gasto), e.presupuesto ? `Presupuesto ${U.pesos(e.presupuesto)}${e._gasto > e.presupuesto ? ' · ⚠ pasado' : ''}` : 'Sin presupuesto', e.presupuesto && e._gasto > e.presupuesto ? 'alerta' : '')}
           ${UI.numeroDestacado('Resultado', U.pesos(e._resultado), 'ingresos − gastos', e._resultado >= 0 ? 'ok' : 'alerta')}
         </div>
@@ -126,6 +128,17 @@
     dibujar().catch(UI.error);
   }
 
+  // El costo del puesto de una feria queda como gasto en Finanzas (uno solo por evento)
+  const CATEGORIA_PUESTO = 'Puesto de feria';
+  async function sincronizarPuesto(ev) {
+    const movs = (await DB.listar('movimientos_financieros')).filter((m) => m.evento_id === ev.id && m.categoria === CATEGORIA_PUESTO);
+    const monto = ev.tipo === 'Feria' ? Number(ev.costo_puesto) || 0 : 0;
+    if (!monto) { for (const m of movs) await DB.borrar('movimientos_financieros', m.id); return; }
+    const datos = { fecha: ev.fecha, tipo: 'egreso', categoria: CATEGORIA_PUESTO, descripcion: `Puesto en ${ev.nombre}`, monto, evento_id: ev.id };
+    if (movs.length) await DB.actualizar('movimientos_financieros', movs[0].id, datos);
+    else await DB.crear('movimientos_financieros', datos);
+  }
+
   App.registrar({
     id: 'eventos', titulo: 'Eventos', icono: 'eventos',
     descripcion: 'Encuentros, ferias y talleres: organización, presupuesto y resultado.',
@@ -141,33 +154,61 @@
           }
           return r;
         },
-        buscar: (e) => [e.nombre, e.lugar, e.descripcion, e.resultado].join(' '),
+        buscar: (e) => [e.nombre, e.tipo, e.lugar, e.descripcion, e.resultado].join(' '),
+        resumen: (filas) => {
+          const ferias = filas.filter((e) => e.tipo === 'Feria');
+          if (!ferias.length) return '';
+          const res = U.sumar(ferias, (e) => e._resultado);
+          return `<div class="grilla grilla-3">
+            ${UI.numeroDestacado('Ferias', ferias.length, 'en lo filtrado')}
+            ${UI.numeroDestacado('Vendido en ferias', U.pesos(U.sumar(ferias, (e) => e._ventas)), `puestos y gastos: ${U.pesos(U.sumar(ferias, (e) => e._gasto))}`)}
+            ${UI.numeroDestacado('Resultado de ferias', U.pesos(res), 'ventas − gastos', res >= 0 ? 'ok' : 'alerta')}
+          </div>`;
+        },
         filtros: [
+          { id: 'tipo', etiqueta: 'Tipo', opciones: N.TIPOS_EVENTO, valor: (e) => e.tipo || 'Encuentro' },
           { id: 'estado', etiqueta: 'Estado', opciones: N.ESTADOS_EVENTO, valor: (e) => e.estado },
           { id: 'cuando', etiqueta: 'Cuándo', opciones: [{ valor: 'proximos', texto: 'Próximos' }, { valor: 'pasados', texto: 'Pasados' }], valor: (e) => U.diasHasta(e.fecha) >= 0 ? 'proximos' : 'pasados' }
         ],
         columnas: [
-          { titulo: 'Evento', valor: (e) => `<b style="font-weight:500">${U.esc(e.nombre)}</b><br><small class="muted">${U.esc(e.lugar || '')}</small>` },
+          { titulo: 'Evento', valor: (e) => `<b style="font-weight:500">${U.esc(e.nombre)}</b> ${UI.etiqueta(e.tipo || 'Encuentro', e.tipo === 'Feria' ? 'info' : 'neutro')}<br><small class="muted">${U.esc(e.lugar || '')}</small>` },
           { titulo: 'Fecha', valor: (e) => U.fecha(e.fecha) + (e.hora ? `<br><small class="muted">${U.esc(e.hora)} h</small>` : '') },
-          { titulo: 'Inscriptas', clase: 'num', valor: (e) => e.cupos ? `${e.inscriptos} / ${e.cupos}` : e.inscriptos || '—' },
+          { titulo: 'Entrada / puesto', clase: 'num', valor: (e) => e.tipo === 'Feria'
+            ? `${U.pesos(e.costo_puesto)}<br><small class="muted">puesto</small>`
+            : (e.cupos ? `${e.inscriptos} / ${e.cupos}<br><small class="muted">${e.precio_entrada ? U.pesos(e.precio_entrada) : 'gratis'}</small>` : (e.precio_entrada ? U.pesos(e.precio_entrada) : '—')) },
+          { titulo: 'Ventas', clase: 'num', valor: (e) => e._ventas ? `${U.pesos(e._ventas)}<br><small class="muted">${e._pedidos} ventas</small>` : '—' },
           { titulo: 'Gasto vs. presupuesto', valor: barraPresupuesto },
           { titulo: 'Checklist', valor: (e) => e._tareas.length ? `${e._tareas.filter((t) => t.hecha).length}/${e._tareas.length}` : '—' },
           { titulo: 'Resultado', clase: 'num', valor: (e) => (e._ingresos || e._gasto) ? `<b style="color:${e._resultado >= 0 ? 'var(--ok)' : 'var(--alerta)'}">${U.pesos(e._resultado)}</b>` : '—' },
           { titulo: 'Estado', valor: (e) => UI.etiqueta(e.estado, N.tonoEvento(e.estado)) }
         ],
         campos: [
-          { campo: 'nombre', etiqueta: 'Nombre del evento', requerido: true, ancho: 'completo' },
+          { campo: 'nombre', etiqueta: 'Nombre del evento', requerido: true },
+          { campo: 'tipo', etiqueta: 'Tipo', tipo: 'select', opciones: N.TIPOS_EVENTO, vacio: false, defecto: 'Encuentro' },
           { campo: 'fecha', etiqueta: 'Fecha', tipo: 'fecha', requerido: true },
           { campo: 'hora', etiqueta: 'Hora', tipo: 'hora' },
           { campo: 'lugar', etiqueta: 'Lugar' },
           { campo: 'estado', etiqueta: 'Estado', tipo: 'select', opciones: N.ESTADOS_EVENTO, vacio: false, defecto: 'Planificando' },
-          { campo: 'precio_entrada', etiqueta: 'Precio de la entrada', tipo: 'pesos', min: 0, defecto: 0, requerido: true },
+          { campo: 'costo_puesto', etiqueta: 'Valor de la entrada / puesto (lo que pagás vos)', tipo: 'pesos', min: 0, defecto: 0, requerido: true,
+            ayuda: 'Se carga solo como gasto en Finanzas.' },
+          { campo: 'precio_entrada', etiqueta: 'Precio de la entrada (lo que cobrás)', tipo: 'pesos', min: 0, defecto: 0, requerido: true },
           { campo: 'presupuesto', etiqueta: 'Presupuesto de gastos', tipo: 'pesos', min: 0, defecto: 0, requerido: true },
           { campo: 'cupos', etiqueta: 'Cupos', tipo: 'numero', min: 0, paso: 1, defecto: 0, requerido: true },
           { campo: 'inscriptos', etiqueta: 'Inscriptas', tipo: 'numero', min: 0, paso: 1, defecto: 0, requerido: true },
           { campo: 'descripcion', etiqueta: 'Descripción', tipo: 'area' },
           { campo: 'resultado', etiqueta: 'Cómo salió (para después del evento)', tipo: 'area', placeholder: 'Qué funcionó, qué cambiarías…' }
         ],
+        // En ferias se muestra el costo del puesto; en encuentros/talleres, entrada y cupos
+        alArmar(form) {
+          const mostrar = () => {
+            const feria = form.tipo.value === 'Feria';
+            form.querySelector('[data-campo="costo_puesto"]').hidden = !feria;
+            ['precio_entrada', 'cupos', 'inscriptos'].forEach((c) => { form.querySelector(`[data-campo="${c}"]`).hidden = feria; });
+          };
+          form.tipo.addEventListener('change', mostrar); mostrar();
+        },
+        preparar: (d) => (d.tipo === 'Feria' ? { ...d, precio_entrada: 0, cupos: 0, inscriptos: 0 } : { ...d, costo_puesto: 0 }),
+        despues: (ev) => sincronizarPuesto(ev),
         mensajeBorrar: () => 'Se borran también su checklist y colaboradores. Los gastos y ventas quedan pero sin evento.',
         accionesExtra: () => `<button type="button" class="boton-texto" data-accion="ver">Ver</button>`,
         alAccion: { ver: (e, x, recargar) => verDetalle(e.id, recargar) }

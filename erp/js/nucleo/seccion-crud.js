@@ -73,7 +73,10 @@
         if (t && !U.normalizar(o.buscar ? o.buscar(f, estado.extra) : JSON.stringify(f)).includes(t)) return false;
         for (const fl of o.filtros || []) {
           const v = estado.filtros[fl.id];
-          if (v && String(fl.valor(f, estado.extra)) !== v) return false;
+          if (!v) continue;
+          const val = String(fl.valor(f, estado.extra));
+          // contiene: el valor es una lista separada por "|" (ej: etiquetas)
+          if (fl.contiene ? !val.split('|').includes(v) : val !== v) return false;
         }
         return true;
       });
@@ -93,6 +96,8 @@
     }
 
     function abrirFormulario(fila) {
+      // interceptar: permite que algunas filas se editen en otra sección (devuelve true)
+      if (fila && o.interceptar && o.interceptar(fila, estado.extra)) return;
       if (o.editar) return o.editar(fila, estado.extra, recargar);
       const campos = typeof o.campos === 'function' ? o.campos(fila, estado.extra) : o.campos;
       UI.formularioModal({

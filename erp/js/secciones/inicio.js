@@ -26,6 +26,7 @@ App.registrar({
     // Tareas pendientes
     const gente = U.porId(personas);
     const pendientes = tareas.filter((t) => t.estado !== 'Hecha');
+    const urgentes = alertas.filter((a) => a.nivel !== 'info').length;
 
     const saludo = new Date().getHours() < 13 ? 'Buen día' : new Date().getHours() < 20 ? 'Buenas tardes' : 'Buenas noches';
     cont.closest('#contenido').querySelector('.cabecera-seccion').innerHTML =
@@ -65,7 +66,7 @@ App.registrar({
 
       <div class="grilla grilla-4 separado">
         ${UI.numeroDestacado('Pedidos por preparar', porPreparar, 'pendientes, pagados o preparando')}
-        ${UI.numeroDestacado('Alertas', alertas.length, alertas.length ? 'para revisar' : 'todo en orden', alertas.length ? 'alerta' : 'ok')}
+        ${UI.numeroDestacado('Alertas', urgentes, urgentes ? 'para revisar' : 'todo en orden', urgentes ? 'alerta' : 'ok')}
         ${UI.numeroDestacado('Tareas pendientes', pendientes.length, `${pendientes.filter((t) => t.fecha_limite && U.diasHasta(t.fecha_limite) < 0).length} vencidas`)}
         ${UI.numeroDestacado('Ticket promedio del mes', U.pesos(delMes.length ? totalMes / delMes.length : 0), 'por pedido')}
       </div>
@@ -84,8 +85,8 @@ App.registrar({
           }).join('')}</ul>` : '<div class="vacio">No hay tareas pendientes.</div>'}
         </section>
         <section class="tarjeta">
-          <div class="tarjeta-cabecera"><h2>Alertas</h2><button type="button" class="boton-texto" data-ir="alertas">Ver todas</button></div>
-          ${App.dibujarAlertas(alertas, 5)}
+          <div class="tarjeta-cabecera"><h2>Para atender</h2><button type="button" class="boton-texto" data-ir="alertas">Ver detalle</button></div>
+          ${App.dibujarResumenAlertas(alertas)}
         </section>
       </div>`;
 

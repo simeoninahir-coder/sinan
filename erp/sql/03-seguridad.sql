@@ -14,7 +14,8 @@ begin
     'configuracion','productos','stock','clientes','eventos','evento_tareas',
     'evento_colaboradores','pedidos','pedido_items','movimientos_stock','proveedores',
     'movimientos_financieros','pilares_contenido','publicaciones','ideas_contenido',
-    'metricas_instagram','personas','tareas','insumos'
+    'metricas_instagram','personas','tareas','insumos','cliente_interacciones',
+    'estrategia_mkt','objetivos_mkt','campanas'
   ] loop
     execute format('alter table public.%I enable row level security', t);
     execute format('drop policy if exists "solo usuarios logueados" on public.%I', t);

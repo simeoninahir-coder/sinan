@@ -8,7 +8,13 @@
   // Listas de opciones (se pueden ampliar acá)
   N.CATEGORIAS = ['Bolsos', 'Mochilas', 'Carteras', 'Billeteras', 'Llaveros', 'Accesorios', 'Medias', 'Por mayor'];
   N.ESTADOS_PRODUCTO = ['Activo', 'Pausado', 'Agotado', 'Discontinuado'];
-  N.CANALES = ['Presencial', 'Instagram', 'Web', 'WhatsApp', 'Evento', 'Otro'];
+  N.CANALES = ['Presencial', 'Feria', 'Instagram', 'Web', 'WhatsApp', 'Evento', 'Otro'];
+  N.TIPOS_EVENTO = ['Encuentro', 'Feria', 'Taller', 'Otro'];
+  N.ETIQUETAS_CLIENTE = ['VIP', 'Mayorista', 'Familia', 'Amiga', 'Influencer', 'Compañera de trabajo'];
+  N.TIPOS_INTERACCION = ['WhatsApp', 'Instagram', 'Llamada', 'En persona', 'Mail'];
+  N.TIPOS_CAMPANA = ['Promoción', 'Lanzamiento', 'Sorteo', 'Colaboración', 'Publicidad paga', 'Fecha especial'];
+  N.ESTADOS_CAMPANA = ['Planificada', 'Activa', 'Terminada', 'Cancelada'];
+  N.ESTADOS_OBJETIVO = ['Pendiente', 'En curso', 'Logrado', 'No logrado'];
   N.ESTADOS_PEDIDO = ['Pendiente', 'Pagado', 'Preparando', 'Enviado', 'Entregado', 'Cancelado'];
   N.ESTADOS_FINALES = ['Entregado', 'Cancelado'];
   N.ESTADOS_EVENTO = ['Planificando', 'Confirmado', 'Realizado', 'Cancelado'];
@@ -43,6 +49,34 @@
     return s.cantidad <= 0 ? 'sin' : s.cantidad < N.minimo(s, cfg) ? 'bajo' : 'ok';
   };
   N.etiquetaStock = (est) => est === 'sin' ? UI.etiqueta('Sin stock', 'alerta') : est === 'bajo' ? UI.etiqueta('Stock bajo', 'atencion') : UI.etiqueta('OK', 'ok');
+
+  // ---------- Clientas (CRM) ----------
+  N.DIAS_INACTIVA = 120; // sin comprar hace más de estos días = inactiva
+  // Segmento según cuántas veces compró y hace cuánto
+  N.segmentoCliente = (compras, ultima) => {
+    if (!compras) return { id: 'sin', texto: 'Sin compras', tono: 'neutro' };
+    if (ultima && -U.diasHasta(ultima) > N.DIAS_INACTIVA) return { id: 'inactiva', texto: 'Inactiva', tono: 'atencion' };
+    if (compras >= 3) return { id: 'frecuente', texto: 'Frecuente', tono: 'ok' };
+    if (compras === 2) return { id: 'recurrente', texto: 'Recurrente', tono: 'info' };
+    return { id: 'nueva', texto: 'Nueva', tono: 'neutro' };
+  };
+  // Link para escribirle por WhatsApp (asume Argentina si no tiene código de país)
+  N.linkWhatsapp = (tel) => {
+    let n = String(tel || '').replace(/\D/g, '');
+    if (!n) return null;
+    if (!n.startsWith('54')) n = '549' + n.replace(/^0/, '');
+    return 'https://wa.me/' + n;
+  };
+  N.linkInstagram = (ig) => (ig ? 'https://instagram.com/' + String(ig).replace(/^@/, '').trim() : null);
+  // Días que faltan para el próximo cumpleaños (0 = hoy)
+  N.diasCumple = (fecha) => {
+    if (!fecha) return null;
+    const hoy = U.fechaDeIso(U.hoy());
+    const [, m, d] = fecha.split('-').map(Number);
+    let prox = new Date(hoy.getFullYear(), m - 1, d);
+    if (prox < hoy) prox = new Date(hoy.getFullYear() + 1, m - 1, d);
+    return Math.round((prox - hoy) / 86400000);
+  };
 
   // ---------- Ventas ----------
   N.pedidoValido = (p) => p.estado !== 'Cancelado';

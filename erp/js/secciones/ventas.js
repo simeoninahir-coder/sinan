@@ -25,8 +25,8 @@
       { campo: 'canal', etiqueta: 'Canal de venta', tipo: 'select', opciones: N.CANALES, requerido: true, vacio: false, defecto: 'Presencial' },
       { campo: 'medio_pago', etiqueta: 'Medio de pago', tipo: 'select', opciones: N.MEDIOS_PAGO, vacio: 'Sin definir', defecto: 'Transferencia' },
       { campo: 'estado', etiqueta: 'Estado', tipo: 'select', opciones: N.ESTADOS_PEDIDO, requerido: true, vacio: false, defecto: 'Pendiente' },
-      { campo: 'evento_id', etiqueta: 'Evento (si se vendió en uno)', tipo: 'select', numerico: true, vacio: 'Ninguno',
-        opciones: eventos.map((e) => ({ valor: e.id, texto: `${e.nombre} · ${U.fecha(e.fecha)}` })) }
+      { campo: 'evento_id', etiqueta: 'Feria o evento (si se vendió en uno)', tipo: 'select', numerico: true, vacio: 'Ninguno',
+        opciones: eventos.map((e) => ({ valor: e.id, texto: `${e.tipo === 'Feria' ? 'Feria · ' : ''}${e.nombre} · ${U.fecha(e.fecha)}` })) }
     ];
     const camposPie = [
       { campo: 'descuento', etiqueta: 'Descuento', tipo: 'pesos', min: 0, defecto: 0 },
@@ -65,6 +65,15 @@
       form._cli_nombre.required = nuevo;
     };
     form.cliente_id.addEventListener('change', toggleCliente); toggleCliente();
+
+    // Si el canal es Feria/Evento, elige sola la feria o evento de esa fecha
+    const elegirEvento = () => {
+      if (!['Feria', 'Evento'].includes(form.canal.value) || form.evento_id.value) return;
+      const delDia = eventos.find((e) => e.fecha === form.fecha.value && (form.canal.value === 'Feria' ? e.tipo === 'Feria' : e.tipo !== 'Feria'));
+      if (delDia) form.evento_id.value = delDia.id;
+    };
+    form.canal.addEventListener('change', elegirEvento);
+    form.fecha.addEventListener('change', elegirEvento);
 
     // Un renglón de producto
     function agregarItem(item = {}) {

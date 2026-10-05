@@ -18,51 +18,69 @@
   }
   App.finanzasMensuales = async (meses) => { const d = await datosMensuales(); return meses.map((m) => resumenMes(m, d)); };
 
-  // ---------- Movimientos ----------
+  // ---------- Movimientos: ventas (automáticas) + otros ingresos + gastos ----------
   function pestanaMovimientos(cuerpo, abrirNuevo) {
     const crud = Seccion.crud({
       contenedor: cuerpo, tabla: 'movimientos_financieros', nombre: 'movimiento', textoNuevo: 'Cargar gasto o ingreso',
       async cargar() {
-        const [filas, eventos, proveedores] = await Promise.all([
-          DB.listar('movimientos_financieros', { orden: 'fecha', asc: false }), DB.listar('eventos', { orden: 'fecha', asc: false }), DB.listar('proveedores', { orden: 'nombre' })]);
-        return { filas, extra: { eventos, proveedores, ev: U.porId(eventos), prov: U.porId(proveedores) } };
+        const [movs, eventos, proveedores, campanas, v] = await Promise.all([
+          DB.listar('movimientos_financieros', { orden: 'fecha', asc: false }), DB.listar('eventos', { orden: 'fecha', asc: false }),
+          DB.listar('proveedores', { orden: 'nombre' }), DB.listar('campanas', { orden: 'fecha_inicio', asc: false }), N.cargarVentas()]);
+        // Cada venta aparece como un ingreso (se edita desde Ventas)
+        const ventas = v.pedidos.filter(N.pedidoValido).map((p) => ({
+          id: 'v' + p.id, _venta: p.id, fecha: p.fecha, tipo: 'ingreso', categoria: 'Ventas', monto: p.total, medio_pago: p.medio_pago,
+          evento_id: p.evento_id,
+          descripcion: `Venta #${p.id} · ${N.nombreCliente(v.clientesId, p.cliente_id)}`,
+          _detalle: p.items.map((i) => (v.productosId[i.producto_id]?.nombre || i.descripcion) + ' ×' + i.cantidad).join(', ')
+        }));
+        const filas = [...ventas, ...movs].sort((a, b) => b.fecha.localeCompare(a.fecha));
+        return { filas, extra: { eventos, proveedores, campanas, ev: U.porId(eventos), prov: U.porId(proveedores), camp: U.porId(campanas) } };
       },
-      buscar: (m, x) => [m.descripcion, m.categoria, m.medio_pago, x.ev[m.evento_id]?.nombre, x.prov[m.proveedor_id]?.nombre].join(' '),
+      buscar: (m, x) => [m.descripcion, m._detalle, m.categoria, m.medio_pago, x.ev[m.evento_id]?.nombre, x.prov[m.proveedor_id]?.nombre].join(' '),
       filtros: [
-        { id: 'tipo', etiqueta: 'Tipo', opciones: [{ valor: 'ingreso', texto: 'Ingresos' }, { valor: 'egreso', texto: 'Egresos' }], valor: (m) => m.tipo },
+        { id: 'tipo', etiqueta: 'Tipo', opciones: [{ valor: 'venta', texto: 'Ventas' }, { valor: 'ingreso', texto: 'Otros ingresos' }, { valor: 'egreso', texto: 'Egresos' }],
+          valor: (m) => (m._venta ? 'venta' : m.tipo) },
         { id: 'cat', etiqueta: 'Categoría', opciones: (f) => [...new Set(f.map((m) => m.categoria))].sort(), valor: (m) => m.categoria },
-        { id: 'mes', etiqueta: 'Mes', opciones: (f) => [...new Set(f.map((m) => U.mes(m.fecha)))].map((x) => ({ valor: x, texto: U.nombreMes(x) })), valor: (m) => U.mes(m.fecha) }
+        { id: 'mes', etiqueta: 'Mes', opciones: (f) => [...new Set(f.map((m) => U.mes(m.fecha)))].sort().reverse().map((x) => ({ valor: x, texto: U.nombreMes(x) })), valor: (m) => U.mes(m.fecha) }
       ],
       resumen: (filas) => {
-        const ing = U.sumar(filas.filter((m) => m.tipo === 'ingreso'), (m) => m.monto);
+        const ven = U.sumar(filas.filter((m) => m._venta), (m) => m.monto);
+        const ing = U.sumar(filas.filter((m) => !m._venta && m.tipo === 'ingreso'), (m) => m.monto);
         const egr = U.sumar(filas.filter((m) => m.tipo === 'egreso'), (m) => m.monto);
-        return `<p class="nota" style="margin-bottom:14px">Las <b>ventas</b> no se cargan acá: se suman solas desde la sección Ventas. Acá van los gastos y otros ingresos (por ejemplo, entradas de eventos).</p>
-          <div class="grilla grilla-3">
-          ${UI.numeroDestacado('Otros ingresos (lo filtrado)', U.pesos(ing))}
-          ${UI.numeroDestacado('Egresos (lo filtrado)', U.pesos(egr))}
-          ${UI.numeroDestacado('Diferencia', U.pesos(ing - egr), '', ing - egr >= 0 ? 'ok' : 'alerta')}
+        const res = ven + ing - egr;
+        return `<div class="grilla grilla-4">
+          ${UI.numeroDestacado('Ventas', U.pesos(ven), 'se suman solas desde Ventas')}
+          ${UI.numeroDestacado('Otros ingresos', U.pesos(ing))}
+          ${UI.numeroDestacado('Egresos', U.pesos(egr))}
+          ${UI.numeroDestacado('Resultado', U.pesos(res), 'de lo que estás viendo', res >= 0 ? 'ok' : 'alerta')}
         </div>`;
       },
       columnas: [
         { titulo: 'Fecha', valor: (m) => U.fecha(m.fecha) },
-        { titulo: 'Detalle', valor: (m, x) => `${U.esc(m.descripcion || m.categoria)}<br><small class="muted">${[m.categoria, x.prov[m.proveedor_id]?.nombre, x.ev[m.evento_id] ? 'Evento: ' + x.ev[m.evento_id].nombre : null].filter(Boolean).map(U.esc).join(' · ')}</small>` },
-        { titulo: 'Tipo', valor: (m) => m.tipo === 'ingreso' ? UI.etiqueta('Ingreso', 'ok') : UI.etiqueta('Egreso', 'neutro') },
+        { titulo: 'Detalle', valor: (m, x) => `${U.esc(m.descripcion || m.categoria)}<br><small class="muted">${m._venta ? U.esc(m._detalle)
+          : [m.categoria, x.prov[m.proveedor_id]?.nombre, x.ev[m.evento_id] ? 'Evento: ' + x.ev[m.evento_id].nombre : null, x.camp[m.campana_id] ? 'Campaña: ' + x.camp[m.campana_id].nombre : null].filter(Boolean).map(U.esc).join(' · ')}</small>` },
+        { titulo: 'Tipo', valor: (m) => m._venta ? UI.etiqueta('Venta', 'info') : m.tipo === 'ingreso' ? UI.etiqueta('Ingreso', 'ok') : UI.etiqueta('Egreso', 'neutro') },
         { titulo: 'Medio', valor: (m) => U.esc(m.medio_pago || '—') },
         { titulo: 'Monto', clase: 'num', valor: (m) => `<b style="color:${m.tipo === 'ingreso' ? 'var(--ok)' : 'var(--texto)'}">${m.tipo === 'egreso' ? '−' : '+'}${U.pesos(m.monto)}</b>` }
       ],
+      // Las ventas se editan y borran desde Ventas
+      interceptar: (m) => { if (m._venta) { App.ir('ventas', 'editar-' + m._venta); return true; } return false; },
+      noBorrar: (m) => (m._venta ? 'Las ventas se borran desde la sección Ventas.' : m.categoria === 'Puesto de feria' ? 'Este gasto viene del costo del puesto: cambialo desde Eventos.' : null),
       campos: (fila, x) => [
-        { campo: 'tipo', etiqueta: 'Tipo', tipo: 'select', opciones: [{ valor: 'egreso', texto: 'Egreso (gasto)' }, { valor: 'ingreso', texto: 'Ingreso' }], vacio: false, defecto: 'egreso' },
+        { campo: 'tipo', etiqueta: 'Tipo', tipo: 'select', opciones: [{ valor: 'egreso', texto: 'Egreso (gasto)' }, { valor: 'ingreso', texto: 'Otro ingreso (no ventas)' }], vacio: false, defecto: 'egreso' },
         { campo: 'fecha', etiqueta: 'Fecha', tipo: 'fecha', requerido: true, defecto: U.hoy },
         { campo: 'categoria', etiqueta: 'Categoría', requerido: true, sugerencias: [...N.CATEGORIAS_GASTO, ...N.CATEGORIAS_INGRESO], ayuda: 'Elegí una o escribí una nueva.' },
         { campo: 'monto', etiqueta: 'Monto', tipo: 'pesos', requerido: true, min: 0 },
         { campo: 'descripcion', etiqueta: 'Descripción', ancho: 'completo' },
         { campo: 'medio_pago', etiqueta: 'Medio de pago', tipo: 'select', opciones: N.MEDIOS_PAGO },
         { campo: 'proveedor_id', etiqueta: 'Proveedor', tipo: 'select', numerico: true, vacio: 'Ninguno', opciones: x.proveedores.map((p) => ({ valor: p.id, texto: p.nombre })) },
-        { campo: 'evento_id', etiqueta: 'Evento', tipo: 'select', numerico: true, vacio: 'Ninguno', opciones: x.eventos.map((e) => ({ valor: e.id, texto: e.nombre })), ayuda: 'Si es de un evento, se suma a su balance.' }
+        { campo: 'evento_id', etiqueta: 'Feria o evento', tipo: 'select', numerico: true, vacio: 'Ninguno', opciones: x.eventos.map((e) => ({ valor: e.id, texto: e.nombre })), ayuda: 'Se suma a su balance.' },
+        { campo: 'campana_id', etiqueta: 'Campaña de marketing', tipo: 'select', numerico: true, vacio: 'Ninguna', opciones: x.campanas.map((c) => ({ valor: c.id, texto: c.nombre })), ayuda: 'Se suma al gasto de la campaña.' }
       ]
     });
     if (abrirNuevo) setTimeout(() => crud.nuevo(), 300);
   }
+
 
   // ---------- Resultado mensual ----------
   async function pestanaResultado(cuerpo) {
