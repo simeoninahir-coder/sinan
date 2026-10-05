@@ -52,12 +52,16 @@ erp/
 
 ## 2. Cómo abrirlo y entrar
 
-**En la compu:** entrá a la carpeta del proyecto → carpeta `erp` → doble clic en **`index.html`**. Se abre en el navegador.
-*Tip:* guardala en favoritos del navegador para tenerla a mano.
+**Desde cualquier lugar (compu o celular):** entrá a **https://simeoninahir-coder.github.io/sinan/erp/**
+*Tip:* guardalo en favoritos. En el celu, desde el navegador tocá "Agregar a la pantalla de inicio" y te queda como una app.
+
+Cada vez que se suben cambios al proyecto en GitHub, esa página se actualiza sola en uno o dos minutos.
+
+**Sin internet en la web, solo en esta compu:** carpeta del proyecto → `erp` → clic derecho en **`index.html`** → Abrir con Google Chrome.
 
 Te aparece la pantalla de **Panel de gestión**: poné tu email y tu contraseña y tocá **Entrar**. La sesión queda abierta en ese navegador hasta que toques **Cerrar sesión** (abajo a la izquierda).
 
-**En el celular:** el ERP está hecho para funcionar perfecto en el celu (el menú se abre con el botón ☰ de arriba a la izquierda). Para abrirlo desde el teléfono tiene que estar publicado en internet (por ejemplo en Cloudflare Pages, junto con tu web). Si lo querés, pedímelo y lo dejamos andando. Es seguro: sin usuario y contraseña no se ve nada.
+**En el celular:** el menú se abre con el botón ☰ de arriba a la izquierda. Es seguro tenerlo publicado: sin usuario y contraseña no se ve nada.
 
 ### Cómo crear (o cambiar) tu usuario
 1. Entrá a **supabase.com** → tu proyecto **sinan-erp**.
