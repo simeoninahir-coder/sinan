@@ -5,6 +5,6 @@
    ¡Nunca pongas acá la "service_role key" ni la contraseña de la base!
    ===================================================================== */
 window.SINAN_CONFIG = {
-  supabaseUrl: 'PEGAR_ACA_PROJECT_URL',
-  supabaseAnonKey: 'PEGAR_ACA_ANON_KEY'
+  supabaseUrl: 'https://ojgyuocfcpttchgafmrg.supabase.co',
+  supabaseAnonKey: 'sb_publishable_tPjMJ7wxmJLRwIFwk3azxA_UNKBu89o'
 };
