@@ -6,9 +6,9 @@
   const N = {};
 
   // Listas de opciones (se pueden ampliar acá)
-  N.CATEGORIAS = ['Bolsos', 'Mochilas', 'Carteras', 'Billeteras', 'Llaveros', 'Accesorios', 'Medias'];
+  N.CATEGORIAS = ['Bolsos', 'Mochilas', 'Carteras', 'Billeteras', 'Llaveros', 'Accesorios', 'Medias', 'Por mayor'];
   N.ESTADOS_PRODUCTO = ['Activo', 'Pausado', 'Agotado', 'Discontinuado'];
-  N.CANALES = ['Instagram', 'Web', 'WhatsApp', 'Evento', 'Otro'];
+  N.CANALES = ['Presencial', 'Instagram', 'Web', 'WhatsApp', 'Evento', 'Otro'];
   N.ESTADOS_PEDIDO = ['Pendiente', 'Pagado', 'Preparando', 'Enviado', 'Entregado', 'Cancelado'];
   N.ESTADOS_FINALES = ['Entregado', 'Cancelado'];
   N.ESTADOS_EVENTO = ['Planificando', 'Confirmado', 'Realizado', 'Cancelado'];
@@ -36,8 +36,12 @@
 
   // ---------- Stock ----------
   N.minimo = (s, cfg) => (s.minimo ?? cfg?.stock_minimo_defecto ?? 2);
-  // 'sin' (0 o menos), 'bajo' (menos que el mínimo) u 'ok'
-  N.estadoStock = (s, cfg) => (s.cantidad <= 0 ? 'sin' : s.cantidad < N.minimo(s, cfg) ? 'bajo' : 'ok');
+  // 'sin' (0 o menos), 'bajo' (menos que el mínimo) u 'ok'.
+  // Mínimo 0 = producto por encargo: solo avisa si el stock queda negativo.
+  N.estadoStock = (s, cfg) => {
+    if (N.minimo(s, cfg) === 0) return s.cantidad < 0 ? 'sin' : 'ok';
+    return s.cantidad <= 0 ? 'sin' : s.cantidad < N.minimo(s, cfg) ? 'bajo' : 'ok';
+  };
   N.etiquetaStock = (est) => est === 'sin' ? UI.etiqueta('Sin stock', 'alerta') : est === 'bajo' ? UI.etiqueta('Stock bajo', 'atencion') : UI.etiqueta('OK', 'ok');
 
   // ---------- Ventas ----------

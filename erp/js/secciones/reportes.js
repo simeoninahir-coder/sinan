@@ -9,9 +9,9 @@ App.registrar({
   async render(cont) {
     const [v, eventos, movs] = await Promise.all([N.cargarVentas(), DB.listar('eventos', { orden: 'fecha' }), DB.listar('movimientos_financieros')]);
     const periodos = [
+      { valor: 'anio', texto: 'Este año' },
       { valor: '6', texto: 'Últimos 6 meses' },
       { valor: '12', texto: 'Últimos 12 meses' },
-      { valor: 'anio', texto: 'Este año' },
       { valor: '3', texto: 'Últimos 3 meses' }
     ];
     cont.innerHTML = `<div class="barra-herramientas"><div class="filtros">
@@ -34,6 +34,10 @@ App.registrar({
       // Canales
       const canales = Object.entries(U.agrupar(pedidos, (p) => p.canal))
         .map(([k, ps]) => ({ etiqueta: k, valor: U.sumar(ps, (p) => p.total), extra: `${ps.length} pedidos` })).sort((a, b) => b.valor - a.valor);
+
+      // Medios de pago
+      const medios = Object.entries(U.agrupar(pedidos, (p) => p.medio_pago || 'Sin definir'))
+        .map(([k, ps]) => ({ etiqueta: k, valor: U.sumar(ps, (p) => p.total), extra: `${ps.length} ventas` })).sort((a, b) => b.valor - a.valor);
 
       // Eventos
       const ventasEv = U.agrupar(pedidos.filter((p) => p.evento_id), (p) => p.evento_id);
@@ -58,7 +62,7 @@ App.registrar({
           ${UI.numeroDestacado('Ventas del período', U.pesos(total), `${pedidos.length} pedidos`)}
           ${UI.numeroDestacado('Producto más vendido', top ? U.esc(top.nombre) : '—', top ? `${top.unidades} unidades · ${U.pesos(top.ingresos)}` : '')}
           ${UI.numeroDestacado('Canal principal', canales[0] ? U.esc(canales[0].etiqueta) : '—', canales[0] ? `${U.porcentaje(total ? canales[0].valor / total * 100 : 0)} de las ventas` : '')}
-          ${UI.numeroDestacado('Ticket promedio', U.pesos(pedidos.length ? total / pedidos.length : 0))}
+          ${UI.numeroDestacado('Ganancia bruta', U.pesos(U.sumar(prods, (p) => p.ganancia)), `margen ${U.porcentaje(U.margen(U.sumar(prods, (p) => p.ingresos), U.sumar(prods, (p) => p.costo)))} · ticket ${U.pesos(pedidos.length ? total / pedidos.length : 0)}`)}
         </div>
         <div class="grilla grilla-2 separado">
           <section class="tarjeta"><h2>Ventas por mes</h2>${UI.grafico.columnas(ventasMes)}</section>
@@ -67,6 +71,9 @@ App.registrar({
           <section class="tarjeta"><h2>Productos más vendidos</h2>
             ${UI.grafico.barras(porUnidades.slice(0, 8).map((p) => ({ etiqueta: p.nombre, valor: p.unidades, extra: U.pesos(p.ingresos) })), { formato: (n) => n + ' u.' })}</section>
           <section class="tarjeta"><h2>Ingresos por canal</h2>${UI.grafico.barras(canales)}</section>
+          <section class="tarjeta"><h2>Ventas por medio de pago</h2>${UI.grafico.barras(medios)}</section>
+          <section class="tarjeta"><h2>Ganancia por producto</h2>
+            ${UI.grafico.barras(prods.slice(0, 8).map((p) => ({ etiqueta: p.nombre, valor: p.ganancia, extra: 'margen ' + U.porcentaje(p.margen) })))}</section>
           <section class="tarjeta"><h2>Resultado por evento</h2>${UI.grafico.barras(evs, { vacio: 'No hubo eventos en este período.' })}</section>
           <section class="tarjeta"><h2>Clientas que más compraron</h2>${UI.grafico.barras(clientas)}</section>
         </div>`;

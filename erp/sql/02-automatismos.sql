@@ -132,22 +132,25 @@ create trigger productos_colores
 
 -- Guarda un pedido completo (cabecera + productos) de una sola vez.
 -- Si algo falla no se guarda nada a medias.
+-- Al editar un pedido viejo se conserva el costo que tenía cada producto en ese momento.
 create or replace function guardar_pedido(p_pedido jsonb, p_items jsonb)
 returns bigint language plpgsql set search_path = public as $$
 declare
-  v_id bigint;
+  v_id     bigint;
+  v_costos jsonb := '{}';
 begin
   if p_items is null or jsonb_array_length(p_items) = 0 then
     raise exception 'El pedido tiene que tener al menos un producto';
   end if;
 
   if coalesce(p_pedido->>'id', '') = '' then
-    insert into pedidos (fecha, cliente_id, canal, estado, evento_id, descuento, envio, notas)
+    insert into pedidos (fecha, cliente_id, canal, estado, medio_pago, evento_id, descuento, envio, notas)
     values (
       coalesce((p_pedido->>'fecha')::date, current_date),
       nullif(p_pedido->>'cliente_id', '')::bigint,
-      coalesce(p_pedido->>'canal', 'Instagram'),
+      coalesce(p_pedido->>'canal', 'Presencial'),
       coalesce(p_pedido->>'estado', 'Pendiente'),
+      nullif(p_pedido->>'medio_pago', ''),
       nullif(p_pedido->>'evento_id', '')::bigint,
       coalesce(nullif(p_pedido->>'descuento', '')::numeric, 0),
       coalesce(nullif(p_pedido->>'envio', '')::numeric, 0),
@@ -155,12 +158,15 @@ begin
     ) returning id into v_id;
   else
     v_id := (p_pedido->>'id')::bigint;
+    select coalesce(jsonb_object_agg(producto_id || '|' || color, costo_unitario), '{}')
+      into v_costos from pedido_items where pedido_id = v_id and producto_id is not null;
     delete from pedido_items where pedido_id = v_id;   -- devuelve el stock de los ítems viejos
     update pedidos set
       fecha      = coalesce((p_pedido->>'fecha')::date, fecha),
       cliente_id = nullif(p_pedido->>'cliente_id', '')::bigint,
       canal      = coalesce(p_pedido->>'canal', canal),
       estado     = coalesce(p_pedido->>'estado', estado),
+      medio_pago = nullif(p_pedido->>'medio_pago', ''),
       evento_id  = nullif(p_pedido->>'evento_id', '')::bigint,
       descuento  = coalesce(nullif(p_pedido->>'descuento', '')::numeric, 0),
       envio      = coalesce(nullif(p_pedido->>'envio', '')::numeric, 0),
@@ -176,7 +182,7 @@ begin
          coalesce(nullif(i->>'color', ''), 'Único'),
          (i->>'cantidad')::int,
          coalesce(nullif(i->>'precio_unitario', '')::numeric, p.precio, 0),
-         coalesce(p.costo, 0)
+         coalesce((v_costos->>(p.id || '|' || coalesce(nullif(i->>'color', ''), 'Único')))::numeric, p.costo, 0)
     from jsonb_array_elements(p_items) as i
     left join productos p on p.id = nullif(i->>'producto_id', '')::bigint;
 

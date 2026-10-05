@@ -9,13 +9,21 @@
 
   // Devuelve [{ tipo, nivel: 'alerta'|'atencion'|'info', titulo, detalle, ir: [seccion, parametro] }]
   App.calcularAlertas = async () => {
-    const [cfg, stock, productos, pedidos, eventos, tareasEv, clientes] = await Promise.all([
+    const [cfg, stock, productos, pedidos, eventos, tareasEv, clientes, insumos] = await Promise.all([
       App.config(), DB.listar('stock'), DB.listar('productos'), DB.listar('pedidos'),
-      DB.listar('eventos', { orden: 'fecha' }), DB.listar('evento_tareas'), DB.listar('clientes')
+      DB.listar('eventos', { orden: 'fecha' }), DB.listar('evento_tareas'), DB.listar('clientes'),
+      App.insumosParaReponer ? App.insumosParaReponer().catch(() => []) : []
     ]);
     const prod = U.porId(productos);
     const cli = U.porId(clientes);
     const alertas = [];
+
+    // Insumos y packaging para reponer
+    insumos.forEach((i) => alertas.push({
+      tipo: 'stock', nivel: i.stock <= 0 ? 'alerta' : 'atencion',
+      titulo: `Reponer insumo: ${i.nombre}`,
+      detalle: `Quedan ${i.stock}`, ir: ['insumos']
+    }));
 
     // Stock
     stock.forEach((s) => {
@@ -87,7 +95,7 @@
     async render(cont) {
       const alertas = await App.calcularAlertas();
       const grupos = [
-        { tipo: 'stock', titulo: 'Stock bajo o agotado' },
+        { tipo: 'stock', titulo: 'Stock bajo o agotado (productos e insumos)' },
         { tipo: 'pedido', titulo: `Pedidos sin actualizar hace más de ${DIAS_PEDIDO_QUIETO} días` },
         { tipo: 'evento', titulo: `Eventos en los próximos ${DIAS_EVENTO_PROXIMO} días` }
       ];

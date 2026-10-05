@@ -22,7 +22,8 @@
         opciones: [{ valor: NUEVO_CLIENTE, texto: '➕ Cliente nueva…' }, ...clientes.map((c) => ({ valor: c.id, texto: c.nombre }))] },
       { campo: '_cli_nombre', etiqueta: 'Nombre de la clienta nueva', noGuardar: true },
       { campo: '_cli_contacto', etiqueta: 'Teléfono o Instagram', noGuardar: true },
-      { campo: 'canal', etiqueta: 'Canal de venta', tipo: 'select', opciones: N.CANALES, requerido: true, vacio: false, defecto: 'Instagram' },
+      { campo: 'canal', etiqueta: 'Canal de venta', tipo: 'select', opciones: N.CANALES, requerido: true, vacio: false, defecto: 'Presencial' },
+      { campo: 'medio_pago', etiqueta: 'Medio de pago', tipo: 'select', opciones: N.MEDIOS_PAGO, vacio: 'Sin definir', defecto: 'Transferencia' },
       { campo: 'estado', etiqueta: 'Estado', tipo: 'select', opciones: N.ESTADOS_PEDIDO, requerido: true, vacio: false, defecto: 'Pendiente' },
       { campo: 'evento_id', etiqueta: 'Evento (si se vendió en uno)', tipo: 'select', numerico: true, vacio: 'Ninguno',
         opciones: eventos.map((e) => ({ valor: e.id, texto: `${e.nombre} · ${U.fecha(e.fecha)}` })) }
@@ -212,6 +213,7 @@
         filtros: [
           { id: 'estado', etiqueta: 'Estado', opciones: N.ESTADOS_PEDIDO, valor: (p) => p.estado },
           { id: 'canal', etiqueta: 'Canal', opciones: N.CANALES, valor: (p) => p.canal },
+          { id: 'medio', etiqueta: 'Medio de pago', opciones: N.MEDIOS_PAGO, valor: (p) => p.medio_pago },
           { id: 'mes', etiqueta: 'Mes', opciones: (f) => [...new Set(f.map((p) => U.mes(p.fecha)))].map((x) => ({ valor: x, texto: U.nombreMes(x) })), valor: (p) => U.mes(p.fecha) }
         ],
         resumen: (filas) => {
@@ -226,7 +228,7 @@
         columnas: [
           { titulo: 'Pedido', valor: (p, x) => `<b>#${p.id}</b> · ${U.esc(N.nombreCliente(x.clientesId, p.cliente_id))}<br><small class="muted">${U.fecha(p.fecha)}</small>` },
           { titulo: 'Productos', valor: (p, x) => p.items.map((i) => `${U.esc(x.productosId[i.producto_id]?.nombre || i.descripcion || '—')}${i.color !== 'Único' ? ` <small class="muted">(${U.esc(i.color)})</small>` : ''} ×${i.cantidad}`).join('<br>') },
-          { titulo: 'Canal', valor: (p) => U.esc(p.canal) },
+          { titulo: 'Canal', valor: (p) => U.esc(p.canal) + (p.medio_pago ? `<br><small class="muted">${U.esc(p.medio_pago)}</small>` : '') },
           { titulo: 'Estado', valor: (p) => UI.etiqueta(p.estado, N.tonoPedido(p.estado)) },
           { titulo: 'Total', clase: 'num', valor: (p) => `<b>${U.pesos(p.total)}</b>` }
         ],

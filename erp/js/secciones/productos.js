@@ -20,7 +20,7 @@ App.registrar({
         });
         return { filas };
       },
-      buscar: (p) => [p.nombre, p.categoria, p.descripcion, (p.colores || []).join(' ')].join(' '),
+      buscar: (p) => [p.codigo, p.nombre, p.categoria, p.descripcion, (p.colores || []).join(' ')].join(' '),
       filtros: [
         { id: 'cat', etiqueta: 'Categoría', opciones: (f) => [...new Set([...N.CATEGORIAS, ...f.map((p) => p.categoria).filter(Boolean)])], valor: (p) => p.categoria },
         { id: 'estado', etiqueta: 'Estado', opciones: N.ESTADOS_PRODUCTO, valor: (p) => p.estado },
@@ -29,7 +29,7 @@ App.registrar({
       columnas: [
         { titulo: 'Producto', valor: (p) => `<div class="celda-producto">
             ${p.foto_url ? `<img class="miniatura" src="${U.esc(U.urlFoto(p.foto_url))}" alt="" loading="lazy">` : '<span class="miniatura"></span>'}
-            <div><b>${U.esc(p.nombre)}</b><small>${U.esc(p.categoria || 'Sin categoría')}</small></div></div>` },
+            <div><b>${U.esc(p.nombre)}</b><small>${p.codigo ? U.esc(p.codigo) + ' · ' : ''}${U.esc(p.categoria || 'Sin categoría')}</small></div></div>` },
         { titulo: 'Colores', valor: (p) => (p.colores || []).length ? p.colores.map((c) => `<span class="chip-color"><i style="background:${N.colorHex(c)}"></i>${U.esc(c)}</span>`).join('') : '<span class="muted">Único</span>' },
         { titulo: 'Precio', clase: 'num', valor: (p) => U.pesos(p.precio) },
         { titulo: 'Costo', clase: 'num', valor: (p) => U.pesos(p.costo) },
@@ -39,6 +39,7 @@ App.registrar({
       ],
       campos: [
         { campo: 'nombre', etiqueta: 'Nombre', requerido: true },
+        { campo: 'codigo', etiqueta: 'Código', placeholder: 'Ej: B002' },
         { campo: 'categoria', etiqueta: 'Categoría', sugerencias: N.CATEGORIAS, ayuda: 'Elegí una o escribí una nueva.' },
         { campo: 'precio', etiqueta: 'Precio de venta', tipo: 'pesos', requerido: true, min: 0 },
         { campo: 'costo', etiqueta: 'Costo', tipo: 'pesos', requerido: true, min: 0, ayuda: 'Lo que te cuesta a vos cada unidad.' },
