@@ -121,6 +121,24 @@
       }
     };
 
+    // Cambiar la contraseña (estando adentro)
+    document.getElementById('boton-clave').onclick = () => {
+      cerrarMenuMovil();
+      UI.formularioModal({
+        titulo: 'Cambiar contraseña', ancho: 'chico', textoBoton: 'Guardar contraseña',
+        campos: [
+          { campo: 'nueva', etiqueta: 'Contraseña nueva', ancho: 'completo', requerido: true, ayuda: 'Mínimo 6 caracteres. Anotala antes de guardar.' },
+          { campo: 'repetir', etiqueta: 'Repetila', ancho: 'completo', requerido: true }
+        ],
+        alGuardar: async (d) => {
+          if (d.nueva.length < 6) throw new Error('Tiene que tener al menos 6 caracteres.');
+          if (d.nueva !== d.repetir) throw new Error('Las dos contraseñas no son iguales.');
+          await DB.auth.cambiarClave(d.nueva);
+          UI.aviso('¡Contraseña cambiada! Usala para entrar desde el celu.');
+        }
+      });
+    };
+
     // Botón "Ver" para mostrar la contraseña mientras se escribe
     const ver = document.getElementById('ver-clave');
     if (ver) ver.onclick = () => {

@@ -32,6 +32,7 @@
         async sesion() { return chequear(await sb.auth.getSession()).session; },
         async entrar(email, clave) { return chequear(await sb.auth.signInWithPassword({ email, password: clave })); },
         async salir() { await sb.auth.signOut(); },
+        async cambiarClave(nueva) { return chequear(await sb.auth.updateUser({ password: nueva })); },
         alCambiar(fn) { sb.auth.onAuthStateChange((_ev, s) => fn(s)); }
       },
 
