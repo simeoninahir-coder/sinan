@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#12364e">
+<title>Sinan ERP</title>
+<link rel="icon" href="../assets/isotipo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gilda+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+<!-- ============ PANTALLA DE LOGIN ============ -->
+<section id="pantalla-login" hidden>
+  <div class="login-caja">
+    <img src="../assets/logo-vertical.png" alt="Sinan" class="login-logo">
+    <h1>Panel de gestión</h1>
+    <form autocomplete="on">
+      <div class="campo">
+        <label for="login-email" class="campo-etiqueta">Email</label>
+        <input id="login-email" name="email" type="email" autocomplete="username" required>
+      </div>
+      <div class="campo">
+        <label for="login-clave" class="campo-etiqueta">Contraseña</label>
+        <input id="login-clave" name="clave" type="password" autocomplete="current-password" required>
+      </div>
+      <p class="form-error" hidden></p>
+      <button type="submit" class="boton boton-ancho">Entrar</button>
+    </form>
+  </div>
+</section>
+
+<!-- ============ APLICACIÓN ============ -->
+<div id="app" hidden>
+  <aside class="menu-lateral" aria-label="Menú principal">
+    <div class="menu-marca">
+      <img src="../assets/logo-horizontal-blanco.png" alt="Sinan">
+    </div>
+    <nav id="menu"></nav>
+    <div class="menu-usuario">
+      <span id="usuario-email"></span>
+      <button type="button" id="boton-salir" class="boton-salir">
+        <svg class="icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 17l5-5-5-5M15 12H3"/></svg>
+        Cerrar sesión
+      </button>
+    </div>
+  </aside>
+  <div id="velo-menu"></div>
+
+  <div class="principal">
+    <header class="cabecera-movil">
+      <button type="button" id="boton-menu" class="boton-icono" aria-label="Abrir menú">
+        <svg class="icono" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+      <img src="../assets/logo-horizontal.png" alt="Sinan" class="cabecera-logo">
+    </header>
+    <main id="contenido"></main>
+  </div>
+</div>
+
+<!-- Conexión con Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/config.js"></script>
+
+<!-- Núcleo (piezas compartidas) -->
+<script src="js/nucleo/utilidades.js"></script>
+<script src="js/nucleo/datos.js"></script>
+<script src="js/nucleo/interfaz.js"></script>
+<script src="js/nucleo/seccion-crud.js"></script>
+<script src="js/nucleo/negocio.js"></script>
+<script src="js/nucleo/app.js"></script>
+
+<!-- Secciones (el orden acá es el orden del menú) -->
+<script src="js/secciones/inicio.js"></script>
+<script src="js/secciones/productos.js"></script>
+<script src="js/secciones/inventario.js"></script>
+<script src="js/secciones/ventas.js"></script>
+<script src="js/secciones/clientes.js"></script>
+<script src="js/secciones/eventos.js"></script>
+<script src="js/secciones/contenido.js"></script>
+<script src="js/secciones/finanzas.js"></script>
+<script src="js/secciones/proveedores.js"></script>
+<script src="js/secciones/equipo.js"></script>
+<script src="js/secciones/reportes.js"></script>
+<script src="js/secciones/alertas.js"></script>
+<script src="js/secciones/configuracion.js"></script>
+</body>
+</html>
