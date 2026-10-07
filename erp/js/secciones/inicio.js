@@ -1,14 +1,26 @@
 /* =====================================================================
    SECCIÓN · INICIO
-   De un vistazo: qué hay que hacer hoy, cómo vienen las ventas,
-   el embudo de consultas, gráficos y lo que necesita atención.
+   De un vistazo: qué hay que hacer hoy, números del mes, ventas vs.
+   gastos, movimientos recientes, ventas por categoría, más vendidos,
+   metas, agenda con notas rápidas y lo que necesita atención.
    ===================================================================== */
-App.registrar({
-  id: 'inicio', titulo: 'Inicio', icono: 'inicio',
-  async render(cont) {
-    const [v, consultas, eventos, tareas, personas, alertas] = await Promise.all([
+(function () {
+  const COLOR_VENTAS = '#477ab3';
+  const COLOR_GASTOS = '#c9a27e';
+  let mesDona = null;        // mes que muestra la dona (se puede mover con las flechas)
+  let mesesGrafico = 6;      // período del gráfico de líneas
+
+  // Tarjeta de número con flechita que lleva a otra sección
+  const tarjetaNumero = (titulo, valor, detalle, ir) => `<button type="button" class="tarjeta kpi" data-ir="${ir}">
+      <span class="kpi-cab">${U.esc(titulo)}<i class="kpi-flecha" aria-hidden="true">↗</i></span>
+      <strong class="kpi-valor">${valor}</strong><span class="kpi-detalle">${detalle || '&nbsp;'}</span></button>`;
+
+  async function render(cont) {
+    const [v, consultas, eventos, tareas, personas, alertas, movs, objetivos, notas] = await Promise.all([
       N.cargarVentas(), DB.listar('consultas').catch(() => []), DB.listar('eventos', { orden: 'fecha' }),
-      DB.listar('tareas', { orden: 'fecha_limite' }), DB.listar('personas'), App.calcularAlertas()
+      DB.listar('tareas', { orden: 'fecha_limite' }), DB.listar('personas'), App.calcularAlertas(),
+      DB.listar('movimientos_financieros', { orden: 'fecha', asc: false }), DB.listar('objetivos_mkt').catch(() => []),
+      DB.listar('agenda_notas', { orden: 'fecha' }).catch(() => [])
     ]);
     const hoy = U.hoy();
     const mes = U.mes(hoy);
@@ -19,67 +31,74 @@ App.registrar({
     const ventasMes = U.sumar(delMes, (p) => p.total);
     const ventasAnt = U.sumar(validos.filter((p) => U.mes(p.fecha) === mesAnt), (p) => p.total);
     const ganancia = (ps) => U.sumar(ps, (p) => U.sumar(p.items, (i) => i.cantidad * (i.precio_unitario - i.costo_unitario)));
-    const consMes = consultas.filter((c) => U.mes(c.fecha) === mes);
+    const gastosMes = U.sumar(movs.filter((m) => m.tipo === 'egreso' && U.mes(m.fecha) === mes), (m) => m.monto);
+
+    // ---- Saludo ----
+    const hora = new Date().getHours();
+    App.titulo(hora < 13 ? 'Buen día' : hora < 20 ? 'Buenas tardes' : 'Buenas noches', 'Esto es lo que pasa hoy en Sinan.');
 
     // ---- Para hacer hoy ----
     const cuenta = (e) => v.pedidos.filter((p) => p.estado === e);
-    const reponer = alertas.filter((a) => a.tipo === 'stock' || a.tipo === 'insumo').length;
-    const sinResponder = consultas.filter((c) => c.etapa === 'Nueva').length;
     const hacer = [
       { n: cuenta('Por preparar').length, t: 'Por preparar', s: 'pedidos para armar', ir: 'ventas/Por preparar', tono: 'alerta', i: 'inventario' },
       { n: cuenta('Por entregar').length, t: 'Por entregar', s: 'pedidos para enviar', ir: 'envios', tono: 'atencion', i: 'proveedores' },
       { n: cuenta('Por cobrar').length, t: 'Por cobrar', s: U.pesos(U.sumar(cuenta('Por cobrar'), (p) => p.total)), ir: 'ventas/Por cobrar', tono: 'info', i: 'finanzas' },
-      { n: sinResponder, t: 'Consultas', s: 'sin responder', ir: 'clientes/embudo', tono: 'alerta', i: 'consulta' },
-      { n: reponer, t: 'Reponer', s: 'productos e insumos', ir: 'inventario', tono: 'atencion', i: 'reponer' }
+      { n: consultas.filter((c) => c.etapa === 'Nueva').length, t: 'Consultas', s: 'sin responder', ir: 'clientes/embudo', tono: 'alerta', i: 'consulta' },
+      { n: alertas.filter((a) => a.tipo === 'stock' || a.tipo === 'insumo').length, t: 'Reponer', s: 'productos e insumos', ir: 'inventario', tono: 'atencion', i: 'reponer' }
     ];
 
-    // ---- Gráficos ----
-    const meses = U.ultimosMeses(6);
-    const ventas6 = meses.map((m) => ({ etiqueta: U.nombreMes(m, true), valor: U.sumar(validos.filter((p) => U.mes(p.fecha) === m), (p) => p.total) }));
-    const anio = hoy.slice(0, 4);
-    const canales = Object.entries(U.agrupar(validos.filter((p) => p.fecha.startsWith(anio)), (p) => p.canal))
-      .map(([k, g]) => ({ etiqueta: k, valor: U.sumar(g, (p) => p.total), extra: `${g.length} ventas` })).sort((a, b) => b.valor - a.valor);
+    // ---- Ventas vs. gastos ----
+    const meses = U.ultimosMeses(mesesGrafico);
+    const serieVentas = meses.map((m) => U.sumar(validos.filter((p) => U.mes(p.fecha) === m), (p) => p.total));
+    const serieGastos = meses.map((m) => U.sumar(movs.filter((x) => x.tipo === 'egreso' && U.mes(x.fecha) === m), (x) => x.monto));
+
+    // ---- Movimientos recientes (ventas y gastos) ----
+    const recientes = [
+      ...validos.filter((p) => !p.historico).map((p) => ({ fecha: p.fecha, orden: p.creado || p.fecha, nombre: N.nombreCliente(v.clientesId, p.cliente_id), detalle: p.items.map((i) => v.productosId[i.producto_id]?.nombre || i.descripcion).join(', '), monto: p.total, ir: 'ventas/editar-' + p.id })),
+      ...movs.map((m) => ({ fecha: m.fecha, orden: m.creado || m.fecha, nombre: m.descripcion || m.categoria, detalle: m.categoria, monto: m.tipo === 'egreso' ? -m.monto : m.monto, ir: 'finanzas' }))
+    ].sort((a, b) => b.fecha.localeCompare(a.fecha) || String(b.orden).localeCompare(String(a.orden))).slice(0, 7);
+
+    // ---- Ventas por categoría (dona, mes navegable) ----
+    if (!mesDona) mesDona = mes;
+    const porCat = {};
+    validos.filter((p) => U.mes(p.fecha) === mesDona).forEach((p) => p.items.forEach((i) => {
+      const cat = v.productosId[i.producto_id]?.categoria || 'Otros';
+      porCat[cat] = (porCat[cat] || 0) + i.cantidad * i.precio_unitario;
+    }));
+    const cats = Object.entries(porCat).sort((a, b) => b[1] - a[1]);
+    const itemsDona = cats.slice(0, 5).map(([k, val], n) => ({ etiqueta: k, valor: val, color: UI.grafico.COLORES[n] }));
+    if (cats.length > 5) itemsDona.push({ etiqueta: 'Otras', valor: U.sumar(cats.slice(5), (c) => c[1]), color: UI.grafico.COLORES[5] });
+
+    // ---- Más vendidos (solo por unidad, 90 días) ----
     const desde90 = U.isoDeFecha(new Date(U.fechaDeIso(hoy).getTime() - 90 * 86400000));
     const porProd = {};
     validos.filter((p) => p.fecha >= desde90).forEach((p) => p.items.forEach((i) => {
+      if (N.esMayorista(i, v.productosId)) return;
       const n = v.productosId[i.producto_id]?.nombre || i.descripcion || '—';
       porProd[n] = (porProd[n] || 0) + i.cantidad;
     }));
-    const top = Object.entries(porProd).map(([k, n]) => ({ etiqueta: k, valor: n })).sort((a, b) => b.valor - a.valor).slice(0, 6);
-    const cerradasMes = consMes.filter((c) => c.etapa === 'Ganada' || c.etapa === 'Perdida');
-    const embudo = [
-      { t: 'Consultaron', n: consMes.length },
-      { t: 'Presupuesto', n: consMes.filter((c) => c.etapa === 'Presupuesto' || c.etapa === 'Ganada' || c.presupuesto_at).length },
-      { t: 'Compraron', n: consMes.filter((c) => c.etapa === 'Ganada').length }
-    ];
+    const top = Object.entries(porProd).map(([k, n]) => ({ etiqueta: k, valor: n })).sort((a, b) => b.valor - a.valor).slice(0, 5);
 
-    // ---- Próximo evento y tareas ----
-    const proximo = eventos.find((e) => e.estado !== 'Cancelado' && e.estado !== 'Realizado' && U.diasHasta(e.fecha) >= 0);
+    // ---- Metas (objetivos de marketing en curso) ----
+    const metas = objetivos.filter((o) => o.estado !== 'Logrado' && o.estado !== 'No logrado' && o.meta).slice(0, 3);
+
+    // ---- Agenda: notas + eventos + tareas, de hoy en adelante ----
     const gente = U.porId(personas);
-    const pendientes = tareas.filter((t) => t.estado !== 'Hecha');
-
-    const hora = new Date().getHours();
-    const saludo = hora < 13 ? 'Buen día' : hora < 20 ? 'Buenas tardes' : 'Buenas noches';
-    const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-    const f = U.fechaDeIso(hoy);
-    cont.closest('#contenido').querySelector('.cabecera-seccion').innerHTML =
-      `<h1>${saludo} </h1><p>Hoy es ${dias[f.getDay()]} ${f.getDate()} de ${U.MESES[f.getMonth()]}. Esto es lo que pasa en Sinan.</p>`;
+    const agenda = [
+      ...notas.filter((n) => n.fecha >= hoy).map((n) => ({ fecha: n.fecha, texto: n.texto, tipo: 'Nota', id: n.id })),
+      ...eventos.filter((e) => e.fecha >= hoy && e.estado !== 'Cancelado').map((e) => ({ fecha: e.fecha, texto: (e.tipo === 'Feria' ? 'Feria: ' : '') + e.nombre, tipo: 'Evento', ir: 'eventos/ver-' + e.id })),
+      ...tareas.filter((t) => t.estado !== 'Hecha' && t.fecha_limite).map((t) => ({ fecha: t.fecha_limite, texto: t.titulo + (t.persona_id && gente[t.persona_id] ? ' · ' + gente[t.persona_id].nombre : ''), tipo: 'Tarea', tarea: t.id, vencida: t.fecha_limite < hoy }))
+    ].sort((a, b) => a.fecha.localeCompare(b.fecha)).slice(0, 8);
 
     let comparacion = '';
     if (ventasAnt > 0) {
       const varPct = (ventasMes - ventasAnt) / ventasAnt * 100;
       comparacion = `<span class="variacion ${varPct >= 0 ? 'sube' : 'baja'}">${varPct >= 0 ? '▲' : '▼'} ${U.porcentaje(Math.abs(varPct))}</span> vs. ${U.MESES[Number(mesAnt.slice(5)) - 1]}`;
     }
+    const iniciales = (t) => String(t || '?').trim().split(/\s+/).slice(0, 2).map((x) => x[0]).join('').toUpperCase();
+    const diaCorto = (iso) => { const f = U.fechaDeIso(iso); return `${f.getDate()} ${U.MESES[f.getMonth()].slice(0, 3)}`; };
 
     cont.innerHTML = `
-      <div class="acciones-rapidas">
-        <button type="button" class="boton" data-ir="ventas/nuevo">+ Venta</button>
-        <button type="button" class="boton boton-secundario" data-ir="clientes/embudo">+ Consulta</button>
-        <button type="button" class="boton boton-secundario" data-ir="inventario/nuevo">+ Producto</button>
-        <button type="button" class="boton boton-secundario" data-ir="finanzas/nuevo">+ Gasto</button>
-      </div>
-
-      <h2 class="subtitulo">Para hacer hoy</h2>
       <div class="semaforo semaforo-5">${hacer.map((h) => `
         <button type="button" class="semaforo-item tono-${h.n ? h.tono : 'ok'}" data-ir="${h.ir}">
           <span class="sf-icono" aria-hidden="true">${h.n ? App.icono(h.i) : '✓'}</span>
@@ -88,53 +107,108 @@ App.registrar({
         </button>`).join('')}
       </div>
 
-      <h2 class="subtitulo">Este mes</h2>
-      <div class="grilla grilla-4">
-        ${UI.numeroDestacado('Ventas', U.pesos(ventasMes), comparacion || `${delMes.length} pedidos`)}
-        ${UI.numeroDestacado('Ganancia', U.pesos(ganancia(delMes)), 'precio − costo de lo vendido', 'ok')}
-        ${UI.numeroDestacado('Pedidos', delMes.length, `ticket promedio ${U.pesos(delMes.length ? ventasMes / delMes.length : 0)}`)}
-        ${UI.numeroDestacado('Consultas', consMes.length, cerradasMes.length ? `${U.porcentaje(embudo[2].n / cerradasMes.length * 100)} terminan en venta` : 'cargalas en Clientes → Embudo')}
-      </div>
+      <div class="inicio-grilla separado">
+        <div class="inicio-izq">
+          <div class="kpis">
+            ${tarjetaNumero('Ventas del mes', U.pesos(ventasMes), comparacion || `${delMes.length} pedidos`, 'ventas')}
+            ${tarjetaNumero('Ganancia del mes', U.pesos(ganancia(delMes)), `gastos del mes: ${U.pesos(gastosMes)}`, 'finanzas')}
+            ${tarjetaNumero('Pedidos del mes', delMes.length, `ticket promedio ${U.pesos(delMes.length ? ventasMes / delMes.length : 0)}`, 'reportes')}
+          </div>
 
-      <div class="grilla grilla-2 separado">
-        <section class="tarjeta"><div class="tarjeta-cabecera"><h2>Ventas de los últimos 6 meses</h2><button type="button" class="boton-texto" data-ir="reportes">Más reportes</button></div>
-          ${UI.grafico.columnas(ventas6)}</section>
-        <section class="tarjeta"><div class="tarjeta-cabecera"><h2>Embudo de consultas del mes</h2><button type="button" class="boton-texto" data-ir="clientes/embudo">Ver embudo</button></div>
-          ${consMes.length ? `<div class="embudo">${embudo.map((x, i) => `<div class="embudo-paso" style="--ancho:${Math.max(18, embudo[0].n ? x.n / embudo[0].n * 100 : 0)}%">
-            <span class="embudo-barra"><b>${x.n}</b></span><span class="embudo-texto">${x.t}${i && embudo[0].n ? ` · ${U.porcentaje(x.n / embudo[0].n * 100)}` : ''}</span></div>`).join('')}</div>`
-            : '<div class="vacio">Todavía no cargaste consultas este mes. Cada vez que alguien te pregunta por un producto, sumala en <b>Clientes → Embudo</b>.</div>'}
-        </section>
-        <section class="tarjeta"><h2>Ventas por canal (${anio})</h2>${UI.grafico.barras(canales)}</section>
-        <section class="tarjeta"><h2>Lo más vendido (90 días)</h2>${UI.grafico.barras(top, { formato: (n) => n + ' u.', vacio: 'Sin ventas en los últimos 90 días.' })}</section>
-      </div>
+          <section class="tarjeta">
+            <div class="tarjeta-cabecera"><h2>Ventas vs. gastos</h2>
+              <div class="selector-chico">${[6, 12].map((n) => `<button type="button" data-meses="${n}" class="${n === mesesGrafico ? 'activo' : ''}">${n} meses</button>`).join('')}</div></div>
+            ${UI.grafico.lineas(meses.map((m) => U.nombreMes(m, true)), [
+              { nombre: 'Ventas', valores: serieVentas, color: COLOR_VENTAS },
+              { nombre: 'Gastos', valores: serieGastos, color: COLOR_GASTOS }
+            ])}
+          </section>
 
-      <div class="grilla grilla-2 separado">
-        <section class="tarjeta">
-          <div class="tarjeta-cabecera"><h2>Para atender</h2><button type="button" class="boton-texto" data-ir="alertas">Ver detalle</button></div>
-          ${App.dibujarResumenAlertas(alertas)}
-        </section>
-        <section class="tarjeta">
-          <div class="tarjeta-cabecera"><h2>Agenda</h2><button type="button" class="boton-texto" data-ir="equipo">Tareas</button></div>
-          ${proximo ? `<button type="button" class="alerta-grupo" data-ir="eventos/ver-${proximo.id}">
-              <span class="ag-icono">${App.icono('eventos')}</span>
-              <span class="ag-texto"><b>${U.esc((proximo.tipo === 'Feria' ? 'Feria · ' : '') + proximo.nombre)}</b><small>${U.fecha(proximo.fecha)} · ${U.diasHasta(proximo.fecha) === 0 ? 'hoy' : 'en ' + U.diasHasta(proximo.fecha) + ' días'}${proximo.lugar ? ' · ' + U.esc(proximo.lugar) : ''}</small></span>
-              <span class="ag-flecha">›</span></button>` : '<p class="muted chico">No hay eventos ni ferias próximas.</p>'}
-          <ul class="lista-simple separado">${pendientes.slice(0, 5).map((t) => {
-            const dl = t.fecha_limite ? U.diasHasta(t.fecha_limite) : null;
-            return `<li><input type="checkbox" data-tarea="${t.id}" aria-label="Marcar como hecha">
-              <div class="crece">${U.esc(t.titulo)}<small>${t.persona_id && gente[t.persona_id] ? U.esc(gente[t.persona_id].nombre) + ' · ' : ''}${t.fecha_limite ? 'vence ' + U.fecha(t.fecha_limite) : 'sin fecha'}</small></div>
-              ${dl !== null && dl < 0 ? UI.etiqueta('Vencida', 'alerta') : UI.etiqueta(t.prioridad, N.tonoPrioridad(t.prioridad))}</li>`;
-          }).join('') || '<li class="muted">Sin tareas pendientes.</li>'}</ul>
-        </section>
+          <div class="grilla grilla-2">
+            <section class="tarjeta">
+              <div class="tarjeta-cabecera"><h2>Más vendidos</h2><span class="muted chico">por unidad · 90 días</span></div>
+              ${UI.grafico.barras(top, { formato: (n) => n + ' u.', vacio: 'Sin ventas en los últimos 90 días.' })}
+            </section>
+            <section class="tarjeta">
+              <div class="tarjeta-cabecera"><h2>Metas</h2><button type="button" class="boton-texto" data-ir="marketing">Ver</button></div>
+              ${metas.length ? metas.map((o) => {
+                const pct = Math.max(0, Math.min(100, (Number(o.actual) || 0) / o.meta * 100));
+                return `<div class="meta"><div class="meta-cab"><span>${U.esc(o.objetivo)}</span><b>${U.porcentaje(pct)}</b></div>
+                  <div class="barra-progreso"><span style="width:${pct}%"></span></div>
+                  <small class="muted">${U.numero(o.actual)} de ${U.numero(o.meta)}${o.fecha_limite ? ' · hasta ' + U.fecha(o.fecha_limite) : ''}</small></div>`;
+              }).join('') : '<p class="muted chico">Cargá tus metas en Marketing → Objetivos (ej: llegar a 1.500 seguidores) y las vas a ver acá.</p>'}
+            </section>
+          </div>
+
+          <section class="tarjeta">
+            <div class="tarjeta-cabecera"><h2>Para atender</h2><button type="button" class="boton-texto" data-ir="alertas">Ver detalle</button></div>
+            ${App.dibujarResumenAlertas(alertas)}
+          </section>
+        </div>
+
+        <div class="inicio-der">
+          <section class="tarjeta">
+            <div class="tarjeta-cabecera"><h2 class="titulo-icono">${App.icono('finanzas')} Movimientos recientes</h2></div>
+            <ul class="movimientos">${recientes.map((r) => `<li><button type="button" data-ir="${r.ir}">
+                <span class="mov-avatar">${U.esc(iniciales(r.nombre))}</span>
+                <span class="mov-texto"><b>${U.esc(r.nombre)}</b><small>${U.fecha(r.fecha)} · ${U.esc(r.detalle || '')}</small></span>
+                <span class="mov-monto ${r.monto >= 0 ? 'mas' : 'menos'}">${r.monto >= 0 ? '+' : '−'}${U.pesos(Math.abs(r.monto)).replace('-', '')}</span>
+              </button></li>`).join('') || '<li class="muted chico">Todavía no hay movimientos.</li>'}</ul>
+          </section>
+
+          <section class="tarjeta">
+            <div class="tarjeta-cabecera navegador-mes">
+              <button type="button" class="boton-icono" data-mes-dona="-1" aria-label="Mes anterior">‹</button>
+              <h2>${U.nombreMes(mesDona)}</h2>
+              <button type="button" class="boton-icono" data-mes-dona="1" aria-label="Mes siguiente" ${mesDona >= mes ? 'disabled' : ''}>›</button>
+            </div>
+            <p class="muted chico" style="margin:-6px 0 6px">Ventas por categoría</p>
+            ${UI.grafico.dona(itemsDona, { centro: U.pesos(U.sumar(itemsDona, (i) => i.valor)), sub: 'vendido en el mes' })}
+          </section>
+
+          <section class="tarjeta">
+            <div class="tarjeta-cabecera"><h2 class="titulo-icono">${App.icono('eventos')} Agenda</h2></div>
+            <form class="nota-rapida" data-nota>
+              <input type="date" name="fecha" value="${hoy}" required aria-label="Fecha">
+              <input type="text" name="texto" placeholder="Ej: Día de la Madre" required aria-label="Qué pasa ese día">
+              <button class="boton boton-chico">Anotar</button>
+            </form>
+            <ul class="agenda">${agenda.map((a) => `<li class="${a.vencida ? 'vencida' : ''}">
+                <span class="ag-dia"><b>${diaCorto(a.fecha)}</b><small>${a.tipo}</small></span>
+                <span class="ag-texto-item">${U.esc(a.texto)}</span>
+                ${a.id ? `<button type="button" class="boton-icono boton-icono-peligro" data-borrar-nota="${a.id}" aria-label="Borrar nota">✕</button>` : ''}
+                ${a.ir ? `<button type="button" class="boton-texto" data-ir="${a.ir}">Ver</button>` : ''}
+                ${a.tarea ? `<input type="checkbox" data-tarea="${a.tarea}" aria-label="Marcar tarea como hecha">` : ''}
+              </li>`).join('') || '<li class="muted chico">Nada agendado. Anotá fechas especiales arriba.</li>'}</ul>
+          </section>
+        </div>
       </div>`;
 
     App.activarIr(cont);
-    cont.querySelectorAll('[data-tarea]').forEach((ch) => ch.addEventListener('change', async () => {
+    // Período del gráfico y mes de la dona
+    cont.querySelectorAll('[data-meses]').forEach((b) => b.onclick = () => { mesesGrafico = Number(b.dataset.meses); render(cont); });
+    cont.querySelectorAll('[data-mes-dona]').forEach((b) => b.onclick = () => {
+      const f = U.fechaDeIso(mesDona + '-01'); f.setMonth(f.getMonth() + Number(b.dataset.mesDona));
+      mesDona = U.isoDeFecha(f).slice(0, 7); render(cont);
+    });
+    // Notas rápidas
+    cont.querySelector('[data-nota]').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const f = e.target;
       try {
-        await DB.actualizar('tareas', Number(ch.dataset.tarea), { estado: 'Hecha' });
-        ch.closest('li').querySelector('.crece').classList.add('hecha'); ch.disabled = true;
-        UI.aviso('Tarea hecha');
-      } catch (e) { ch.checked = false; UI.error(e); }
+        await DB.crear('agenda_notas', { fecha: f.fecha.value, texto: f.texto.value.trim() });
+        UI.aviso(`Anotado para el ${U.fecha(f.fecha.value)}`); render(cont);
+      } catch (ex) { UI.error(ex); }
+    });
+    cont.querySelectorAll('[data-borrar-nota]').forEach((b) => b.onclick = async () => {
+      if (!(await UI.confirmar('Vas a borrar esta nota de la agenda.'))) return;
+      try { await DB.borrar('agenda_notas', Number(b.dataset.borrarNota)); render(cont); } catch (ex) { UI.error(ex); }
+    });
+    cont.querySelectorAll('[data-tarea]').forEach((ch) => ch.addEventListener('change', async () => {
+      try { await DB.actualizar('tareas', Number(ch.dataset.tarea), { estado: 'Hecha' }); UI.aviso('Tarea hecha'); render(cont); }
+      catch (e) { ch.checked = false; UI.error(e); }
     }));
   }
-});
+
+  App.registrar({ id: 'inicio', titulo: 'Inicio', icono: 'inicio', render: (cont) => { mesDona = null; return render(cont); } });
+})();

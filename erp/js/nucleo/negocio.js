@@ -103,6 +103,14 @@
     return Math.round((prox - hoy) / 86400000);
   };
 
+  // ¿Es una venta por mayor? (categoría "Por mayor" o, en las ventas viejas, "docena", "x mayor", "14 fundas"…)
+  // Se usa para que los "más vendidos" muestren solo productos por unidad.
+  N.esMayorista = (item, productosId) => {
+    const p = item.producto_id ? productosId[item.producto_id] : null;
+    if (p) return p.categoria === 'Por mayor';
+    return /docena|por mayor|x mayor|\b\d{2,}\s*fundas/i.test(item.descripcion || '');
+  };
+
   // ---------- Ventas ----------
   N.pedidoValido = (p) => p.estado !== 'Cancelado';
   N.nombreCliente = (clientes, id) => (clientes[id] ? clientes[id].nombre : 'Sin cliente');

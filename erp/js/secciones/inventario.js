@@ -67,8 +67,7 @@
       ayuda: 'Destildalo si es un producto que no vas a volver a comprar: deja de aparecer en "Para reponer" y en las alertas.' },
     { tipo: 'titulo', etiqueta: 'Costo de cada unidad' },
     { campo: 'costo_base', etiqueta: 'Costo del producto', tipo: 'pesos', requerido: true, min: 0, ayuda: 'Lo que le pagás al proveedor por unidad.' },
-    { campo: 'costo_extra', etiqueta: 'Otros gastos por unidad', tipo: 'pesos', min: 0, defecto: 0, ayuda: 'Traslado, envío de la compra, etc. (lo que no está en Insumos).' },
-    { campo: 'costo_extra_detalle', etiqueta: 'Detalle de otros gastos', ancho: 'completo', placeholder: 'Ej: traslado $ 500 + etiqueta $ 300' },
+    { campo: 'costo_extra', etiqueta: 'Envío por unidad', tipo: 'pesos', min: 0, defecto: 0, ayuda: 'Lo que te cuesta traer cada unidad (flete, envío del proveedor).' },
     { campo: 'packaging', tipo: 'bloque', etiqueta: 'Packaging que lleva', ayuda: 'Con cada venta se descuenta solo de Insumos (y vuelve si se cancela).' },
     { campo: 'resumen_costo', tipo: 'bloque' },
     { tipo: 'titulo', etiqueta: 'Precio de venta' },
@@ -109,9 +108,7 @@
       const extra = Number(form.costo_extra.value) || 0;
       const pack = costoPackaging(formProducto.receta, x.insumosId);
       formProducto.costoTotal = Math.round((base + extra + pack) * 100) / 100;
-      cajaCosto.innerHTML = `<div class="costo-total">
-        <span>Producto ${U.pesos(base)}</span><span>+ otros ${U.pesos(extra)}</span><span>+ packaging ${U.pesos(pack)}</span>
-        <b>= Costo total ${U.pesos(formProducto.costoTotal)}</b></div>`;
+      cajaCosto.innerHTML = `<p class="costo-total">Costo total por unidad: <b>${U.pesos(formProducto.costoTotal)}</b></p>`;
       // Calculadora: precio = costo × (1 + ganancia) ÷ (1 − comisión)
       const g = Number(cajaCalc.querySelector('[data-c="ganancia"]')?.value) || 0;
       const com = Math.min(90, Number(cajaCalc.querySelector('[data-c="comision"]')?.value) || 0);
@@ -256,16 +253,13 @@
       columnas: [
         { titulo: 'Producto', valor: (p) => `<div class="celda-producto">
             ${p.foto_url ? `<img class="miniatura" src="${U.esc(U.urlFoto(p.foto_url))}" alt="" loading="lazy">` : '<span class="miniatura"></span>'}
-            <div><b>${U.esc(p.nombre)}</b><small>${p.codigo ? U.esc(p.codigo) + ' · ' : ''}${U.esc(p.categoria || 'Sin categoría')}</small></div></div>` },
+            <div><b>${U.esc(p.nombre)}</b><small>${p.codigo ? U.esc(p.codigo) + ' · ' : ''}${U.esc(p.categoria || 'Sin categoría')}${p.se_repone === false ? ' · no se repone' : ''}${p.estado !== 'Activo' ? ' · ' + U.esc(p.estado) : ''}</small></div></div>` },
         { titulo: 'Stock por color', valor: (p, x) => p._stock.length ? p._stock.map((s) => {
             const est = N.estadoStock(s, x.cfg, p);
             return `<span class="stock-color est-${est}"><i style="background:${N.colorHex(s.color)}"></i>${U.esc(s.color === 'Único' ? 'Stock' : s.color)} <b>${s.cantidad}</b></span>`;
           }).join('') : '—' },
         { titulo: 'Precio', clase: 'num', valor: (p) => U.pesos(p.precio) },
-        { titulo: 'Costo · margen', clase: 'num', valor: (p) => `<span title="${U.esc(`Producto ${U.pesos(p.costo_base ?? p.costo)} + otros ${U.pesos(p.costo_extra || 0)} + packaging ${U.pesos(p._pack)}${p._receta ? ' (' + p._receta + ')' : ''}`)}">${U.pesos(p.costo)}</span>
-            <br><small class="muted">${p._margen === null ? '—' : 'margen ' + U.porcentaje(p._margen)}</small>
-            ${p._receta ? `<br><small class="muted">pack: ${U.esc(p._receta)}</small>` : ''}` },
-        { titulo: 'Estado', valor: (p) => (p.se_repone === false ? UI.etiqueta(p._total > 0 ? 'No se repone' : 'Agotado · no se repone', 'neutro') + ' ' : '') + (p._estadoStock !== 'ok' && p.estado === 'Activo' ? N.etiquetaStock(p._estadoStock) + ' ' : '') + (p.estado !== 'Activo' ? UI.etiqueta(p.estado, N.tonoProducto(p.estado)) : (p._estadoStock === 'ok' && p.se_repone !== false ? UI.etiqueta('OK', 'ok') : '')) }
+        { titulo: 'Costo · margen', clase: 'num', valor: (p) => `${U.pesos(p.costo)}<br><small class="muted">${p._margen === null ? '—' : 'margen ' + U.porcentaje(p._margen)}</small>` },
       ],
       campos: (fila) => camposProducto(fila),
       alArmar: (form, fila, x) => armarCostos(form, fila, x),

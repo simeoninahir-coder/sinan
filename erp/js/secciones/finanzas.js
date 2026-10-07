@@ -130,7 +130,7 @@
       const p = v.productosId[its[0].producto_id];
       const ingresos = U.sumar(its, (i) => i.cantidad * i.precio_unitario);
       const costo = U.sumar(its, (i) => i.cantidad * i.costo_unitario);
-      return { id: k, nombre: p ? p.nombre : (its[0].descripcion || 'Producto borrado'), unidades: U.sumar(its, (i) => i.cantidad), ingresos, costo, ganancia: ingresos - costo, margen: U.margen(ingresos, costo) };
+      return { id: k, mayorista: N.esMayorista(its[0], v.productosId), nombre: p ? p.nombre : (its[0].descripcion || 'Producto borrado'), unidades: U.sumar(its, (i) => i.cantidad), ingresos, costo, ganancia: ingresos - costo, margen: U.margen(ingresos, costo) };
     }).sort((a, b) => b.ganancia - a.ganancia);
   };
 

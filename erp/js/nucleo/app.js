@@ -43,6 +43,13 @@
     return configCache;
   };
 
+  // Cambia el título y la descripción de la barra de arriba
+  App.titulo = (titulo, descripcion) => {
+    document.getElementById('titulo-seccion').textContent = titulo || '';
+    const d = document.getElementById('desc-seccion');
+    d.textContent = descripcion || ''; d.hidden = !descripcion;
+  };
+
   // Ir a una sección: App.ir('ventas') o App.ir('ventas', 'nuevo')
   App.ir = (id, param) => { location.hash = '#/' + id + (param ? '/' + param : ''); };
 
@@ -109,8 +116,9 @@
     if (grupo && !grupo.classList.contains('abierto')) { grupo.classList.add('abierto'); grupo.firstElementChild.setAttribute('aria-expanded', true); }
     document.title = `${s.titulo} · Sinan ERP`;
     const cont = document.getElementById('contenido');
-    cont.innerHTML = `<header class="cabecera-seccion"><h1>${U.esc(s.titulo)}</h1>${s.descripcion ? `<p>${U.esc(s.descripcion)}</p>` : ''}</header>
-      <div class="seccion" id="seccion-${s.id}"><div class="cargando-bloque">Cargando…</div></div>`;
+    // Título y descripción van en la barra de arriba; la sección se dibuja en el panel
+    App.titulo(s.titulo, s.descripcion);
+    cont.innerHTML = `<div class="seccion" id="seccion-${s.id}"><div class="cargando-bloque">Cargando…</div></div>`;
     window.scrollTo(0, 0);
     try { await s.render(cont.querySelector('.seccion'), param); }
     catch (e) { cont.querySelector('.seccion').innerHTML = `<div class="vacio">No se pudo cargar: ${U.esc(e.message)}</div>`; UI.error(e); }
@@ -136,6 +144,11 @@
     document.getElementById('app').hidden = false;
     document.getElementById('usuario-email').textContent = sesion.user?.email || '';
     App.usuario = sesion.user?.email || '';   // se guarda como "cargado por" en las ventas
+    document.getElementById('avatar').textContent = (App.usuario[0] || 'S').toUpperCase();
+    document.getElementById('avatar').title = App.usuario;
+    const dias = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+    const f = new Date();
+    document.getElementById('pill-fecha').innerHTML = App.icono('eventos') + ` ${dias[f.getDay()]}, ${f.getDate()} de ${U.MESES[f.getMonth()]}`;
     if (!appIniciada) {
       appIniciada = true;
       armarMenu();
@@ -153,6 +166,12 @@
       return;
     }
     document.getElementById('boton-menu').onclick = abrirMenuMovil;
+    // Modo claro / oscuro (se recuerda en este navegador)
+    document.getElementById('boton-tema').onclick = () => {
+      const nuevo = document.documentElement.dataset.tema === 'oscuro' ? 'claro' : 'oscuro';
+      document.documentElement.dataset.tema = nuevo;
+      try { localStorage.setItem('tema', nuevo); } catch { /* sin almacenamiento */ }
+    };
     document.getElementById('velo-menu').onclick = cerrarMenuMovil;
     document.getElementById('boton-salir').onclick = async () => {
       if (await UI.confirmar('¿Querés cerrar la sesión?', { titulo: 'Cerrar sesión', boton: 'Salir', peligro: false })) {

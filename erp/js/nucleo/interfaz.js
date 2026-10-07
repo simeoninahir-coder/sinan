@@ -278,6 +278,63 @@
           <span class="gb-valor">${esc(formato(i.valor))}</span>
         </div>`).join('')}</div>`;
     },
+    // Líneas suaves (ej: ventas vs. gastos por mes). series: [{ nombre, valores: [], color }]
+    lineas(etiquetas, series, { formato = U.pesos, alto = 230 } = {}) {
+      if (!etiquetas.length) return '<div class="vacio">Sin datos para mostrar.</div>';
+      const todos = series.flatMap((s) => s.valores);
+      const max = Math.max(...todos, 1) * 1.1;
+      const W = 600, H = 200, n = etiquetas.length;
+      const x = (i) => (n === 1 ? W / 2 : (i / (n - 1)) * W);
+      const y = (v) => H - (v / max) * H;
+      // Curva suave que pasa por todos los puntos
+      const camino = (vals) => vals.map((v, i) => {
+        if (i === 0) return `M${x(0)},${y(v)}`;
+        const x0 = x(i - 1), y0 = y(vals[i - 1]), x1 = x(i), y1 = y(v), cx = (x1 - x0) / 2;
+        return `C${x0 + cx},${y0} ${x1 - cx},${y1} ${x1},${y1}`;
+      }).join(' ');
+      const marcas = [0, .25, .5, .75, 1].map((f) => max / 1.1 * f);
+      const abreviar = (v) => (v >= 1e6 ? '$' + U.numero(v / 1e6) + 'M' : v >= 1e3 ? '$' + Math.round(v / 1e3) + 'k' : '$' + Math.round(v));
+      return `<div class="grafico-lineas">
+        <div class="gl-leyenda">${series.map((s) => `<span><i style="background:${s.color}"></i>${esc(s.nombre)}</span>`).join('')}</div>
+        <div class="gl-cuerpo" style="height:${alto}px">
+          <div class="gl-ejey">${marcas.slice().reverse().map((m) => `<span>${abreviar(m)}</span>`).join('')}</div>
+          <div class="gl-zona">
+            <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+              ${marcas.map((m) => `<line x1="0" x2="${W}" y1="${y(m)}" y2="${y(m)}" class="gl-grilla"/>`).join('')}
+              <defs><linearGradient id="gl-relleno" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="${series[0].color}" stop-opacity=".22"/><stop offset="1" stop-color="${series[0].color}" stop-opacity="0"/></linearGradient></defs>
+              <path d="${camino(series[0].valores)} L${x(n - 1)},${H} L${x(0)},${H} Z" fill="url(#gl-relleno)"/>
+              ${series.map((s) => `<path d="${camino(s.valores)}" fill="none" stroke="${s.color}" stroke-width="2.5" vector-effect="non-scaling-stroke" stroke-linecap="round"/>`).join('')}
+            </svg>
+            <div class="gl-columnas">${etiquetas.map((e, i) => `<span data-tip="${esc(e)}: ${series.map((s) => `${s.nombre} ${formato(s.valores[i])}`).join(' · ')}"></span>`).join('')}</div>
+          </div>
+        </div>
+        <div class="gl-ejex">${etiquetas.map((e) => `<span>${esc(e)}</span>`).join('')}</div>
+      </div>`;
+    },
+    // Dona con el total en el centro. items: [{ etiqueta, valor, color }]
+    dona(items, { centro = '', sub = '', formato = U.pesos } = {}) {
+      const total = U.sumar(items, (i) => i.valor);
+      if (!total) return '<div class="vacio">Sin datos para este mes.</div>';
+      const R = 42, C = 2 * Math.PI * R;
+      let acum = 0;
+      const arcos = items.map((i) => {
+        const largo = (i.valor / total) * C;
+        const arco = `<circle cx="60" cy="60" r="${R}" fill="none" stroke="${i.color}" stroke-width="16"
+          stroke-dasharray="${Math.max(0, largo - 2)} ${C}" stroke-dashoffset="${-acum}" stroke-linecap="butt"
+          data-tip="${esc(i.etiqueta)}: ${esc(formato(i.valor))} (${Math.round(i.valor / total * 100)} %)"/>`;
+        acum += largo;
+        return arco;
+      }).join('');
+      return `<div class="grafico-dona">
+        <div class="gd-circulo">
+          <svg viewBox="0 0 120 120" role="img" aria-label="${esc(sub)}"><g transform="rotate(-90 60 60)">${arcos}</g></svg>
+          <div class="gd-centro"><b>${esc(centro)}</b><small>${esc(sub)}</small></div>
+        </div>
+        <ul class="gd-leyenda">${items.map((i) => `<li><i style="background:${i.color}"></i><span>${esc(i.etiqueta)}<small>${esc(formato(i.valor))} · ${Math.round(i.valor / total * 100)} %</small></span></li>`).join('')}</ul>
+      </div>`;
+    },
+    // Colores de la paleta Sinan para categorías (en orden fijo)
+    COLORES: ['#477ab3', '#9cc9e8', '#c9a27e', '#2f8f9d', '#e3b7a0', '#8aa1b4'],
     // Columnas verticales (admite negativos) + tabla de datos plegable
     columnas(items, { formato = U.pesos, vacio = 'Sin datos para mostrar.', titulo = 'Valor' } = {}) {
       if (!items.length) return `<div class="vacio">${esc(vacio)}</div>`;

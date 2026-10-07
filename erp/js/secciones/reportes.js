@@ -35,7 +35,8 @@ App.registrar({
 
       // Productos
       const prods = App.rentabilidadProductos(v, desde, hasta);
-      const porUnidades = [...prods].sort((a, b) => b.unidades - a.unidades || b.ingresos - a.ingresos);
+      // Más vendidos: solo productos por unidad (sin lo mayorista)
+      const porUnidades = prods.filter((p) => !p.mayorista).sort((a, b) => b.unidades - a.unidades || b.ingresos - a.ingresos);
       const top = porUnidades[0];
 
       // Canales
@@ -75,7 +76,7 @@ App.registrar({
           <section class="tarjeta"><h2>Ventas por mes</h2>${UI.grafico.columnas(ventasMes)}</section>
           <section class="tarjeta"><h2>Resultado por mes</h2><div data-resultado><div class="cargando-bloque">Cargando…</div></div>
             <p class="muted chico" style="margin-bottom:0">Ventas + otros ingresos − gastos.</p></section>
-          <section class="tarjeta"><h2>Productos más vendidos</h2>
+          <section class="tarjeta"><h2>Productos más vendidos <small class="muted chico">(por unidad)</small></h2>
             ${UI.grafico.barras(porUnidades.slice(0, 8).map((p) => ({ etiqueta: p.nombre, valor: p.unidades, extra: U.pesos(p.ingresos) })), { formato: (n) => n + ' u.' })}</section>
           <section class="tarjeta"><h2>Ingresos por canal</h2>${UI.grafico.barras(canales)}</section>
           <section class="tarjeta"><h2>Ventas por medio de pago</h2>${UI.grafico.barras(medios)}</section>
