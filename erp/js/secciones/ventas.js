@@ -179,13 +179,21 @@
         boton.disabled = true; boton.classList.add('cargando');
         const cab = UI.leerFormulario(form, [...camposCabecera, ...camposPie]);
         if (cab.cliente_id === NUEVO_CLIENTE) {
-          const contacto = (form._cli_contacto.value || '').trim();
-          const nueva = await DB.crear('clientes', {
-            nombre: form._cli_nombre.value.trim(), canal_origen: cab.canal,
-            telefono: contacto.startsWith('@') ? null : contacto || null,
-            instagram: contacto.startsWith('@') ? contacto : null
-          });
-          cab.cliente_id = nueva.id;
+          // Si ya existe con el mismo nombre (aunque cambie una tilde o mayúscula), se usa esa ficha
+          const nombre = form._cli_nombre.value.trim();
+          const existe = clientes.find((c) => U.normalizar(c.nombre).trim() === U.normalizar(nombre));
+          if (existe) {
+            cab.cliente_id = existe.id;
+            UI.aviso(`"${existe.nombre}" ya estaba cargada: la venta queda en su ficha.`);
+          } else {
+            const contacto = (form._cli_contacto.value || '').trim();
+            const nueva = await DB.crear('clientes', {
+              nombre, canal_origen: cab.canal,
+              telefono: contacto.startsWith('@') ? null : contacto || null,
+              instagram: contacto.startsWith('@') ? contacto : null
+            });
+            cab.cliente_id = nueva.id;
+          }
         }
         cab.cliente_id = cab.cliente_id ? Number(cab.cliente_id) : null;
         // Pasos: si ya estaba hecho se respeta la fecha original; si se tilda ahora, queda la fecha de hoy

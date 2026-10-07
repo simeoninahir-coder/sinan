@@ -50,13 +50,13 @@
         form.cantidad.addEventListener('input', () => { form.presupuesto.value = ''; precio(); });
         // Si elige una clienta existente, completa el contacto
         form.nombre.addEventListener('change', () => {
-          const c = d.clientes.find((x) => x.nombre === form.nombre.value.trim());
+          const c = d.clientes.find((x) => U.normalizar(x.nombre).trim() === U.normalizar(form.nombre.value.trim()));
           if (c && !form.contacto.value) form.contacto.value = c.instagram || c.telefono || '';
         });
         precio();
       },
       alGuardar: async (datos) => {
-        const c = d.clientes.find((x) => x.nombre === datos.nombre);
+        const c = d.clientes.find((x) => U.normalizar(x.nombre).trim() === U.normalizar(datos.nombre));
         if (c) datos.cliente_id = c.id;
         datos.actualizado = new Date().toISOString();
         if (fila) await DB.actualizar('consultas', fila.id, datos); else await DB.crear('consultas', datos);

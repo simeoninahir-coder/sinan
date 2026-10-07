@@ -147,6 +147,9 @@
     UI.formularioModal({
       titulo: c ? `Editar ${c.nombre}` : 'Nueva clienta', campos: camposCliente, valores: c || {},
       alGuardar: async (d) => {
+        // Evita fichas repetidas (ej: "Tia Silvia" y "Tía Silvia")
+        const repetida = (await DB.listar('clientes')).find((x) => x.id !== c?.id && U.normalizar(x.nombre).trim() === U.normalizar(d.nombre).trim());
+        if (repetida) throw new Error(`Ya existe una clienta llamada "${repetida.nombre}". Buscala en la lista y editá esa ficha.`);
         if (c) await DB.actualizar('clientes', c.id, d); else await DB.crear('clientes', d);
         UI.aviso(c ? 'Ficha actualizada' : 'Clienta creada');
         alGuardar && alGuardar();
