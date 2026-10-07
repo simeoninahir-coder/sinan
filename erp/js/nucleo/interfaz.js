@@ -80,6 +80,12 @@
   };
 
   UI.campoHTML = (c, valores = {}) => {
+    // Subtítulo dentro del formulario (ej: "Costo", "Precio")
+    if (c.tipo === 'titulo') return `<h3 class="form-subtitulo campo-completo">${esc(c.etiqueta)}</h3>`;
+    // Bloque libre que después completa la sección (ej: packaging, calculadora)
+    if (c.tipo === 'bloque') return `<div class="campo campo-completo" data-campo="${c.campo}">
+      ${c.etiqueta ? `<span class="campo-etiqueta">${esc(c.etiqueta)}</span>` : ''}<div data-bloque="${c.campo}"></div>
+      ${c.ayuda ? `<small class="campo-ayuda">${esc(c.ayuda)}</small>` : ''}</div>`;
     let v = valores[c.campo];
     if ((v === undefined || v === null) && c.defecto !== undefined) v = typeof c.defecto === 'function' ? c.defecto() : c.defecto;
     const id = 'f-' + c.campo + '-' + Math.random().toString(36).slice(2, 7);

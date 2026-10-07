@@ -65,14 +65,105 @@
     { campo: 'estado', etiqueta: 'Estado', tipo: 'select', opciones: N.ESTADOS_PRODUCTO, defecto: 'Activo', vacio: false },
     { campo: 'se_repone', etiqueta: '¿Se vuelve a reponer?', tipo: 'si_no', textoSi: 'Sí, avisame cuando quede poco stock', defecto: true, ancho: 'completo',
       ayuda: 'Destildalo si es un producto que no vas a volver a comprar: deja de aparecer en "Para reponer" y en las alertas.' },
+    { tipo: 'titulo', etiqueta: 'Costo de cada unidad' },
+    { campo: 'costo_base', etiqueta: 'Costo del producto', tipo: 'pesos', requerido: true, min: 0, ayuda: 'Lo que le pagás al proveedor por unidad.' },
+    { campo: 'costo_extra', etiqueta: 'Otros gastos por unidad', tipo: 'pesos', min: 0, defecto: 0, ayuda: 'Traslado, envío de la compra, etc. (lo que no está en Insumos).' },
+    { campo: 'costo_extra_detalle', etiqueta: 'Detalle de otros gastos', ancho: 'completo', placeholder: 'Ej: traslado $ 500 + etiqueta $ 300' },
+    { campo: 'packaging', tipo: 'bloque', etiqueta: 'Packaging que lleva', ayuda: 'Con cada venta se descuenta solo de Insumos (y vuelve si se cancela).' },
+    { campo: 'resumen_costo', tipo: 'bloque' },
+    { tipo: 'titulo', etiqueta: 'Precio de venta' },
+    { campo: 'calculadora', tipo: 'bloque', etiqueta: 'Calculadora de precio' },
     { campo: 'precio', etiqueta: 'Precio de venta', tipo: 'pesos', requerido: true, min: 0 },
-    { campo: 'costo', etiqueta: 'Costo', tipo: 'pesos', requerido: true, min: 0, ayuda: 'Lo que te cuesta a vos cada unidad.' },
-    { campo: '_margen', etiqueta: 'Margen (automático)', soloLectura: true },
+    { campo: '_margen', etiqueta: 'Ganancia por unidad (automática)', soloLectura: true },
+    { tipo: 'titulo', etiqueta: 'Stock y detalles' },
     ...(fila ? [] : [{ campo: '_stock_inicial', etiqueta: 'Stock inicial (de cada color)', tipo: 'numero', min: 0, paso: 1, defecto: 0, noGuardar: true }]),
     { campo: 'colores', etiqueta: 'Colores', tipo: 'lista', ancho: 'completo', placeholder: 'Ej: Negro, Celeste (vacío si tiene un solo color)' },
     { campo: 'descripcion', etiqueta: 'Descripción', tipo: 'area', filas: 2 },
     { campo: 'foto_url', etiqueta: 'Foto', tipo: 'foto' }
   ];
+
+  // ---------- Costo, packaging y calculadora del formulario de producto ----------
+  // Guarda lo elegido en el formulario abierto hasta que se guarda
+  const formProducto = { receta: [], costoTotal: 0 };
+  const costoPackaging = (receta, insumosId) => U.sumar(receta, (r) => (Number(insumosId[r.insumo_id]?.costo_unitario) || 0) * (Number(r.cantidad) || 0));
+  const redondear100 = (n) => Math.ceil(n / 100) * 100;
+
+  function armarCostos(form, fila, x) {
+    formProducto.receta = fila ? (x.recetas[fila.id] || []).map((r) => ({ insumo_id: r.insumo_id, cantidad: r.cantidad })) : [];
+    const cajaPack = form.querySelector('[data-bloque="packaging"]');
+    const cajaCosto = form.querySelector('[data-bloque="resumen_costo"]');
+    const cajaCalc = form.querySelector('[data-bloque="calculadora"]');
+    const opciones = (sel) => x.insumos.map((i) => `<option value="${i.id}" ${i.id === sel ? 'selected' : ''}>${U.esc(i.nombre)} · ${i.costo_unitario == null ? 'sin costo' : U.pesos(i.costo_unitario)}</option>`).join('');
+
+    const dibujarPack = () => {
+      cajaPack.innerHTML = `${formProducto.receta.map((r, n) => `<div class="fila-pack" data-n="${n}">
+          <select data-p="insumo" aria-label="Insumo"><option value="">— Elegir insumo —</option>${opciones(r.insumo_id)}</select>
+          <input data-p="cantidad" type="number" min="1" step="1" value="${r.cantidad}" aria-label="Cantidad">
+          <span class="pack-sub">${U.pesos((Number(x.insumosId[r.insumo_id]?.costo_unitario) || 0) * r.cantidad)}</span>
+          <button type="button" class="boton-icono boton-icono-peligro" data-p="quitar" aria-label="Quitar">✕</button>
+        </div>`).join('') || '<p class="muted chico" style="margin:0">Todavía no le cargaste packaging.</p>'}
+        <button type="button" class="boton boton-secundario boton-chico" data-p="agregar" style="margin-top:8px">+ Agregar insumo</button>`;
+    };
+    const recalcular = () => {
+      const base = Number(form.costo_base.value) || 0;
+      const extra = Number(form.costo_extra.value) || 0;
+      const pack = costoPackaging(formProducto.receta, x.insumosId);
+      formProducto.costoTotal = Math.round((base + extra + pack) * 100) / 100;
+      cajaCosto.innerHTML = `<div class="costo-total">
+        <span>Producto ${U.pesos(base)}</span><span>+ otros ${U.pesos(extra)}</span><span>+ packaging ${U.pesos(pack)}</span>
+        <b>= Costo total ${U.pesos(formProducto.costoTotal)}</b></div>`;
+      // Calculadora: precio = costo × (1 + ganancia) ÷ (1 − comisión)
+      const g = Number(cajaCalc.querySelector('[data-c="ganancia"]')?.value) || 0;
+      const com = Math.min(90, Number(cajaCalc.querySelector('[data-c="comision"]')?.value) || 0);
+      const sugerido = formProducto.costoTotal ? redondear100(formProducto.costoTotal * (1 + g / 100) / (1 - com / 100)) : 0;
+      const neto = sugerido * (1 - com / 100) - formProducto.costoTotal;
+      const res = cajaCalc.querySelector('[data-c="resultado"]');
+      if (res) res.innerHTML = `Precio sugerido: <b>${U.pesos(sugerido)}</b> · te queda de ganancia <b>${U.pesos(neto)}</b> por unidad`;
+      cajaCalc.dataset.sugerido = sugerido;
+      // Ganancia real con el precio cargado
+      const precio = Number(form.precio.value) || 0;
+      const m = U.margen(precio, formProducto.costoTotal);
+      form._margen.value = m === null ? '—' : `${U.pesos(precio - formProducto.costoTotal)} por unidad (${U.porcentaje(m)} del precio)`;
+    };
+
+    // Ganancia inicial: la que tiene hoy el producto, o 50 %
+    const gananciaHoy = fila && fila.costo > 0 && fila.precio > 0 ? Math.round((fila.precio / fila.costo - 1) * 100) : 50;
+    cajaCalc.innerHTML = `<div class="calculadora">
+        <label>Ganancia que querés sobre el costo <span class="con-sufijo"><input data-c="ganancia" type="number" min="0" step="1" value="${gananciaHoy}"><i>%</i></span></label>
+        <label>Comisión (Tienda Nube, Mercado Pago…) <span class="con-sufijo"><input data-c="comision" type="number" min="0" max="90" step="0.1" value="0"><i>%</i></span></label>
+        <p data-c="resultado"></p>
+        <button type="button" class="boton boton-chico" data-c="usar">Usar este precio</button>
+      </div>`;
+    cajaCalc.addEventListener('input', recalcular);
+    cajaCalc.querySelector('[data-c="usar"]').onclick = () => { form.precio.value = cajaCalc.dataset.sugerido; recalcular(); };
+
+    cajaPack.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-p]'); if (!b) return;
+      if (b.dataset.p === 'agregar') { formProducto.receta.push({ insumo_id: null, cantidad: 1 }); dibujarPack(); recalcular(); }
+      if (b.dataset.p === 'quitar') { formProducto.receta.splice(Number(b.closest('.fila-pack').dataset.n), 1); dibujarPack(); recalcular(); }
+    });
+    cajaPack.addEventListener('change', (e) => {
+      const f = e.target.closest('.fila-pack'); if (!f) return;
+      const r = formProducto.receta[Number(f.dataset.n)];
+      r.insumo_id = Number(f.querySelector('[data-p="insumo"]').value) || null;
+      r.cantidad = Math.max(1, Number(f.querySelector('[data-p="cantidad"]').value) || 1);
+      dibujarPack(); recalcular();
+    });
+    ['costo_base', 'costo_extra', 'precio'].forEach((c) => form[c].addEventListener('input', recalcular));
+    if (fila && fila.costo_base == null) form.costo_base.value = fila.costo;   // productos viejos sin detalle
+    dibujarPack(); recalcular();
+  }
+
+  // Guarda el packaging del producto (reemplaza el anterior)
+  async function guardarReceta(p, x) {
+    for (const r of x.recetas[p.id] || []) await DB.borrar('producto_insumos', r.id);
+    const filas = formProducto.receta.filter((r) => r.insumo_id).reduce((acc, r) => {
+      const ya = acc.find((a) => a.insumo_id === r.insumo_id);
+      if (ya) ya.cantidad += r.cantidad; else acc.push({ producto_id: p.id, insumo_id: r.insumo_id, cantidad: r.cantidad });
+      return acc;
+    }, []);
+    if (filas.length) await DB.crearVarios('producto_insumos', filas);
+  }
 
   // Ventana para corregir stock y mínimo de cada color de un producto
   function editarStock(p, cfg, recargar) {
@@ -116,19 +207,25 @@
     const crud = Seccion.crud({
       contenedor: cuerpo, tabla: 'productos', nombre: 'producto',
       async cargar() {
-        const [filas, stock, cfg] = await Promise.all([DB.listar('productos', { orden: 'nombre' }), DB.listar('stock'), App.config()]);
+        const [filas, stock, cfg, insumos, recetasTodas] = await Promise.all([
+          DB.listar('productos', { orden: 'nombre' }), DB.listar('stock'), App.config(),
+          DB.listar('insumos', { orden: 'nombre' }), DB.listar('producto_insumos').catch(() => [])]);
         const porProd = U.agrupar(stock, (s) => s.producto_id);
+        const recetas = U.agrupar(recetasTodas, (r) => r.producto_id);
+        const insumosId = U.porId(insumos);
         filas.forEach((p) => {
           p._stock = porProd[p.id] || [];
           p._total = U.sumar(p._stock, (s) => s.cantidad);
           p._margen = U.margen(p.precio, p.costo);
+          p._pack = costoPackaging(recetas[p.id] || [], insumosId);
+          p._receta = (recetas[p.id] || []).map((r) => `${r.cantidad} ${insumosId[r.insumo_id]?.nombre || '?'}`).join(', ');
           const est = p._stock.map((s) => N.estadoStock(s, cfg, p));
           p._estadoStock = est.includes('sin') ? 'sin' : est.includes('bajo') ? 'bajo' : 'ok';
         });
         // Los que hay que reponer, primero
         const peso = { sin: 0, bajo: 1, ok: 2 };
         filas.sort((a, b) => (a.estado === 'Activo' ? 0 : 1) - (b.estado === 'Activo' ? 0 : 1) || peso[a._estadoStock] - peso[b._estadoStock] || a.nombre.localeCompare(b.nombre));
-        return { filas, extra: { cfg, productos: filas } };
+        return { filas, extra: { cfg, productos: filas, insumos, insumosId, recetas } };
       },
       buscar: (p) => [p.codigo, p.nombre, p.categoria, p.descripcion, (p.colores || []).join(' ')].join(' '),
       filtros: [
@@ -165,19 +262,18 @@
             return `<span class="stock-color est-${est}"><i style="background:${N.colorHex(s.color)}"></i>${U.esc(s.color === 'Único' ? 'Stock' : s.color)} <b>${s.cantidad}</b></span>`;
           }).join('') : '—' },
         { titulo: 'Precio', clase: 'num', valor: (p) => U.pesos(p.precio) },
-        { titulo: 'Costo · margen', clase: 'num', valor: (p) => `${U.pesos(p.costo)}<br><small class="muted">${p._margen === null ? '—' : U.porcentaje(p._margen)}</small>` },
+        { titulo: 'Costo · margen', clase: 'num', valor: (p) => `<span title="${U.esc(`Producto ${U.pesos(p.costo_base ?? p.costo)} + otros ${U.pesos(p.costo_extra || 0)} + packaging ${U.pesos(p._pack)}${p._receta ? ' (' + p._receta + ')' : ''}`)}">${U.pesos(p.costo)}</span>
+            <br><small class="muted">${p._margen === null ? '—' : 'margen ' + U.porcentaje(p._margen)}</small>
+            ${p._receta ? `<br><small class="muted">pack: ${U.esc(p._receta)}</small>` : ''}` },
         { titulo: 'Estado', valor: (p) => (p.se_repone === false ? UI.etiqueta(p._total > 0 ? 'No se repone' : 'Agotado · no se repone', 'neutro') + ' ' : '') + (p._estadoStock !== 'ok' && p.estado === 'Activo' ? N.etiquetaStock(p._estadoStock) + ' ' : '') + (p.estado !== 'Activo' ? UI.etiqueta(p.estado, N.tonoProducto(p.estado)) : (p._estadoStock === 'ok' && p.se_repone !== false ? UI.etiqueta('OK', 'ok') : '')) }
       ],
       campos: (fila) => camposProducto(fila),
-      alArmar(form) {
-        const calc = () => {
-          const m = U.margen(form.precio.value, form.costo.value);
-          form._margen.value = m === null ? '—' : `${U.porcentaje(m)} (${U.pesos((Number(form.precio.value) || 0) - (Number(form.costo.value) || 0))} por unidad)`;
-        };
-        form.precio.addEventListener('input', calc); form.costo.addEventListener('input', calc); calc();
-      },
-      // Producto nuevo: carga el stock inicial de cada color como entrada
-      despues: async (p, esNuevo) => {
+      alArmar: (form, fila, x) => armarCostos(form, fila, x),
+      // El costo total = producto + otros gastos + packaging
+      preparar: (d) => ({ ...d, costo_extra: d.costo_extra || 0, costo: formProducto.costoTotal }),
+      // Guarda el packaging y, si es nuevo, el stock inicial de cada color
+      despues: async (p, esNuevo, x) => {
+        await guardarReceta(p, x);
         const form = [...document.querySelectorAll('.modal-fondo form')].pop();
         const inicial = esNuevo && form && form._stock_inicial ? Number(form._stock_inicial.value) || 0 : 0;
         if (inicial > 0) {
@@ -225,7 +321,11 @@
     const crud = Seccion.crud({
       contenedor: cuerpo, tabla: 'insumos', nombre: 'insumo', orden: 'nombre',
       async cargar() {
-        const [filas, proveedores] = await Promise.all([DB.listar('insumos', { orden: 'nombre' }), DB.listar('proveedores', { orden: 'nombre' })]);
+        const [filas, proveedores, recetas, productos] = await Promise.all([DB.listar('insumos', { orden: 'nombre' }), DB.listar('proveedores', { orden: 'nombre' }),
+          DB.listar('producto_insumos').catch(() => []), DB.listar('productos', { orden: 'nombre' })]);
+        const prodId = U.porId(productos);
+        const usos = U.agrupar(recetas, (r) => r.insumo_id);
+        filas.forEach((i) => { i._usos = (usos[i.id] || []).map((r) => prodId[r.producto_id]?.nombre).filter(Boolean); });
         filas.sort((a, b) => (reponerInsumo(b) - reponerInsumo(a)) || a.nombre.localeCompare(b.nombre));
         return { filas, extra: { proveedores, prov: U.porId(proveedores), todos: filas } };
       },
@@ -251,6 +351,7 @@
         { titulo: 'Stock', clase: 'num', valor: (i) => `<b style="font-size:17px">${i.stock}</b> <small class="muted">/ mín. ${minimoInsumo(i)}</small>` },
         { titulo: 'Costo unit.', clase: 'num', valor: (i) => i.costo_unitario == null ? '—' : U.pesos(i.costo_unitario) },
         { titulo: 'Proveedor', valor: (i, x) => U.esc(x.prov[i.proveedor_id]?.nombre || '—') },
+        { titulo: 'Se usa en', valor: (i) => i._usos.length ? `${i._usos.length} ${i._usos.length === 1 ? 'producto' : 'productos'}<br><small class="muted">${U.esc(i._usos.slice(0, 3).join(', '))}${i._usos.length > 3 ? '…' : ''}</small>` : '<span class="muted">—</span>' },
         { titulo: 'Estado', valor: (i) => i.se_repone === false ? UI.etiqueta('No se repone', 'neutro') : reponerInsumo(i) ? UI.etiqueta(i.stock <= 0 ? 'Sin stock' : 'Reponer', 'alerta') : UI.etiqueta('OK', 'ok') }
       ],
       campos: (fila, x) => [

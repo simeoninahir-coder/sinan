@@ -555,6 +555,28 @@ button { cursor: pointer; }
   #contenido { padding: 28px 26px 56px; }
   .grilla-2 { grid-template-columns: minmax(0, 1fr); }
 }
+/* ---------------- Formulario de producto: costo, packaging y calculadora ---------------- */
+.form-subtitulo { font-size: 18px; margin: 10px 0 -4px; padding-top: 12px; border-top: 1px solid var(--gris-linea); }
+.form-subtitulo:first-child { border-top: 0; padding-top: 0; }
+.fila-pack { display: grid; grid-template-columns: minmax(0, 1fr) 80px 90px auto; gap: 8px; align-items: center; margin-bottom: 6px; }
+.fila-pack select, .fila-pack input { border: 1px solid var(--gris-borde); border-radius: var(--radio-chico); padding: 8px 10px; min-height: 40px; background: var(--blanco); width: 100%; }
+.pack-sub { text-align: right; font-variant-numeric: tabular-nums; font-size: 14px; color: var(--gris-texto); }
+.costo-total { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline; background: var(--celeste-muy-suave); border-radius: 12px; padding: 12px 14px; font-size: 14px; color: var(--gris-texto); }
+.costo-total b { font-size: 17px; color: var(--azul-oscuro); margin-left: auto; }
+.calculadora { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; background: var(--blanco); border: 1px dashed var(--celeste); border-radius: 12px; padding: 14px; }
+.calculadora label { display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: var(--azul-oscuro); }
+.calculadora p { grid-column: 1 / -1; margin: 0; font-size: 15px; }
+.calculadora .boton { justify-self: start; }
+.con-sufijo { position: relative; display: block; }
+.con-sufijo input { width: 100%; border: 1px solid var(--gris-borde); border-radius: var(--radio-chico); padding: 8px 30px 8px 10px; min-height: 40px; background: var(--blanco); }
+.con-sufijo i { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); font-style: normal; color: var(--gris-texto); }
+@media (max-width: 760px) {
+  .fila-pack { grid-template-columns: minmax(0, 1fr) 64px auto; }
+  .fila-pack .pack-sub { display: none; }
+  .calculadora { grid-template-columns: minmax(0, 1fr); }
+  .costo-total b { margin-left: 0; width: 100%; }
+}
+
 /* ===================== CELULAR ===================== */
 @media (max-width: 960px) {
   .grilla-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
