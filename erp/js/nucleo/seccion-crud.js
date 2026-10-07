@@ -25,7 +25,8 @@
      sinNuevo     oculta el botón de nuevo
   */
   function crud(o) {
-    const estado = { filas: [], extra: {}, texto: '', filtros: {} };
+    // Filtros con valor inicial (defecto), por ejemplo ventas: solo las actuales
+    const estado = { filas: [], extra: {}, texto: '', filtros: Object.fromEntries((o.filtros || []).filter((f) => f.defecto).map((f) => [f.id, f.defecto])) };
     const nombre = o.nombre || 'registro';
     const raiz = o.contenedor;
 
@@ -58,7 +59,7 @@
     function llenarFiltros() {
       (o.filtros || []).forEach((f) => {
         const sel = raiz.querySelector(`[data-filtro="${f.id}"]`);
-        const actual = sel.value;
+        const actual = sel.value || estado.filtros[f.id] || '';
         let ops = typeof f.opciones === 'function' ? f.opciones(estado.filas, estado.extra) : f.opciones;
         ops = ops.map((x) => (typeof x === 'object' ? x : { valor: x, texto: x }));
         sel.innerHTML = `<option value="">${U.esc(f.etiqueta)}: todos</option>` +

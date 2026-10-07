@@ -123,8 +123,8 @@
   }
 
   // ---------- Rentabilidad por producto ----------
-  App.rentabilidadProductos = (v, desde) => {
-    const validos = new Set(v.pedidos.filter((p) => N.pedidoValido(p) && (!desde || p.fecha >= desde)).map((p) => p.id));
+  App.rentabilidadProductos = (v, desde, hasta) => {
+    const validos = new Set(v.pedidos.filter((p) => N.pedidoValido(p) && (!desde || p.fecha >= desde) && (!hasta || p.fecha <= hasta)).map((p) => p.id));
     const grupos = U.agrupar(v.items.filter((i) => validos.has(i.pedido_id)), (i) => i.producto_id || 'x-' + i.descripcion);
     return Object.entries(grupos).map(([k, its]) => {
       const p = v.productosId[its[0].producto_id];

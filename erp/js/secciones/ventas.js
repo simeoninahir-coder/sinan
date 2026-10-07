@@ -273,6 +273,7 @@
         },
         buscar: (p, x) => `#${p.id} ${N.nombreCliente(x.clientesId, p.cliente_id)} ${p.items.map((i) => (x.productosId[i.producto_id]?.nombre || i.descripcion) + ' ' + i.color).join(' ')} ${p.notas || ''} ${p.envio_detalle || ''}`,
         filtros: [
+          { id: 'hist', etiqueta: 'Ventas', defecto: 'actual', opciones: [{ valor: 'actual', texto: 'Ventas actuales' }, { valor: 'hist', texto: 'Históricas (2024-2025)' }], valor: (p) => (p.historico ? 'hist' : 'actual') },
           { id: 'estado', etiqueta: 'Paso', opciones: N.ESTADOS_PEDIDO, valor: (p) => p.estado },
           { id: 'canal', etiqueta: 'Canal', opciones: N.CANALES, valor: (p) => p.canal },
           { id: 'resp', etiqueta: 'Responsable', opciones: (f, x) => x.personas.map((p) => ({ valor: p.id, texto: p.nombre })), valor: (p) => p.responsable_id },
@@ -299,7 +300,7 @@
             <p class="muted chico" style="margin:10px 0 0">Lo filtrado: <b>${U.pesos(tot)}</b> en ${val.length} ${val.length === 1 ? 'pedido' : 'pedidos'} · ticket promedio ${U.pesos(val.length ? tot / val.length : 0)}</p>`;
         },
         columnas: [
-          { titulo: 'Pedido', valor: (p, x) => `<b>#${p.id}</b> · ${U.esc(N.nombreCliente(x.clientesId, p.cliente_id))}
+          { titulo: 'Pedido', valor: (p, x) => `<b>#${p.id}</b> · ${U.esc(N.nombreCliente(x.clientesId, p.cliente_id))}${p.historico ? ' ' + UI.etiqueta('Histórica', 'neutro') : ''}
               <br><small class="muted">${U.fecha(p.fecha)} · ${U.esc(p.canal)}${p.medio_pago ? ' · ' + U.esc(p.medio_pago) : ''}</small>
               ${p.responsable_id || p.cargado_por ? `<br><small class="muted">${p.responsable_id && x.personasId[p.responsable_id] ? '' + U.esc(x.personasId[p.responsable_id].nombre) : ''}${p.cargado_por ? ` · cargó ${U.esc(p.cargado_por.split('@')[0])}` : ''}</small>` : ''}` },
           { titulo: 'Productos', valor: (p, x) => p.items.map((i) => `${U.esc(x.productosId[i.producto_id]?.nombre || i.descripcion || '—')}${i.color !== 'Único' ? ` <small class="muted">(${U.esc(i.color)})</small>` : ''} ×${i.cantidad}`).join('<br>') },
@@ -308,6 +309,7 @@
           { titulo: 'Total', clase: 'num', valor: (p) => `<b>${U.pesos(p.total)}</b>` }
         ],
         accionesExtra: (p) => {
+          if (p.historico) return '';
           const paso = N.proximoPaso(p);
           return (paso ? `<button type="button" class="boton boton-chico" data-accion="avanzar" title="${paso.accion}">✓ ${paso.hecho}</button>` : '')
             + `<button type="button" class="boton-texto" data-accion="cancelar">${p.estado === 'Cancelado' ? 'Reactivar' : 'Cancelar'}</button>`;

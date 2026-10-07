@@ -12,7 +12,10 @@ App.registrar({
       { valor: 'anio', texto: 'Este año' },
       { valor: '6', texto: 'Últimos 6 meses' },
       { valor: '12', texto: 'Últimos 12 meses' },
-      { valor: '3', texto: 'Últimos 3 meses' }
+      { valor: '3', texto: 'Últimos 3 meses' },
+      // Años anteriores (incluye las ventas históricas) y todo junto
+      ...[...new Set(v.pedidos.map((p) => p.fecha.slice(0, 4)))].filter((a) => a < U.hoy().slice(0, 4)).sort().reverse().map((a) => ({ valor: 'y' + a, texto: 'Año ' + a })),
+      { valor: 'todo', texto: 'Desde el principio' }
     ];
     cont.innerHTML = `<div class="barra-herramientas"><div class="filtros">
       <select aria-label="Período">${periodos.map((p) => `<option value="${p.valor}">${p.texto}</option>`).join('')}</select></div></div>
@@ -21,13 +24,17 @@ App.registrar({
 
     function dibujar() {
       let meses;
-      if (sel.value === 'anio') { const n = Number(U.hoy().slice(5, 7)); meses = U.ultimosMeses(n); } else meses = U.ultimosMeses(Number(sel.value));
+      let hasta = U.hoy();
+      if (sel.value === 'anio') { const n = Number(U.hoy().slice(5, 7)); meses = U.ultimosMeses(n); }
+      else if (sel.value.startsWith('y')) { const a = sel.value.slice(1); meses = Array.from({ length: 12 }, (_, i) => a + '-' + String(i + 1).padStart(2, '0')); hasta = a + '-12-31'; }
+      else if (sel.value === 'todo') { const prim = v.pedidos.map((p) => p.fecha).sort()[0] || U.hoy(); const d0 = U.fechaDeIso(prim.slice(0, 8) + '01'); meses = []; for (let d = d0; U.isoDeFecha(d) <= U.hoy(); d = new Date(d.getFullYear(), d.getMonth() + 1, 1)) meses.push(U.isoDeFecha(d).slice(0, 7)); }
+      else meses = U.ultimosMeses(Number(sel.value));
       const desde = meses[0] + '-01';
-      const pedidos = v.pedidos.filter((p) => N.pedidoValido(p) && p.fecha >= desde);
+      const pedidos = v.pedidos.filter((p) => N.pedidoValido(p) && p.fecha >= desde && p.fecha <= hasta);
       const total = U.sumar(pedidos, (p) => p.total);
 
       // Productos
-      const prods = App.rentabilidadProductos(v, desde);
+      const prods = App.rentabilidadProductos(v, desde, hasta);
       const porUnidades = [...prods].sort((a, b) => b.unidades - a.unidades || b.ingresos - a.ingresos);
       const top = porUnidades[0];
 
@@ -42,7 +49,7 @@ App.registrar({
       // Eventos
       const ventasEv = U.agrupar(pedidos.filter((p) => p.evento_id), (p) => p.evento_id);
       const movsEv = U.agrupar(movs.filter((m) => m.evento_id), (m) => m.evento_id);
-      const evs = eventos.filter((e) => e.fecha >= desde && e.fecha <= U.hoy() && e.estado !== 'Cancelado').map((e) => {
+      const evs = eventos.filter((e) => e.fecha >= desde && e.fecha <= hasta && e.fecha <= U.hoy() && e.estado !== 'Cancelado').map((e) => {
         const ms = movsEv[e.id] || [];
         const res = U.sumar(ventasEv[e.id] || [], (p) => p.total) + U.sumar(ms.filter((m) => m.tipo === 'ingreso'), (m) => m.monto) - U.sumar(ms.filter((m) => m.tipo === 'egreso'), (m) => m.monto);
         return { etiqueta: e.nombre, valor: res, extra: U.fecha(e.fecha) };
