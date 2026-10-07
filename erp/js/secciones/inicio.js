@@ -5,10 +5,7 @@
    metas, agenda con notas rápidas y lo que necesita atención.
    ===================================================================== */
 (function () {
-  const COLOR_VENTAS = '#477ab3';
-  const COLOR_GASTOS = '#c9a27e';
   let mesDona = null;        // mes que muestra la dona (se puede mover con las flechas)
-  let mesesGrafico = 6;      // período del gráfico de líneas
 
   // Tarjeta de número con flechita que lleva a otra sección
   const tarjetaNumero = (titulo, valor, detalle, ir) => `<button type="button" class="tarjeta kpi" data-ir="${ir}">
@@ -47,10 +44,6 @@
       { n: alertas.filter((a) => a.tipo === 'stock' || a.tipo === 'insumo').length, t: 'Reponer', s: 'productos e insumos', ir: 'inventario', tono: 'atencion', i: 'reponer' }
     ];
 
-    // ---- Ventas vs. gastos ----
-    const meses = U.ultimosMeses(mesesGrafico);
-    const serieVentas = meses.map((m) => U.sumar(validos.filter((p) => U.mes(p.fecha) === m), (p) => p.total));
-    const serieGastos = meses.map((m) => U.sumar(movs.filter((x) => x.tipo === 'egreso' && U.mes(x.fecha) === m), (x) => x.monto));
 
     // ---- Movimientos recientes (ventas y gastos) ----
     const recientes = [
@@ -69,7 +62,7 @@
     const itemsDona = cats.slice(0, 5).map(([k, val], n) => ({ etiqueta: k, valor: val, color: UI.grafico.COLORES[n] }));
     if (cats.length > 5) itemsDona.push({ etiqueta: 'Otras', valor: U.sumar(cats.slice(5), (c) => c[1]), color: UI.grafico.COLORES[5] });
 
-    // ---- Más vendidos (solo por unidad, 90 días) ----
+    // ---- Top 3 más vendidos (solo por unidad, 90 días) ----
     const desde90 = U.isoDeFecha(new Date(U.fechaDeIso(hoy).getTime() - 90 * 86400000));
     const porProd = {};
     validos.filter((p) => p.fecha >= desde90).forEach((p) => p.items.forEach((i) => {
@@ -77,7 +70,7 @@
       const n = v.productosId[i.producto_id]?.nombre || i.descripcion || '—';
       porProd[n] = (porProd[n] || 0) + i.cantidad;
     }));
-    const top = Object.entries(porProd).map(([k, n]) => ({ etiqueta: k, valor: n })).sort((a, b) => b.valor - a.valor).slice(0, 5);
+    const top = Object.entries(porProd).map(([k, n]) => ({ etiqueta: k, valor: n })).sort((a, b) => b.valor - a.valor).slice(0, 3);
 
     // ---- Metas (objetivos de marketing en curso) ----
     const metas = objetivos.filter((o) => o.estado !== 'Logrado' && o.estado !== 'No logrado' && o.meta).slice(0, 3);
@@ -115,18 +108,10 @@
             ${tarjetaNumero('Pedidos del mes', delMes.length, `ticket promedio ${U.pesos(delMes.length ? ventasMes / delMes.length : 0)}`, 'reportes')}
           </div>
 
-          <section class="tarjeta">
-            <div class="tarjeta-cabecera"><h2>Ventas vs. gastos</h2>
-              <div class="selector-chico">${[6, 12].map((n) => `<button type="button" data-meses="${n}" class="${n === mesesGrafico ? 'activo' : ''}">${n} meses</button>`).join('')}</div></div>
-            ${UI.grafico.lineas(meses.map((m) => U.nombreMes(m, true)), [
-              { nombre: 'Ventas', valores: serieVentas, color: COLOR_VENTAS },
-              { nombre: 'Gastos', valores: serieGastos, color: COLOR_GASTOS }
-            ])}
-          </section>
 
           <div class="grilla grilla-2">
             <section class="tarjeta">
-              <div class="tarjeta-cabecera"><h2>Más vendidos</h2><span class="muted chico">por unidad · 90 días</span></div>
+              <div class="tarjeta-cabecera"><h2>Más vendidos</h2><span class="muted chico">top 3 · últimos 90 días</span></div>
               ${UI.grafico.barras(top, { formato: (n) => n + ' u.', vacio: 'Sin ventas en los últimos 90 días.' })}
             </section>
             <section class="tarjeta">
@@ -185,8 +170,7 @@
       </div>`;
 
     App.activarIr(cont);
-    // Período del gráfico y mes de la dona
-    cont.querySelectorAll('[data-meses]').forEach((b) => b.onclick = () => { mesesGrafico = Number(b.dataset.meses); render(cont); });
+    // Mes de la dona
     cont.querySelectorAll('[data-mes-dona]').forEach((b) => b.onclick = () => {
       const f = U.fechaDeIso(mesDona + '-01'); f.setMonth(f.getMonth() + Number(b.dataset.mesDona));
       mesDona = U.isoDeFecha(f).slice(0, 7); render(cont);

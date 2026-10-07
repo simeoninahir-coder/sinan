@@ -835,3 +835,9 @@ button { cursor: pointer; }
 [data-tema="oscuro"] a { color: var(--celeste); }
 [data-tema="oscuro"] .boton { color: #fff; }
 [data-tema="oscuro"] #pantalla-login { background: var(--fondo-pagina); }
+
+/* Finanzas: selector de mes / año */
+.barra-periodo { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+.barra-periodo h2 { font-size: 22px; min-width: 170px; text-align: center; }
+.barra-periodo .boton-icono[disabled] { opacity: .3; cursor: default; }
+.barra-periodo .selector-chico { margin-left: auto; }
