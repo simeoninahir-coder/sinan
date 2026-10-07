@@ -21,7 +21,7 @@ Pensalo como una **casa**:
 | | **Envíos** | Tablero de lo que hay que preparar, entregar y cobrar, con la forma de entrega (Uber, punto de encuentro, correo…). |
 | **Marketing** | **Estrategia y contenido** | Estrategia, objetivos, campañas, calendario de publicaciones, ideas, pilares y métricas de Instagram. |
 | | **Eventos y ferias** | Encuentros, talleres y ferias: entrada o puesto, checklist, colaboradores, ventas, gastos y resultado. |
-| **Administración** | **Finanzas** | Ventas (automáticas) + otros ingresos + gastos, resultado de cada mes y ganancia por producto. |
+| **Administración** | **Finanzas** | Ventas + otros ingresos − gastos = resultado, **mes por mes** (o por año), con la lista de movimientos. Las ventas históricas no cuentan acá. |
 | | **Proveedores** | Quién te vende qué, en cuánto tiempo y cómo se le paga. |
 | | **Equipo** | Personas, roles y tareas (lista para cuando se sumen empleadas). |
 | | **Reportes** | Gráficos: más vendido, ventas por canal y medio de pago, resultado por evento, evolución mensual. |
