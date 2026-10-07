@@ -67,7 +67,9 @@
   N.minimo = (s, cfg) => (s.minimo ?? cfg?.stock_minimo_defecto ?? 2);
   // 'sin' (0 o menos), 'bajo' (menos que el mínimo) u 'ok'.
   // Mínimo 0 = producto por encargo: solo avisa si el stock queda negativo.
-  N.estadoStock = (s, cfg) => {
+  // Si el producto no se vuelve a reponer (se_repone = false) nunca avisa.
+  N.estadoStock = (s, cfg, producto) => {
+    if (producto && producto.se_repone === false) return 'ok';
     if (N.minimo(s, cfg) === 0) return s.cantidad < 0 ? 'sin' : 'ok';
     return s.cantidad <= 0 ? 'sin' : s.cantidad < N.minimo(s, cfg) ? 'bajo' : 'ok';
   };

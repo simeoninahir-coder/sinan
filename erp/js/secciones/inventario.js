@@ -63,6 +63,8 @@
     { campo: 'codigo', etiqueta: 'Código', placeholder: 'Ej: B002' },
     { campo: 'categoria', etiqueta: 'Categoría', sugerencias: N.CATEGORIAS, ayuda: 'Elegí una o escribí una nueva.' },
     { campo: 'estado', etiqueta: 'Estado', tipo: 'select', opciones: N.ESTADOS_PRODUCTO, defecto: 'Activo', vacio: false },
+    { campo: 'se_repone', etiqueta: '¿Se vuelve a reponer?', tipo: 'si_no', textoSi: 'Sí, avisame cuando quede poco stock', defecto: true, ancho: 'completo',
+      ayuda: 'Destildalo si es un producto que no vas a volver a comprar: deja de aparecer en "Para reponer" y en las alertas.' },
     { campo: 'precio', etiqueta: 'Precio de venta', tipo: 'pesos', requerido: true, min: 0 },
     { campo: 'costo', etiqueta: 'Costo', tipo: 'pesos', requerido: true, min: 0, ayuda: 'Lo que te cuesta a vos cada unidad.' },
     { campo: '_margen', etiqueta: 'Margen (automático)', soloLectura: true },
@@ -120,7 +122,7 @@
           p._stock = porProd[p.id] || [];
           p._total = U.sumar(p._stock, (s) => s.cantidad);
           p._margen = U.margen(p.precio, p.costo);
-          const est = p._stock.map((s) => N.estadoStock(s, cfg));
+          const est = p._stock.map((s) => N.estadoStock(s, cfg, p));
           p._estadoStock = est.includes('sin') ? 'sin' : est.includes('bajo') ? 'bajo' : 'ok';
         });
         // Los que hay que reponer, primero
@@ -133,13 +135,14 @@
         { id: 'stock', etiqueta: 'Stock', opciones: [{ valor: 'bajo', texto: 'Para reponer' }, { valor: 'sin', texto: 'Sin stock' }, { valor: 'ok', texto: 'OK' }],
           valor: (p) => p._estadoStock === 'sin' ? 'sin' : p._estadoStock, contiene: false },
         { id: 'cat', etiqueta: 'Categoría', opciones: (f) => [...new Set([...N.CATEGORIAS, ...f.map((p) => p.categoria).filter(Boolean)])], valor: (p) => p.categoria },
+        { id: 'repone', etiqueta: 'Se repone', opciones: [{ valor: 'si', texto: 'Se repone' }, { valor: 'no', texto: 'No se repone' }], valor: (p) => (p.se_repone === false ? 'no' : 'si') },
         { id: 'estado', etiqueta: 'Estado', opciones: N.ESTADOS_PRODUCTO, valor: (p) => p.estado }
       ],
       resumen: (filas, x) => {
         const activos = x.productos.filter((p) => p.estado !== 'Discontinuado' && p.estado !== 'Pausado');
         const reponer = [];
         activos.forEach((p) => p._stock.forEach((s) => {
-          const est = N.estadoStock(s, x.cfg);
+          const est = N.estadoStock(s, x.cfg, p);
           if (est !== 'ok') reponer.push({ nombre: p.nombre + (s.color !== 'Único' ? ' · ' + s.color : ''), cantidad: s.cantidad, minimo: N.minimo(s, x.cfg), sin: est === 'sin',
             boton: `<button type="button" class="boton boton-chico" data-entrada="${p.id}|${U.esc(s.color)}">+ Entrada</button>` });
         }));
@@ -158,12 +161,12 @@
             ${p.foto_url ? `<img class="miniatura" src="${U.esc(U.urlFoto(p.foto_url))}" alt="" loading="lazy">` : '<span class="miniatura"></span>'}
             <div><b>${U.esc(p.nombre)}</b><small>${p.codigo ? U.esc(p.codigo) + ' · ' : ''}${U.esc(p.categoria || 'Sin categoría')}</small></div></div>` },
         { titulo: 'Stock por color', valor: (p, x) => p._stock.length ? p._stock.map((s) => {
-            const est = N.estadoStock(s, x.cfg);
+            const est = N.estadoStock(s, x.cfg, p);
             return `<span class="stock-color est-${est}"><i style="background:${N.colorHex(s.color)}"></i>${U.esc(s.color === 'Único' ? 'Stock' : s.color)} <b>${s.cantidad}</b></span>`;
           }).join('') : '—' },
         { titulo: 'Precio', clase: 'num', valor: (p) => U.pesos(p.precio) },
         { titulo: 'Costo · margen', clase: 'num', valor: (p) => `${U.pesos(p.costo)}<br><small class="muted">${p._margen === null ? '—' : U.porcentaje(p._margen)}</small>` },
-        { titulo: 'Estado', valor: (p) => (p._estadoStock !== 'ok' && p.estado === 'Activo' ? N.etiquetaStock(p._estadoStock) + ' ' : '') + (p.estado !== 'Activo' ? UI.etiqueta(p.estado, N.tonoProducto(p.estado)) : (p._estadoStock === 'ok' ? UI.etiqueta('OK', 'ok') : '')) }
+        { titulo: 'Estado', valor: (p) => (p.se_repone === false ? UI.etiqueta(p._total > 0 ? 'No se repone' : 'Agotado · no se repone', 'neutro') + ' ' : '') + (p._estadoStock !== 'ok' && p.estado === 'Activo' ? N.etiquetaStock(p._estadoStock) + ' ' : '') + (p.estado !== 'Activo' ? UI.etiqueta(p.estado, N.tonoProducto(p.estado)) : (p._estadoStock === 'ok' && p.se_repone !== false ? UI.etiqueta('OK', 'ok') : '')) }
       ],
       campos: (fila) => camposProducto(fila),
       alArmar(form) {
@@ -204,7 +207,7 @@
   // ---------- Pestaña: insumos y packaging ----------
   const MINIMO_INSUMO = 3; // si un insumo no tiene mínimo propio, se usa este
   const minimoInsumo = (i) => i.minimo ?? MINIMO_INSUMO;
-  const reponerInsumo = (i) => i.stock < minimoInsumo(i);
+  const reponerInsumo = (i) => i.se_repone !== false && i.stock < minimoInsumo(i);
   App.insumosParaReponer = async () => (await DB.listar('insumos', { orden: 'nombre' })).filter(reponerInsumo);
 
   function cambiarStockInsumo(i, signo, recargar) {
@@ -248,7 +251,7 @@
         { titulo: 'Stock', clase: 'num', valor: (i) => `<b style="font-size:17px">${i.stock}</b> <small class="muted">/ mín. ${minimoInsumo(i)}</small>` },
         { titulo: 'Costo unit.', clase: 'num', valor: (i) => i.costo_unitario == null ? '—' : U.pesos(i.costo_unitario) },
         { titulo: 'Proveedor', valor: (i, x) => U.esc(x.prov[i.proveedor_id]?.nombre || '—') },
-        { titulo: 'Estado', valor: (i) => reponerInsumo(i) ? UI.etiqueta(i.stock <= 0 ? 'Sin stock' : 'Reponer', 'alerta') : UI.etiqueta('OK', 'ok') }
+        { titulo: 'Estado', valor: (i) => i.se_repone === false ? UI.etiqueta('No se repone', 'neutro') : reponerInsumo(i) ? UI.etiqueta(i.stock <= 0 ? 'Sin stock' : 'Reponer', 'alerta') : UI.etiqueta('OK', 'ok') }
       ],
       campos: (fila, x) => [
         { campo: 'nombre', etiqueta: 'Insumo', requerido: true },
@@ -258,6 +261,7 @@
         { campo: 'stock', etiqueta: 'Stock actual', tipo: 'numero', paso: 1, requerido: true, defecto: 0 },
         { campo: 'costo_unitario', etiqueta: 'Costo unitario', tipo: 'pesos', min: 0 },
         { campo: 'minimo', etiqueta: 'Mínimo para reponer', tipo: 'numero', paso: 1, min: 0, ayuda: `Vacío = ${MINIMO_INSUMO}.` },
+        { campo: 'se_repone', etiqueta: '¿Se vuelve a reponer?', tipo: 'si_no', textoSi: 'Sí, avisame cuando quede poco', defecto: true, ancho: 'completo' },
         { campo: 'observaciones', etiqueta: 'Notas', tipo: 'area', filas: 2 }
       ],
       despues: () => App.actualizarInsignias(),
@@ -313,7 +317,8 @@
     insignia: async () => {
       const [stock, productos, cfg, insumos] = await Promise.all([DB.listar('stock'), DB.listar('productos'), App.config(), App.insumosParaReponer().catch(() => [])]);
       const activos = new Set(productos.filter((p) => p.estado === 'Activo').map((p) => p.id));
-      return stock.filter((s) => activos.has(s.producto_id) && N.estadoStock(s, cfg) !== 'ok').length + insumos.length;
+      const prodId = U.porId(productos);
+      return stock.filter((s) => activos.has(s.producto_id) && N.estadoStock(s, cfg, prodId[s.producto_id]) !== 'ok').length + insumos.length;
     },
     render(cont, param) {
       if (param === 'insumos' || param === 'nuevo') { try { sessionStorage.setItem('pest-inventario', param === 'insumos' ? 'insumos' : 'productos'); } catch { /* nada */ } }

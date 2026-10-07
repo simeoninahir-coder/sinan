@@ -19,7 +19,7 @@
     const camposCabecera = [
       { campo: 'fecha', etiqueta: 'Fecha', tipo: 'fecha', requerido: true, defecto: U.hoy },
       { campo: 'cliente_id', etiqueta: 'Cliente', tipo: 'select', vacio: 'Sin cliente / anónimo',
-        opciones: [{ valor: NUEVO_CLIENTE, texto: '➕ Cliente nueva…' }, ...clientes.map((c) => ({ valor: c.id, texto: c.nombre }))] },
+        opciones: [{ valor: NUEVO_CLIENTE, texto: 'Cliente nueva…' }, ...clientes.map((c) => ({ valor: c.id, texto: c.nombre }))] },
       { campo: '_cli_nombre', etiqueta: 'Nombre de la clienta nueva', noGuardar: true },
       { campo: '_cli_contacto', etiqueta: 'Teléfono o Instagram', noGuardar: true },
       { campo: 'canal', etiqueta: 'Canal de venta', tipo: 'select', opciones: N.CANALES, requerido: true, vacio: false, defecto: 'Presencial' },
@@ -141,7 +141,7 @@
         const k = i.producto_id + '|' + i.color;
         const hay = disponible[k] ?? 0;
         if (i.producto_id && pedidoPor[k] > hay) {
-          av.textContent = `⚠ Hay ${hay} en stock de este color. Si lo guardás, el stock queda en negativo.`;
+          av.textContent = `Hay ${hay} en stock de este color. Si lo guardás, el stock queda en negativo.`;
           av.hidden = false;
         } else av.hidden = true;
       });
@@ -283,15 +283,15 @@
           const todos = x.pedidos;
           const grupo = (e) => todos.filter((p) => p.estado === e);
           const tarjetas = [
-            { e: 'Por preparar', tono: 'alerta', icono: '📦', txt: 'armar el paquete' },
-            { e: 'Por entregar', tono: 'atencion', icono: '🚚', txt: 'enviar o entregar' },
-            { e: 'Por cobrar', tono: 'info', icono: '💵', txt: 'falta el pago' }
+            { e: 'Por preparar', tono: 'alerta', icono: 'inventario', txt: 'armar el paquete' },
+            { e: 'Por entregar', tono: 'atencion', icono: 'proveedores', txt: 'enviar o entregar' },
+            { e: 'Por cobrar', tono: 'info', icono: 'finanzas', txt: 'falta el pago' }
           ].map((t) => ({ ...t, lista: grupo(t.e) }));
           const val = filas.filter(N.pedidoValido);
           const tot = U.sumar(val, (p) => p.total);
           return `<div class="semaforo">${tarjetas.map((t) => `
               <button type="button" class="semaforo-item tono-${t.lista.length ? t.tono : 'ok'}" data-ver-paso="${t.e}">
-                <span class="sf-icono" aria-hidden="true">${t.lista.length ? t.icono : '✓'}</span>
+                <span class="sf-icono" aria-hidden="true">${t.lista.length ? App.icono(t.icono) : '✓'}</span>
                 <span class="sf-num">${t.lista.length}</span>
                 <span class="sf-texto"><b>${t.e}</b><small>${t.lista.length ? t.txt + (t.e === 'Por cobrar' ? ' · ' + U.pesos(U.sumar(t.lista, (p) => p.total)) : '') : 'nada pendiente'}</small></span>
               </button>`).join('')}
@@ -301,7 +301,7 @@
         columnas: [
           { titulo: 'Pedido', valor: (p, x) => `<b>#${p.id}</b> · ${U.esc(N.nombreCliente(x.clientesId, p.cliente_id))}
               <br><small class="muted">${U.fecha(p.fecha)} · ${U.esc(p.canal)}${p.medio_pago ? ' · ' + U.esc(p.medio_pago) : ''}</small>
-              ${p.responsable_id || p.cargado_por ? `<br><small class="muted">${p.responsable_id && x.personasId[p.responsable_id] ? '👤 ' + U.esc(x.personasId[p.responsable_id].nombre) : ''}${p.cargado_por ? ` · cargó ${U.esc(p.cargado_por.split('@')[0])}` : ''}</small>` : ''}` },
+              ${p.responsable_id || p.cargado_por ? `<br><small class="muted">${p.responsable_id && x.personasId[p.responsable_id] ? '' + U.esc(x.personasId[p.responsable_id].nombre) : ''}${p.cargado_por ? ` · cargó ${U.esc(p.cargado_por.split('@')[0])}` : ''}</small>` : ''}` },
           { titulo: 'Productos', valor: (p, x) => p.items.map((i) => `${U.esc(x.productosId[i.producto_id]?.nombre || i.descripcion || '—')}${i.color !== 'Único' ? ` <small class="muted">(${U.esc(i.color)})</small>` : ''} ×${i.cantidad}`).join('<br>') },
           { titulo: 'Pasos', valor: (p) => N.pasosHTML(p, true) + (N.proximoPaso(p) && diasEsperando(p) > 2 ? `<small class="espera">hace ${diasEsperando(p)} días</small>` : '') },
           { titulo: 'Entrega', valor: (p) => p.envio_metodo ? `${U.esc(p.envio_metodo)}${p.envio_detalle ? `<br><small class="muted">${U.esc(p.envio_detalle)}</small>` : ''}` : '<span class="muted">—</span>' },

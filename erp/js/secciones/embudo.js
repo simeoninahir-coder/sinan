@@ -112,7 +112,7 @@
         notas: `Desde consulta #${c.id}${!p && c.producto_texto ? ' · ' + c.producto_texto : ''}`, items },
       async (pedidoId) => {
         await DB.actualizar('consultas', c.id, { etapa: 'Ganada', pedido_id: pedidoId, cerrada_at: new Date().toISOString(), actualizado: new Date().toISOString() });
-        UI.aviso('¡Vendida! 🎉 La venta quedó cargada.'); alGuardar();
+        UI.aviso('¡Vendida! La venta quedó cargada.'); alGuardar();
       });
     } catch (e) { UI.error(e); }
   }
@@ -138,7 +138,7 @@
       return `<article class="kb-tarjeta">
         <div class="kb-cab"><b>${U.esc(c.nombre)}</b>${c.etapa === 'Nueva' || c.etapa === 'Presupuesto' ? `<span class="kb-dias ${tarde ? 'tarde' : ''}">${dias === 0 ? 'hoy' : `hace ${dias} ${dias === 1 ? 'día' : 'días'}`}</span>` : ''}</div>
         <p class="kb-producto">${U.esc(queBusca(c, d))}${c.presupuesto ? ` · <b>${U.pesos(c.presupuesto)}</b>` : ''}</p>
-        <small class="muted">${[c.canal, c.contacto, c.responsable_id && d.gente[c.responsable_id] ? '👤 ' + d.gente[c.responsable_id].nombre : null].filter(Boolean).map(U.esc).join(' · ')}</small>
+        <small class="muted">${[c.canal, c.contacto, c.responsable_id && d.gente[c.responsable_id] ? '' + d.gente[c.responsable_id].nombre : null].filter(Boolean).map(U.esc).join(' · ')}</small>
         ${c.etapa === 'Perdida' && c.motivo_perdida ? `<p class="kb-motivo">✕ ${U.esc(c.motivo_perdida)}${c.detalle_perdida ? ': ' + U.esc(c.detalle_perdida) : ''}</p>` : ''}
         ${c.notas && c.etapa !== 'Perdida' ? `<p class="kb-nota">${U.esc(c.notas)}</p>` : ''}
         <div class="kb-pie"><div class="kb-botones izq"><button type="button" class="boton-icono" data-editar-c="${c.id}" aria-label="Editar" title="Editar">✎</button><button type="button" class="boton-icono boton-icono-peligro" data-borrar-c="${c.id}" aria-label="Borrar" title="Borrar">✕</button></div>
@@ -223,7 +223,7 @@
             ].map((x, i, arr) => `<div class="embudo-paso" style="--ancho:${Math.max(18, pct(x.n, arr[0].n))}%">
                 <span class="embudo-barra"><b>${x.n}</b></span><span class="embudo-texto">${x.t}${i ? ` · ${U.porcentaje(pct(x.n, arr[0].n))}` : ''}</span></div>`).join('')}</div>
           </section>
-          <section class="tarjeta"><h2>¿Por qué no compran?</h2>${UI.grafico.barras(motivos, { formato: fmtN, vacio: 'Todavía no hay consultas perdidas 🎉' })}</section>
+          <section class="tarjeta"><h2>¿Por qué no compran?</h2>${UI.grafico.barras(motivos, { formato: fmtN, vacio: 'Todavía no hay consultas perdidas.' })}</section>
           <section class="tarjeta"><h2>Qué canal vende más</h2>
             <p class="muted chico" style="margin-top:-8px">Porcentaje de consultas que terminan en venta.</p>${UI.grafico.barras(tasaPor((c) => c.canal || 'Sin dato'), { formato: U.porcentaje, vacio: 'Faltan consultas cerradas.' })}</section>
           <section class="tarjeta"><h2>Productos más consultados</h2>${UI.grafico.barras(productos, { formato: fmtN })}</section>

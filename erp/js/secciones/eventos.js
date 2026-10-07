@@ -52,7 +52,7 @@
           ${e.tipo === 'Feria'
             ? UI.numeroDestacado('Vendido en la feria', U.pesos(e._ventas), `${e._pedidos} ventas · puesto ${U.pesos(e.costo_puesto)}`)
             : UI.numeroDestacado('Inscriptas', e.cupos ? `${e.inscriptos} / ${e.cupos}` : e.inscriptos, e.precio_entrada ? `Entrada ${U.pesos(e.precio_entrada)} · estimado ${U.pesos(e.precio_entrada * e.inscriptos)}` : 'Entrada libre')}
-          ${UI.numeroDestacado('Gasto real', U.pesos(e._gasto), e.presupuesto ? `Presupuesto ${U.pesos(e.presupuesto)}${e._gasto > e.presupuesto ? ' · ⚠ pasado' : ''}` : 'Sin presupuesto', e.presupuesto && e._gasto > e.presupuesto ? 'alerta' : '')}
+          ${UI.numeroDestacado('Gasto real', U.pesos(e._gasto), e.presupuesto ? `Presupuesto ${U.pesos(e.presupuesto)}${e._gasto > e.presupuesto ? ' · pasado' : ''}` : 'Sin presupuesto', e.presupuesto && e._gasto > e.presupuesto ? 'alerta' : '')}
           ${UI.numeroDestacado('Resultado', U.pesos(e._resultado), 'ingresos − gastos', e._resultado >= 0 ? 'ok' : 'alerta')}
         </div>
         <div class="grilla grilla-2 separado">

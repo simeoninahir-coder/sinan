@@ -25,9 +25,9 @@
         <div class="kb-cab"><b>#${p.id} · ${U.esc(N.nombreCliente(v.clientesId, p.cliente_id))}</b>
           <span class="kb-dias ${dias > 2 ? 'tarde' : ''}">${dias === 0 ? 'hoy' : `hace ${dias} ${dias === 1 ? 'día' : 'días'}`}</span></div>
         <ul class="kb-items">${p.items.map((i) => `<li>${U.esc(v.productosId[i.producto_id]?.nombre || i.descripcion || '—')}${i.color !== 'Único' ? ' · ' + U.esc(i.color) : ''} <b>×${i.cantidad}</b></li>`).join('')}</ul>
-        <p class="kb-envio">🚚 <b>${U.esc(p.envio_metodo || 'Forma de entrega sin definir')}</b>${p.envio_detalle ? `<br>${U.esc(p.envio_detalle)}` : ''}</p>
+        <p class="kb-envio"><b>${U.esc(p.envio_metodo || 'Forma de entrega sin definir')}</b>${p.envio_detalle ? `<br>${U.esc(p.envio_detalle)}` : ''}</p>
         <div class="kb-pie">
-          <small class="muted">${p.responsable_id && gente[p.responsable_id] ? '👤 ' + U.esc(gente[p.responsable_id].nombre) : 'Sin responsable'} · ${U.pesos(p.total)}</small>
+          <small class="muted">${p.responsable_id && gente[p.responsable_id] ? '' + U.esc(gente[p.responsable_id].nombre) : 'Sin responsable'} · ${U.pesos(p.total)}</small>
           <div class="kb-botones">
             <button type="button" class="boton-texto" data-editar="${p.id}">Ver</button>
             ${paso ? `<button type="button" class="boton boton-chico" data-avanzar="${p.id}">✓ ${paso.hecho}</button>` : ''}

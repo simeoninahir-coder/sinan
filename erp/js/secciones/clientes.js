@@ -207,10 +207,10 @@
           }).join('') || '<li class="muted">No hay contactos agendados. Poné una fecha de "Próximo contacto" en la ficha.</li>'}</ul></section>
         <section class="tarjeta"><h2>Cumpleaños (30 días)</h2>
           <ul class="lista-simple">${cumples.map((c) => fila(c, U.fecha(c.fecha_nacimiento).slice(0, 5) + ' · ' + (c._cumple === 0 ? '¡hoy!' : 'en ' + c._cumple + ' días'),
-            c._cumple <= 7 ? UI.etiqueta('🎂', 'info') : '')).join('') || '<li class="muted">No hay cumpleaños cerca (o falta cargar las fechas).</li>'}</ul></section>
+            c._cumple <= 7 ? UI.etiqueta('Esta semana', 'info') : '')).join('') || '<li class="muted">No hay cumpleaños cerca (o falta cargar las fechas).</li>'}</ul></section>
         <section class="tarjeta"><h2>Para reactivar</h2>
           <p class="muted chico" style="margin-top:-6px">Compraron alguna vez, pero hace más de ${N.DIAS_INACTIVA} días que no compran.</p>
-          <ul class="lista-simple">${inactivas.map((c) => fila(c, `Última compra ${haceDias(c._ultima)} · gastó ${U.pesos(c._total)}`)).join('') || '<li class="muted">Ninguna por ahora 👏</li>'}</ul></section>
+          <ul class="lista-simple">${inactivas.map((c) => fila(c, `Última compra ${haceDias(c._ultima)} · gastó ${U.pesos(c._total)}`)).join('') || '<li class="muted">Ninguna por ahora.</li>'}</ul></section>
       </div>`;
     cuerpo.onclick = (e) => { const b = e.target.closest('[data-ficha]'); if (b) abrirFicha(Number(b.dataset.ficha), () => pestanaSeguimientos(cuerpo)); };
   }

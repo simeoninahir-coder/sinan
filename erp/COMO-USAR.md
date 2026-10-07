@@ -108,7 +108,8 @@ Las consultas sin responder de más de 1 día aparecen en **Alertas** y en el **
 1. **Logística → Inventario → + Nuevo producto**.
 2. Nombre, código, categoría, precio y **costo** (el margen aparece solo).
 3. **Colores** separados por coma (ej: `Negro, Celeste`) y el **stock inicial** de cada color.
-4. Foto: **Subir foto** o pegá un link. Guardar.
+4. **¿Se vuelve a reponer?** Dejalo tildado si lo vas a volver a comprar. Si no (por ejemplo, algo que se vende hasta agotar), destildalo: no te va a avisar cuando se termine.
+5. Foto: **Subir foto** o pegá un link. Guardar.
 
 ### Cuando llega mercadería
 **Inventario** → **+ Entrada** en el producto → cantidad y motivo (ej: "Compra a Marroquinería del Once"). Y en **Finanzas** cargá el gasto (categoría *Mercadería*, elegí el proveedor).

@@ -224,14 +224,14 @@
       DB.listar('campanas'), DB.listar('metricas_instagram', { orden: 'fecha', asc: false })
     ]);
     const campos = [
-      { campo: 'objetivo_general', etiqueta: '🎯 Objetivo principal', tipo: 'area', filas: 2, placeholder: 'Ej: que más mujeres conozcan Sinan y vuelvan a comprar' },
-      { campo: 'publico_objetivo', etiqueta: '👩 Público objetivo (a quién le hablamos)', tipo: 'area', filas: 3, placeholder: 'Edad, zona, qué hace, qué le importa, qué problema le resolvemos…' },
-      { campo: 'propuesta_valor', etiqueta: '💙 Propuesta de valor', tipo: 'area', filas: 2, placeholder: 'Por qué elegir Sinan y no otra marca' },
-      { campo: 'diferenciales', etiqueta: '✨ Diferenciales', tipo: 'area', filas: 2 },
-      { campo: 'tono', etiqueta: '🗣️ Tono de comunicación', tipo: 'area', filas: 2, placeholder: 'Cercano, cálido, motivador…' },
-      { campo: 'canales', etiqueta: '📣 Canales y frecuencia', tipo: 'area', filas: 2, placeholder: 'Ej: Instagram 3 posts + historias diarias, WhatsApp, ferias…' },
-      { campo: 'competencia', etiqueta: '👀 Competencia y referentes', tipo: 'area', filas: 2 },
-      { campo: 'notas', etiqueta: '📝 Notas', tipo: 'area', filas: 2 }
+      { campo: 'objetivo_general', etiqueta: 'Objetivo principal', tipo: 'area', filas: 2, placeholder: 'Ej: que más mujeres conozcan Sinan y vuelvan a comprar' },
+      { campo: 'publico_objetivo', etiqueta: 'Público objetivo (a quién le hablamos)', tipo: 'area', filas: 3, placeholder: 'Edad, zona, qué hace, qué le importa, qué problema le resolvemos…' },
+      { campo: 'propuesta_valor', etiqueta: 'Propuesta de valor', tipo: 'area', filas: 2, placeholder: 'Por qué elegir Sinan y no otra marca' },
+      { campo: 'diferenciales', etiqueta: 'Diferenciales', tipo: 'area', filas: 2 },
+      { campo: 'tono', etiqueta: 'Tono de comunicación', tipo: 'area', filas: 2, placeholder: 'Cercano, cálido, motivador…' },
+      { campo: 'canales', etiqueta: 'Canales y frecuencia', tipo: 'area', filas: 2, placeholder: 'Ej: Instagram 3 posts + historias diarias, WhatsApp, ferias…' },
+      { campo: 'competencia', etiqueta: 'Competencia y referentes', tipo: 'area', filas: 2 },
+      { campo: 'notas', etiqueta: 'Notas', tipo: 'area', filas: 2 }
     ];
     const ult = metricas[0];
     cuerpo.innerHTML = `

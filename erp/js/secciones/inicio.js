@@ -26,11 +26,11 @@ App.registrar({
     const reponer = alertas.filter((a) => a.tipo === 'stock' || a.tipo === 'insumo').length;
     const sinResponder = consultas.filter((c) => c.etapa === 'Nueva').length;
     const hacer = [
-      { n: cuenta('Por preparar').length, t: 'Por preparar', s: 'pedidos para armar', ir: 'ventas/Por preparar', tono: 'alerta', i: '📦' },
-      { n: cuenta('Por entregar').length, t: 'Por entregar', s: 'pedidos para enviar', ir: 'envios', tono: 'atencion', i: '🚚' },
-      { n: cuenta('Por cobrar').length, t: 'Por cobrar', s: U.pesos(U.sumar(cuenta('Por cobrar'), (p) => p.total)), ir: 'ventas/Por cobrar', tono: 'info', i: '💵' },
-      { n: sinResponder, t: 'Consultas', s: 'sin responder', ir: 'clientes/embudo', tono: 'alerta', i: '💬' },
-      { n: reponer, t: 'Reponer', s: 'productos e insumos', ir: 'inventario', tono: 'atencion', i: '🔁' }
+      { n: cuenta('Por preparar').length, t: 'Por preparar', s: 'pedidos para armar', ir: 'ventas/Por preparar', tono: 'alerta', i: 'inventario' },
+      { n: cuenta('Por entregar').length, t: 'Por entregar', s: 'pedidos para enviar', ir: 'envios', tono: 'atencion', i: 'proveedores' },
+      { n: cuenta('Por cobrar').length, t: 'Por cobrar', s: U.pesos(U.sumar(cuenta('Por cobrar'), (p) => p.total)), ir: 'ventas/Por cobrar', tono: 'info', i: 'finanzas' },
+      { n: sinResponder, t: 'Consultas', s: 'sin responder', ir: 'clientes/embudo', tono: 'alerta', i: 'consulta' },
+      { n: reponer, t: 'Reponer', s: 'productos e insumos', ir: 'inventario', tono: 'atencion', i: 'reponer' }
     ];
 
     // ---- Gráficos ----
@@ -63,7 +63,7 @@ App.registrar({
     const dias = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
     const f = U.fechaDeIso(hoy);
     cont.closest('#contenido').querySelector('.cabecera-seccion').innerHTML =
-      `<h1>${saludo} ✨</h1><p>Hoy es ${dias[f.getDay()]} ${f.getDate()} de ${U.MESES[f.getMonth()]}. Esto es lo que pasa en Sinan.</p>`;
+      `<h1>${saludo} </h1><p>Hoy es ${dias[f.getDay()]} ${f.getDate()} de ${U.MESES[f.getMonth()]}. Esto es lo que pasa en Sinan.</p>`;
 
     let comparacion = '';
     if (ventasAnt > 0) {
@@ -82,7 +82,7 @@ App.registrar({
       <h2 class="subtitulo">Para hacer hoy</h2>
       <div class="semaforo semaforo-5">${hacer.map((h) => `
         <button type="button" class="semaforo-item tono-${h.n ? h.tono : 'ok'}" data-ir="${h.ir}">
-          <span class="sf-icono" aria-hidden="true">${h.n ? h.i : '✓'}</span>
+          <span class="sf-icono" aria-hidden="true">${h.n ? App.icono(h.i) : '✓'}</span>
           <span class="sf-num">${h.n}</span>
           <span class="sf-texto"><b>${h.t}</b><small>${h.n ? h.s : 'al día'}</small></span>
         </button>`).join('')}
@@ -133,7 +133,7 @@ App.registrar({
       try {
         await DB.actualizar('tareas', Number(ch.dataset.tarea), { estado: 'Hecha' });
         ch.closest('li').querySelector('.crece').classList.add('hecha'); ch.disabled = true;
-        UI.aviso('Tarea hecha 👏');
+        UI.aviso('Tarea hecha');
       } catch (e) { ch.checked = false; UI.error(e); }
     }));
   }

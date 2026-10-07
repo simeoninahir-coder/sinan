@@ -35,7 +35,7 @@
         { campo: 'descripcion', etiqueta: 'Detalle', tipo: 'area' }
       ],
       accionesExtra: (t) => t.estado === 'Hecha' ? '' : `<button type="button" class="boton-texto" data-accion="hecha">✓ Hecha</button>`,
-      alAccion: { hecha: async (t, x, recargar) => { try { await DB.actualizar('tareas', t.id, { estado: 'Hecha' }); UI.aviso('Tarea hecha 👏'); recargar(); } catch (e) { UI.error(e); } } }
+      alAccion: { hecha: async (t, x, recargar) => { try { await DB.actualizar('tareas', t.id, { estado: 'Hecha' }); UI.aviso('Tarea hecha'); recargar(); } catch (e) { UI.error(e); } } }
     });
   }
 

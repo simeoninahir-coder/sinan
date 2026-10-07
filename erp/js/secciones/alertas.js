@@ -48,7 +48,7 @@
     stock.forEach((s) => {
       const p = prod[s.producto_id];
       if (!p || p.estado === 'Discontinuado' || p.estado === 'Pausado') return;
-      const est = N.estadoStock(s, cfg);
+      const est = N.estadoStock(s, cfg, p);
       if (est === 'ok') return;
       alertas.push({
         tipo: 'stock', nivel: est === 'sin' ? 'alerta' : 'atencion', marca: est === 'sin' ? 'Sin stock' : 'Poco stock',
@@ -104,7 +104,7 @@
       if (cumple !== null && cumple <= DIAS_CUMPLE) {
         alertas.push({
           tipo: 'cliente', nivel: 'info', marca: cumple === 0 ? '¡Hoy!' : `En ${cumple} días`,
-          titulo: `Cumpleaños de ${c.nombre} 🎂`, detalle: 'Buen momento para saludarla', ir: ['clientes', 'ficha-' + c.id]
+          titulo: `Cumpleaños de ${c.nombre}`, detalle: 'Buen momento para saludarla', ir: ['clientes', 'ficha-' + c.id]
         });
       }
     });
@@ -120,7 +120,7 @@
     const filas = GRUPOS.map((g) => ({ g, lista: alertas.filter((a) => a.tipo === g.tipo) })).filter((x) => x.lista.length);
     if (!filas.length) return `<div class="todo-ok">${App.icono('alertas')}<div><b>Todo en orden</b><small>No hay nada pendiente por ahora.</small></div></div>`;
     return `<div class="alertas-resumen">${filas.map(({ g, lista }) => {
-      const unicos = [...new Set(lista.map((a) => a.titulo.replace(/^(Contactar a |Feria · |Cumpleaños de )/, '').replace(' 🎂', '')))];
+      const unicos = [...new Set(lista.map((a) => a.titulo.replace(/^(Contactar a |Feria · |Cumpleaños de )/, '')))];
       const nombres = unicos.slice(0, 2).join(', ') + (unicos.length > 2 ? ` y ${unicos.length - 2} más` : '');
       return `<button type="button" class="alerta-grupo nivel-${peorNivel(lista)}" data-ir="${g.ir}">
         <span class="ag-icono">${App.icono(g.icono)}</span>
@@ -132,7 +132,7 @@
 
   // Lista detallada de alertas
   App.dibujarAlertas = (alertas) => {
-    if (!alertas.length) return '<div class="vacio">Todo en orden 🎉</div>';
+    if (!alertas.length) return '<div class="vacio">Todo en orden.</div>';
     return `<ul class="lista-alertas">${alertas.map((a) => `
       <li><button type="button" class="alerta-fila" data-ir="${a.ir.join('/')}">
         <span class="af-punto nivel-${a.nivel}"></span>
