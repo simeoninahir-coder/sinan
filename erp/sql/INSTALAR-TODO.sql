@@ -1075,3 +1075,5 @@ revoke usage, select on all sequences in schema public from anon;
 -- =====================================================================
 alter table productos add column if not exists se_repone boolean not null default true;
 alter table insumos   add column if not exists se_repone boolean not null default true;
+
+alter table pedidos add column if not exists historico boolean not null default false;
