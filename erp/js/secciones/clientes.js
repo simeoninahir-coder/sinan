@@ -251,12 +251,16 @@
   }
 
   App.registrar({
-    id: 'clientes', titulo: 'Clientes', icono: 'clientes',
-    descripcion: 'Tu CRM: fichas, seguimientos, cumpleaños y reportes de tus clientas.',
+    id: 'clientes', titulo: 'Clientes', icono: 'clientes', grupo: 'ventas',
+    descripcion: 'Tu CRM: consultas (clientes potenciales), fichas de clientas, seguimientos y reportes.',
+    insignia: async () => (await DB.listar('consultas')).filter((c) => c.etapa === 'Nueva').length,
     render(cont, param) {
       const abrir = param && param.startsWith('ficha-') ? Number(param.slice(6)) : null;
-      if (abrir) { try { sessionStorage.removeItem('pest-clientes'); } catch { /* nada */ } }
+      if (abrir) { try { sessionStorage.setItem('pest-clientes', 'clientas'); } catch { /* nada */ } }
+      if (param === 'embudo') { try { sessionStorage.setItem('pest-clientes', 'embudo'); } catch { /* nada */ } }
       UI.pestanas(cont, [
+        { id: 'embudo', titulo: 'Embudo de consultas', render: App.crm.pestanaEmbudo },
+        { id: 'analisis', titulo: 'Análisis del embudo', render: App.crm.pestanaAnalisis },
         { id: 'clientas', titulo: 'Clientas', render: (c) => pestanaClientas(c, abrir) },
         { id: 'seguimientos', titulo: 'Seguimientos', render: pestanaSeguimientos },
         { id: 'reportes', titulo: 'Reportes', render: pestanaReportes }

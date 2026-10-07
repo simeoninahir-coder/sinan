@@ -3,14 +3,14 @@
    Datos de la marca, redes, datos del negocio y stock mínimo por defecto.
    ===================================================================== */
 App.registrar({
-  id: 'configuracion', titulo: 'Configuración', icono: 'configuracion',
+  id: 'configuracion', titulo: 'Configuración', icono: 'configuracion', posicion: 'abajo',
   descripcion: 'Datos de la marca y ajustes generales del sistema.',
   async render(cont) {
     const cfg = await App.config(true);
     const grupos = [
       { titulo: 'Marca', campos: [
         { campo: 'nombre_marca', etiqueta: 'Nombre de la marca', requerido: true },
-        { campo: 'frase', etiqueta: 'Frase de la marca', ayuda: 'Aparece en el Inicio.' },
+        { campo: 'frase', etiqueta: 'Frase de la marca' },
         { campo: 'descripcion', etiqueta: 'Descripción', tipo: 'area' }
       ] },
       { titulo: 'Redes y contacto', campos: [

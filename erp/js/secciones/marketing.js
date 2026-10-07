@@ -334,7 +334,7 @@
   }
 
   App.registrar({
-    id: 'marketing', titulo: 'Marketing', icono: 'contenido',
+    id: 'marketing', titulo: 'Estrategia y contenido', icono: 'contenido', grupo: 'marketing',
     descripcion: 'Estrategia, objetivos, campañas, calendario de contenido y métricas.',
     render(cont) {
       UI.pestanas(cont, [

@@ -170,7 +170,7 @@
   }
 
   App.registrar({
-    id: 'finanzas', titulo: 'Finanzas', icono: 'finanzas',
+    id: 'finanzas', titulo: 'Finanzas', icono: 'finanzas', grupo: 'admin',
     descripcion: 'Gastos, otros ingresos, resultado de cada mes y qué productos dejan más ganancia.',
     render(cont, param) {
       if (param === 'nuevo') { try { sessionStorage.removeItem('pest-finanzas'); } catch { /* nada */ } }

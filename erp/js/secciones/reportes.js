@@ -4,7 +4,7 @@
    y evolución mensual, con gráficos simples.
    ===================================================================== */
 App.registrar({
-  id: 'reportes', titulo: 'Reportes', icono: 'reportes',
+  id: 'reportes', titulo: 'Reportes', icono: 'reportes', grupo: 'admin',
   descripcion: 'Cómo viene el negocio, en gráficos.',
   async render(cont) {
     const [v, eventos, movs] = await Promise.all([N.cargarVentas(), DB.listar('eventos', { orden: 'fecha' }), DB.listar('movimientos_financieros')]);

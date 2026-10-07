@@ -15,8 +15,17 @@
   N.TIPOS_CAMPANA = ['Promoción', 'Lanzamiento', 'Sorteo', 'Colaboración', 'Publicidad paga', 'Fecha especial'];
   N.ESTADOS_CAMPANA = ['Planificada', 'Activa', 'Terminada', 'Cancelada'];
   N.ESTADOS_OBJETIVO = ['Pendiente', 'En curso', 'Logrado', 'No logrado'];
-  N.ESTADOS_PEDIDO = ['Pendiente', 'Pagado', 'Preparando', 'Enviado', 'Entregado', 'Cancelado'];
-  N.ESTADOS_FINALES = ['Entregado', 'Cancelado'];
+  N.ESTADOS_PEDIDO = ['Por preparar', 'Por entregar', 'Por cobrar', 'Completado', 'Cancelado'];
+  // Pasos de un pedido, en orden (cada uno guarda cuándo se hizo)
+  N.PASOS_PEDIDO = [
+    { campo: 'preparado_at', texto: 'Preparar', hecho: 'Preparado', accion: 'Marcar preparado' },
+    { campo: 'entregado_at', texto: 'Entregar', hecho: 'Entregado', accion: 'Marcar entregado' },
+    { campo: 'cobrado_at', texto: 'Cobrar', hecho: 'Cobrado', accion: 'Marcar cobrado' }
+  ];
+  N.METODOS_ENVIO = ['En mano (presencial)', 'Punto de encuentro', 'Retiro', 'Uber / Cabify', 'Moto mensajería', 'Correo Argentino', 'Andreani', 'OCA', 'Otro'];
+  N.ETAPAS_CONSULTA = ['Nueva', 'Presupuesto', 'Ganada', 'Perdida'];
+  N.MOTIVOS_PERDIDA = ['Precio', 'Costo o forma de envío', 'No respondió más', 'Compró en otro lado', 'No había stock / color', 'Solo estaba mirando', 'Otro'];
+  N.ESTADOS_FINALES = ['Completado', 'Cancelado'];
   N.ESTADOS_EVENTO = ['Planificando', 'Confirmado', 'Realizado', 'Cancelado'];
   N.CATEGORIAS_GASTO = ['Mercadería', 'Packaging', 'Envíos', 'Publicidad', 'Eventos', 'Comisiones', 'Servicios', 'Diseño e imprenta', 'Impuestos', 'Otros'];
   N.CATEGORIAS_INGRESO = ['Entradas de eventos', 'Colaboraciones', 'Aporte propio', 'Otros'];
@@ -28,7 +37,8 @@
   N.ESTADOS_TAREA = ['Pendiente', 'En curso', 'Hecha'];
 
   // Colores de etiqueta según estado
-  N.tonoPedido = (e) => ({ Pendiente: 'atencion', Pagado: 'info', Preparando: 'info', Enviado: 'info', Entregado: 'ok', Cancelado: 'neutro' }[e] || 'neutro');
+  N.tonoPedido = (e) => ({ 'Por preparar': 'alerta', 'Por entregar': 'atencion', 'Por cobrar': 'info', Completado: 'ok', Cancelado: 'neutro' }[e] || 'neutro');
+  N.tonoConsulta = (e) => ({ Nueva: 'atencion', Presupuesto: 'info', Ganada: 'ok', Perdida: 'neutro' }[e] || 'neutro');
   N.tonoProducto = (e) => ({ Activo: 'ok', Pausado: 'atencion', Agotado: 'alerta', Discontinuado: 'neutro' }[e] || 'neutro');
   N.tonoEvento = (e) => ({ Planificando: 'atencion', Confirmado: 'info', Realizado: 'ok', Cancelado: 'neutro' }[e] || 'neutro');
   N.tonoTarea = (e) => ({ Pendiente: 'atencion', 'En curso': 'info', Hecha: 'ok' }[e] || 'neutro');
@@ -39,6 +49,19 @@
   const HEX = { negro: '#1a1a1a', blanco: '#f2f0ea', beige: '#d9c3a5', celeste: '#9cc9e8', azul: '#477ab3', rosa: '#f2b8c6', violeta: '#8e6bbf',
     lila: '#c3a6e0', rojo: '#c0392b', verde: '#6aa57a', gris: '#9aa3ab', marron: '#7a5640', camel: '#b68a5a', natural: '#e8dcc8', amarillo: '#f2cf5b', naranja: '#e8894a' };
   N.colorHex = (nombre) => HEX[U.normalizar(nombre).split(' ')[0]] || '#cfd8de';
+
+  // ---------- Pasos del pedido ----------
+  // Dibuja los pasos: ● Preparar — ● Entregar — ○ Cobrar
+  N.pasosHTML = (p, compacto) => {
+    if (p.estado === 'Cancelado') return UI.etiqueta('Cancelado', 'neutro');
+    return `<div class="pasos ${compacto ? 'pasos-compacto' : ''}">${N.PASOS_PEDIDO.map((s) => {
+      const hecho = !!p[s.campo];
+      return `<span class="paso ${hecho ? 'hecho' : ''}" title="${hecho ? s.hecho + ' el ' + U.fecha(String(p[s.campo]).slice(0, 10)) : 'Falta ' + s.texto.toLowerCase()}">
+        <i>${hecho ? '✓' : ''}</i><small>${s.texto}</small></span>`;
+    }).join('<b class="paso-linea"></b>')}</div>`;
+  };
+  // Próximo paso que falta (o null si está completo)
+  N.proximoPaso = (p) => (p.estado === 'Cancelado' ? null : N.PASOS_PEDIDO.find((s) => !p[s.campo]) || null);
 
   // ---------- Stock ----------
   N.minimo = (s, cfg) => (s.minimo ?? cfg?.stock_minimo_defecto ?? 2);

@@ -1,14 +1,14 @@
 /* =====================================================================
    SECCIÓN · VENTAS / PEDIDOS
-   Un pedido tiene uno o varios productos. Al guardarlo, la base
-   descuenta el stock sola. Si se cancela o se borra, el stock vuelve.
+   Cada pedido tiene pasos: preparar → entregar → cobrar. Arriba, en grande,
+   lo que falta hacer. Al guardar, la base descuenta el stock sola.
    ===================================================================== */
 (function () {
   const NUEVO_CLIENTE = '__nuevo__';
 
-  // Ventana de pedido (nuevo o editar)
-  function abrirPedido(pedido, ctx, recargar) {
-    const { clientes, productos, eventos, stock } = ctx;
+  // Ventana de pedido (nuevo o editar). "previo" sirve para precargar una venta (ej: desde una consulta).
+  function abrirPedido(pedido, ctx, recargar, previo = null, alGuardado = null) {
+    const { clientes, productos, eventos, stock, personas } = ctx;
     const prodId = U.porId(productos);
     const activos = productos.filter((p) => p.estado !== 'Discontinuado' || (pedido && pedido.items.some((i) => i.producto_id === p.id)));
     // Stock disponible por producto|color (si es edición, se suma lo que ya tenía este pedido)
@@ -24,16 +24,23 @@
       { campo: '_cli_contacto', etiqueta: 'Teléfono o Instagram', noGuardar: true },
       { campo: 'canal', etiqueta: 'Canal de venta', tipo: 'select', opciones: N.CANALES, requerido: true, vacio: false, defecto: 'Presencial' },
       { campo: 'medio_pago', etiqueta: 'Medio de pago', tipo: 'select', opciones: N.MEDIOS_PAGO, vacio: 'Sin definir', defecto: 'Transferencia' },
-      { campo: 'estado', etiqueta: 'Estado', tipo: 'select', opciones: N.ESTADOS_PEDIDO, requerido: true, vacio: false, defecto: 'Pendiente' },
+      { campo: 'responsable_id', etiqueta: 'Responsable del pedido', tipo: 'select', numerico: true, vacio: 'Sin asignar',
+        opciones: personas.filter((p) => p.activa || p.id === pedido?.responsable_id).map((p) => ({ valor: p.id, texto: p.nombre })) },
       { campo: 'evento_id', etiqueta: 'Feria o evento (si se vendió en uno)', tipo: 'select', numerico: true, vacio: 'Ninguno',
-        opciones: eventos.map((e) => ({ valor: e.id, texto: `${e.tipo === 'Feria' ? 'Feria · ' : ''}${e.nombre} · ${U.fecha(e.fecha)}` })) }
+        opciones: eventos.map((e) => ({ valor: e.id, texto: `${e.tipo === 'Feria' ? 'Feria · ' : ''}${e.nombre} · ${U.fecha(e.fecha)}` })) },
+      { campo: 'envio_metodo', etiqueta: 'Cómo se entrega', tipo: 'select', opciones: N.METODOS_ENVIO, vacio: 'Sin definir' },
+      { campo: 'envio_detalle', etiqueta: 'Dirección / punto de encuentro / horario', placeholder: 'Ej: Plaza Laferrere, sábado 11 h' }
     ];
     const camposPie = [
       { campo: 'descuento', etiqueta: 'Descuento', tipo: 'pesos', min: 0, defecto: 0 },
       { campo: 'envio', etiqueta: 'Envío (cobrado a la clienta)', tipo: 'pesos', min: 0, defecto: 0 },
       { campo: 'notas', etiqueta: 'Notas', tipo: 'area', filas: 2 }
     ];
-    const valores = pedido || {};
+    const valores = pedido || previo || {};
+    // Pasos: en una venta presencial suele estar todo hecho en el momento
+    const pasosHTML = `<div class="campo campo-completo"><span class="campo-etiqueta">¿En qué paso está?</span>
+      <div class="checks-pasos">${N.PASOS_PEDIDO.map((s) => `<label class="check-paso"><input type="checkbox" name="${s.campo}" ${valores[s.campo] ? 'checked' : ''}><span>${s.hecho}</span></label>`).join('')}</div>
+      <small class="campo-ayuda">Tildá lo que ya está hecho. Lo que falte aparece en "Por preparar", "Por entregar" o "Por cobrar".</small></div>`;
 
     const form = document.createElement('form');
     form.className = 'formulario';
@@ -46,6 +53,7 @@
           <button type="button" class="boton boton-secundario boton-chico" data-agregar style="align-self:flex-start">+ Agregar producto</button>
         </div>
         ${camposPie.map((c) => UI.campoHTML(c, valores)).join('')}
+        ${pasosHTML}
         <div class="totales-pedido"><span>Subtotal: <b data-subtotal></b></span><span>Total: <strong data-total></strong></span></div>
       </div>
       <p class="form-error" hidden></p>
@@ -146,7 +154,17 @@
     form.envio.addEventListener('input', actualizar);
     form.querySelector('[data-agregar]').onclick = () => agregarItem();
 
-    if (pedido && pedido.items.length) pedido.items.forEach(agregarItem); else agregarItem();
+    // Presencial o feria: se entrega y se cobra en el momento → tilda todo solo (si es nueva)
+    form.canal.addEventListener('change', () => {
+      if (pedido) return;
+      const enMano = ['Presencial', 'Feria', 'Evento'].includes(form.canal.value);
+      N.PASOS_PEDIDO.forEach((s) => { form[s.campo].checked = enMano; });
+      if (enMano && !form.envio_metodo.value) form.envio_metodo.value = 'En mano (presencial)';
+    });
+    if (!pedido && !previo) form.canal.dispatchEvent(new Event('change'));
+
+    const iniciales = (pedido && pedido.items) || (previo && previo.items) || [];
+    if (iniciales.length) iniciales.forEach(agregarItem); else agregarItem();
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -170,11 +188,16 @@
           cab.cliente_id = nueva.id;
         }
         cab.cliente_id = cab.cliente_id ? Number(cab.cliente_id) : null;
-        if (pedido) cab.id = pedido.id;
+        // Pasos: si ya estaba hecho se respeta la fecha original; si se tilda ahora, queda la fecha de hoy
+        const ahora = new Date().toISOString();
+        N.PASOS_PEDIDO.forEach((s) => { cab[s.campo] = form[s.campo].checked ? ((pedido && pedido[s.campo]) || ahora) : ''; });
+        cab.estado = pedido && pedido.estado === 'Cancelado' ? 'Cancelado' : '';
+        if (pedido) cab.id = pedido.id; else cab.cargado_por = App.usuario || null;
         const id = await DB.rpc('guardar_pedido', { p_pedido: cab, p_items: items });
         UI.aviso(pedido ? 'Pedido actualizado' : `Venta registrada (pedido #${id}) · stock descontado`);
         m.cerrar();
-        recargar();
+        recargar && recargar();
+        if (alGuardado) await alGuardado(id, cab);
         App.actualizarInsignias();
       } catch (ex) {
         console.error(ex);
@@ -183,68 +206,125 @@
     });
   }
 
-  // Cambio rápido de estado
-  function cambiarEstado(p, recargar) {
-    UI.formularioModal({
-      titulo: `Estado del pedido #${p.id}`, ancho: 'chico', textoBoton: 'Cambiar',
-      campos: [{ campo: 'estado', etiqueta: 'Nuevo estado', tipo: 'select', opciones: N.ESTADOS_PEDIDO, vacio: false, ancho: 'completo',
-        ayuda: 'Si lo pasás a "Cancelado", el stock vuelve al inventario.' }],
-      valores: p,
-      alGuardar: async (d) => {
-        await DB.actualizar('pedidos', p.id, { estado: d.estado });
-        UI.aviso(`Pedido #${p.id}: ${d.estado}`);
-        recargar(); App.actualizarInsignias();
-      }
-    });
+  // Todo lo que necesita la ventana de venta
+  async function cargarContexto() {
+    const [v, eventos, stock, personas] = await Promise.all([
+      N.cargarVentas(), DB.listar('eventos', { orden: 'fecha', asc: false }), DB.listar('stock'), DB.listar('personas', { orden: 'nombre' })]);
+    return { ...v, eventos, stock, personas, personasId: U.porId(personas) };
   }
 
+  // Abrir una venta nueva precargada desde otra sección (ej: consulta ganada)
+  App.nuevaVenta = async (previo, alGuardado) => abrirPedido(null, await cargarContexto(), null, previo, alGuardado);
+
+  // Marca el próximo paso del pedido (preparar → entregar → cobrar). Lo usan Ventas, Envíos e Inicio.
+  App.avanzarPaso = async (p, campo) => {
+    const paso = campo ? N.PASOS_PEDIDO.find((s) => s.campo === campo) : N.proximoPaso(p);
+    if (!paso) return;
+    await DB.actualizar('pedidos', p.id, { [paso.campo]: new Date().toISOString() });
+    UI.aviso(`Pedido #${p.id}: ${paso.hecho.toLowerCase()} ✓`);
+    App.actualizarInsignias();
+  };
+
+  // Cancelar o reactivar (el stock vuelve o se descuenta solo)
+  async function cancelarOReactivar(p, recargar) {
+    const cancelar = p.estado !== 'Cancelado';
+    const ok = await UI.confirmar(cancelar
+      ? `Vas a cancelar el pedido #${p.id}. Sus productos vuelven al stock.`
+      : `Vas a reactivar el pedido #${p.id}. Sus productos se vuelven a descontar del stock.`,
+    { titulo: cancelar ? 'Cancelar pedido' : 'Reactivar pedido', boton: cancelar ? 'Sí, cancelar' : 'Sí, reactivar', peligro: cancelar });
+    if (!ok) return;
+    try {
+      await DB.actualizar('pedidos', p.id, { estado: cancelar ? 'Cancelado' : 'Por preparar' });
+      UI.aviso(cancelar ? 'Pedido cancelado · stock devuelto' : 'Pedido reactivado');
+      recargar(); App.actualizarInsignias();
+    } catch (e) { UI.error(e); }
+  }
+
+  const diasEsperando = (p) => Math.max(0, -U.diasHasta(p.fecha));
+
   App.registrar({
-    id: 'ventas', titulo: 'Ventas', icono: 'ventas',
-    descripcion: 'Pedidos con uno o varios productos. El stock se descuenta solo.',
+    id: 'ventas', titulo: 'Ventas', icono: 'ventas', grupo: 'ventas',
+    descripcion: 'Cada pedido con sus pasos: preparar → entregar → cobrar. El stock se descuenta solo.',
+    insignia: async () => (await DB.listar('pedidos')).filter((p) => ['Por preparar', 'Por entregar', 'Por cobrar'].includes(p.estado)).length,
     render(cont, param) {
       let pendienteAbrir = param;
       const crud = Seccion.crud({
         contenedor: cont, tabla: 'pedidos', nombre: 'pedido', textoNuevo: 'Registrar venta',
         async cargar() {
-          const [v, eventos, stock] = await Promise.all([N.cargarVentas(), DB.listar('eventos', { orden: 'fecha', asc: false }), DB.listar('stock')]);
-          const ctx = { ...v, eventos, stock };
-          // Abre un pedido si se llegó con #/ventas/nuevo o #/ventas/editar-ID
+          const ctx = await cargarContexto();
+          // Primero lo que falta hacer (lo más viejo arriba), después lo terminado
+          const orden = { 'Por preparar': 0, 'Por entregar': 1, 'Por cobrar': 2, Completado: 3, Cancelado: 4 };
+          ctx.pedidos.sort((a, b) => {
+            const pa = orden[a.estado] < 3, pb = orden[b.estado] < 3;
+            if (pa !== pb) return pa ? -1 : 1;
+            return pa ? a.fecha.localeCompare(b.fecha) || a.id - b.id : b.fecha.localeCompare(a.fecha) || b.id - a.id;
+          });
           if (pendienteAbrir) {
             const p = pendienteAbrir; pendienteAbrir = null;
             setTimeout(() => {
               if (p === 'nuevo') abrirPedido(null, ctx, crud.recargar);
-              else if (p.startsWith('editar-')) { const ped = v.pedidos.find((x) => x.id === Number(p.slice(7))); if (ped) abrirPedido(ped, ctx, crud.recargar); }
+              else if (p.startsWith('editar-')) { const ped = ctx.pedidos.find((x) => x.id === Number(p.slice(7))); if (ped) abrirPedido(ped, ctx, crud.recargar); }
+              else if (N.ESTADOS_PEDIDO.includes(decodeURIComponent(p))) {
+                const s = cont.querySelector('[data-filtro="estado"]'); s.value = decodeURIComponent(p); s.dispatchEvent(new Event('change'));
+              }
             });
           }
-          return { filas: v.pedidos, extra: ctx };
+          return { filas: ctx.pedidos, extra: ctx };
         },
-        buscar: (p, x) => `#${p.id} ${N.nombreCliente(x.clientesId, p.cliente_id)} ${p.items.map((i) => (x.productosId[i.producto_id]?.nombre || i.descripcion) + ' ' + i.color).join(' ')} ${p.notas || ''}`,
+        buscar: (p, x) => `#${p.id} ${N.nombreCliente(x.clientesId, p.cliente_id)} ${p.items.map((i) => (x.productosId[i.producto_id]?.nombre || i.descripcion) + ' ' + i.color).join(' ')} ${p.notas || ''} ${p.envio_detalle || ''}`,
         filtros: [
-          { id: 'estado', etiqueta: 'Estado', opciones: N.ESTADOS_PEDIDO, valor: (p) => p.estado },
+          { id: 'estado', etiqueta: 'Paso', opciones: N.ESTADOS_PEDIDO, valor: (p) => p.estado },
           { id: 'canal', etiqueta: 'Canal', opciones: N.CANALES, valor: (p) => p.canal },
-          { id: 'medio', etiqueta: 'Medio de pago', opciones: N.MEDIOS_PAGO, valor: (p) => p.medio_pago },
-          { id: 'mes', etiqueta: 'Mes', opciones: (f) => [...new Set(f.map((p) => U.mes(p.fecha)))].map((x) => ({ valor: x, texto: U.nombreMes(x) })), valor: (p) => U.mes(p.fecha) }
+          { id: 'resp', etiqueta: 'Responsable', opciones: (f, x) => x.personas.map((p) => ({ valor: p.id, texto: p.nombre })), valor: (p) => p.responsable_id },
+          { id: 'mes', etiqueta: 'Mes', opciones: (f) => [...new Set(f.map((p) => U.mes(p.fecha)))].sort().reverse().map((x) => ({ valor: x, texto: U.nombreMes(x) })), valor: (p) => U.mes(p.fecha) }
         ],
-        resumen: (filas) => {
+        // Aviso fuerte: lo que falta hacer, en grande y con color
+        resumen: (filas, x) => {
+          const todos = x.pedidos;
+          const grupo = (e) => todos.filter((p) => p.estado === e);
+          const tarjetas = [
+            { e: 'Por preparar', tono: 'alerta', icono: '📦', txt: 'armar el paquete' },
+            { e: 'Por entregar', tono: 'atencion', icono: '🚚', txt: 'enviar o entregar' },
+            { e: 'Por cobrar', tono: 'info', icono: '💵', txt: 'falta el pago' }
+          ].map((t) => ({ ...t, lista: grupo(t.e) }));
           const val = filas.filter(N.pedidoValido);
           const tot = U.sumar(val, (p) => p.total);
-          return `<div class="grilla grilla-3">
-            ${UI.numeroDestacado('Total vendido (lo filtrado)', U.pesos(tot), 'sin contar cancelados')}
-            ${UI.numeroDestacado('Pedidos', val.length, `${filas.length - val.length} cancelados`)}
-            ${UI.numeroDestacado('Ticket promedio', U.pesos(val.length ? tot / val.length : 0))}
-          </div>`;
+          return `<div class="semaforo">${tarjetas.map((t) => `
+              <button type="button" class="semaforo-item tono-${t.lista.length ? t.tono : 'ok'}" data-ver-paso="${t.e}">
+                <span class="sf-icono" aria-hidden="true">${t.lista.length ? t.icono : '✓'}</span>
+                <span class="sf-num">${t.lista.length}</span>
+                <span class="sf-texto"><b>${t.e}</b><small>${t.lista.length ? t.txt + (t.e === 'Por cobrar' ? ' · ' + U.pesos(U.sumar(t.lista, (p) => p.total)) : '') : 'nada pendiente'}</small></span>
+              </button>`).join('')}
+            </div>
+            <p class="muted chico" style="margin:10px 0 0">Lo filtrado: <b>${U.pesos(tot)}</b> en ${val.length} ${val.length === 1 ? 'pedido' : 'pedidos'} · ticket promedio ${U.pesos(val.length ? tot / val.length : 0)}</p>`;
         },
         columnas: [
-          { titulo: 'Pedido', valor: (p, x) => `<b>#${p.id}</b> · ${U.esc(N.nombreCliente(x.clientesId, p.cliente_id))}<br><small class="muted">${U.fecha(p.fecha)}</small>` },
+          { titulo: 'Pedido', valor: (p, x) => `<b>#${p.id}</b> · ${U.esc(N.nombreCliente(x.clientesId, p.cliente_id))}
+              <br><small class="muted">${U.fecha(p.fecha)} · ${U.esc(p.canal)}${p.medio_pago ? ' · ' + U.esc(p.medio_pago) : ''}</small>
+              ${p.responsable_id || p.cargado_por ? `<br><small class="muted">${p.responsable_id && x.personasId[p.responsable_id] ? '👤 ' + U.esc(x.personasId[p.responsable_id].nombre) : ''}${p.cargado_por ? ` · cargó ${U.esc(p.cargado_por.split('@')[0])}` : ''}</small>` : ''}` },
           { titulo: 'Productos', valor: (p, x) => p.items.map((i) => `${U.esc(x.productosId[i.producto_id]?.nombre || i.descripcion || '—')}${i.color !== 'Único' ? ` <small class="muted">(${U.esc(i.color)})</small>` : ''} ×${i.cantidad}`).join('<br>') },
-          { titulo: 'Canal', valor: (p) => U.esc(p.canal) + (p.medio_pago ? `<br><small class="muted">${U.esc(p.medio_pago)}</small>` : '') },
-          { titulo: 'Estado', valor: (p) => UI.etiqueta(p.estado, N.tonoPedido(p.estado)) },
+          { titulo: 'Pasos', valor: (p) => N.pasosHTML(p, true) + (N.proximoPaso(p) && diasEsperando(p) > 2 ? `<small class="espera">hace ${diasEsperando(p)} días</small>` : '') },
+          { titulo: 'Entrega', valor: (p) => p.envio_metodo ? `${U.esc(p.envio_metodo)}${p.envio_detalle ? `<br><small class="muted">${U.esc(p.envio_detalle)}</small>` : ''}` : '<span class="muted">—</span>' },
           { titulo: 'Total', clase: 'num', valor: (p) => `<b>${U.pesos(p.total)}</b>` }
         ],
-        accionesExtra: () => `<button type="button" class="boton-texto" data-accion="estado">Estado</button>`,
-        alAccion: { estado: (p, x, recargar) => cambiarEstado(p, recargar) },
+        accionesExtra: (p) => {
+          const paso = N.proximoPaso(p);
+          return (paso ? `<button type="button" class="boton boton-chico" data-accion="avanzar" title="${paso.accion}">✓ ${paso.hecho}</button>` : '')
+            + `<button type="button" class="boton-texto" data-accion="cancelar">${p.estado === 'Cancelado' ? 'Reactivar' : 'Cancelar'}</button>`;
+        },
+        alAccion: {
+          avanzar: async (p, x, recargar) => { try { await App.avanzarPaso(p); recargar(); } catch (e) { UI.error(e); } },
+          cancelar: (p, x, recargar) => cancelarOReactivar(p, recargar)
+        },
         mensajeBorrar: () => 'El stock de sus productos vuelve al inventario.',
         editar: (fila, ctx, recargar) => abrirPedido(fila, ctx, recargar)
+      });
+      // Tocar una tarjeta del aviso filtra por ese paso
+      cont.addEventListener('click', (e) => {
+        const b = e.target.closest('[data-ver-paso]'); if (!b) return;
+        const s = cont.querySelector('[data-filtro="estado"]');
+        s.value = s.value === b.dataset.verPaso ? '' : b.dataset.verPaso;
+        s.dispatchEvent(new Event('change'));
       });
     }
   });

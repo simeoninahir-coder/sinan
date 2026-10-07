@@ -69,7 +69,7 @@
   }
 
   App.registrar({
-    id: 'equipo', titulo: 'Equipo', icono: 'equipo',
+    id: 'equipo', titulo: 'Equipo', icono: 'equipo', grupo: 'admin',
     descripcion: 'Quién hace qué: personas, roles y tareas.',
     render(cont) {
       UI.pestanas(cont, [

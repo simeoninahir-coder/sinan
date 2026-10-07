@@ -44,11 +44,42 @@
   // Ir a una sección: App.ir('ventas') o App.ir('ventas', 'nuevo')
   App.ir = (id, param) => { location.hash = '#/' + id + (param ? '/' + param : ''); };
 
+  // Departamentos del menú (se abren y cierran). Cada sección dice a cuál pertenece con "grupo".
+  const GRUPOS = [
+    { id: 'ventas', titulo: 'Ventas', icono: 'ventas' },
+    { id: 'logistica', titulo: 'Logística', icono: 'inventario' },
+    { id: 'marketing', titulo: 'Marketing', icono: 'contenido' },
+    { id: 'admin', titulo: 'Administración', icono: 'finanzas' }
+  ];
+  // Direcciones viejas que ahora viven en otra sección
+  const ALIAS = { productos: 'inventario', insumos: 'inventario' };
+  const leerAbiertos = () => { try { return JSON.parse(localStorage.getItem('menu-abiertos')) || ['ventas', 'logistica']; } catch { return ['ventas', 'logistica']; } };
+  const guardarAbiertos = (a) => { try { localStorage.setItem('menu-abiertos', JSON.stringify(a)); } catch { /* nada */ } };
+
   function armarMenu() {
     const nav = document.getElementById('menu');
-    nav.innerHTML = secciones.map((s) => `
-      <a href="#/${s.id}" data-sec="${s.id}">${App.icono(s.icono || s.id)}<span>${U.esc(s.titulo)}</span><b class="insignia" hidden></b></a>`).join('');
-    nav.addEventListener('click', () => cerrarMenuMovil());
+    const abiertos = leerAbiertos();
+    const link = (s) => `<a href="#/${s.id}" data-sec="${s.id}">${App.icono(s.icono || s.id)}<span>${U.esc(s.titulo)}</span><b class="insignia" hidden></b></a>`;
+    const sueltas = (pos) => secciones.filter((s) => !s.grupo && (s.posicion || 'arriba') === pos).map(link).join('');
+    nav.innerHTML = sueltas('arriba') + GRUPOS.map((g) => {
+      const items = secciones.filter((s) => s.grupo === g.id);
+      if (!items.length) return '';
+      const abierto = abiertos.includes(g.id);
+      return `<div class="menu-grupo ${abierto ? 'abierto' : ''}" data-grupo="${g.id}">
+        <button type="button" class="menu-grupo-titulo" aria-expanded="${abierto}">${App.icono(g.icono)}<span>${U.esc(g.titulo)}</span><b class="insignia" hidden></b><i class="flecha" aria-hidden="true">›</i></button>
+        <div class="menu-grupo-items">${items.map(link).join('')}</div>
+      </div>`;
+    }).join('') + sueltas('abajo');
+    nav.addEventListener('click', (e) => {
+      const t = e.target.closest('.menu-grupo-titulo');
+      if (t) {
+        const g = t.parentElement; const abierto = !g.classList.contains('abierto');
+        g.classList.toggle('abierto', abierto); t.setAttribute('aria-expanded', abierto);
+        guardarAbiertos([...nav.querySelectorAll('.menu-grupo.abierto')].map((x) => x.dataset.grupo));
+        return;
+      }
+      if (e.target.closest('a')) cerrarMenuMovil();
+    });
   }
 
   // Número rojo al lado de "Alertas"
@@ -59,14 +90,21 @@
         const n = await s.insignia();
         const b = document.querySelector(`[data-sec="${s.id}"] .insignia`);
         if (b) { b.textContent = n; b.hidden = !n; }
+        // El número también se ve en el título del departamento cuando está cerrado
+        const g = b && b.closest('.menu-grupo');
+        if (g) { const bg = g.querySelector('.menu-grupo-titulo .insignia'); const tot = [...g.querySelectorAll('.menu-grupo-items .insignia')].reduce((a, x) => a + (Number(x.textContent) || 0), 0); bg.textContent = tot; bg.hidden = !tot; }
       } catch { /* si falla no pasa nada */ }
     }
   };
 
   async function mostrarSeccion() {
-    const [id, param] = location.hash.replace(/^#\/?/, '').split('/');
+    let [id, param] = location.hash.replace(/^#\/?/, '').split('/');
+    if (ALIAS[id]) { if (id === 'insumos') param = 'insumos'; id = ALIAS[id]; }
     const s = secciones.find((x) => x.id === id) || secciones[0];
     document.querySelectorAll('#menu a').forEach((a) => a.classList.toggle('activa', a.dataset.sec === s.id));
+    // Abre el departamento de la sección actual
+    const grupo = document.querySelector(`#menu a[data-sec="${s.id}"]`)?.closest('.menu-grupo');
+    if (grupo && !grupo.classList.contains('abierto')) { grupo.classList.add('abierto'); grupo.firstElementChild.setAttribute('aria-expanded', true); }
     document.title = `${s.titulo} · Sinan ERP`;
     const cont = document.getElementById('contenido');
     cont.innerHTML = `<header class="cabecera-seccion"><h1>${U.esc(s.titulo)}</h1>${s.descripcion ? `<p>${U.esc(s.descripcion)}</p>` : ''}</header>
@@ -95,6 +133,7 @@
     document.getElementById('pantalla-login').hidden = true;
     document.getElementById('app').hidden = false;
     document.getElementById('usuario-email').textContent = sesion.user?.email || '';
+    App.usuario = sesion.user?.email || '';   // se guarda como "cargado por" en las ventas
     if (!appIniciada) {
       appIniciada = true;
       armarMenu();

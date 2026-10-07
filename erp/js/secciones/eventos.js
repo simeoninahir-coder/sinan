@@ -140,7 +140,7 @@
   }
 
   App.registrar({
-    id: 'eventos', titulo: 'Eventos', icono: 'eventos',
+    id: 'eventos', titulo: 'Eventos y ferias', icono: 'eventos', grupo: 'marketing',
     descripcion: 'Encuentros, ferias y talleres: organización, presupuesto y resultado.',
     render(cont, param) {
       let abrir = param;

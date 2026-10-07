@@ -3,7 +3,7 @@
    Quién te vende, qué, en cuánto tiempo y con qué condiciones.
    ===================================================================== */
 App.registrar({
-  id: 'proveedores', titulo: 'Proveedores', icono: 'proveedores',
+  id: 'proveedores', titulo: 'Proveedores', icono: 'proveedores', grupo: 'admin',
   descripcion: 'Contactos, tiempos de entrega y condiciones de pago de tus proveedores.',
   render(cont) {
     Seccion.crud({

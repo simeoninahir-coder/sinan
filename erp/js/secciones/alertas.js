@@ -13,21 +13,36 @@
   const GRUPOS = [
     { tipo: 'stock', icono: 'inventario', titulo: 'Stock de productos', ir: 'inventario', frase: (n) => `${n} ${n === 1 ? 'producto' : 'productos'} con poco o sin stock` },
     { tipo: 'insumo', icono: 'insumos', titulo: 'Insumos y packaging', ir: 'insumos', frase: (n) => `${n} ${n === 1 ? 'insumo' : 'insumos'} para reponer` },
-    { tipo: 'pedido', icono: 'ventas', titulo: `Pedidos quietos (+${DIAS_PEDIDO_QUIETO} días)`, ir: 'ventas', frase: (n) => `${n} ${n === 1 ? 'pedido' : 'pedidos'} sin actualizar` },
+    { tipo: 'pedido', icono: 'ventas', titulo: `Pedidos trabados (+${DIAS_PEDIDO_QUIETO} días)`, ir: 'ventas', frase: (n) => `${n} ${n === 1 ? 'pedido trabado' : 'pedidos trabados'}` },
+    { tipo: 'consulta', icono: 'clientes', titulo: 'Consultas sin responder', ir: 'clientes/embudo', frase: (n) => `${n} ${n === 1 ? 'consulta espera' : 'consultas esperan'} respuesta` },
     { tipo: 'evento', icono: 'eventos', titulo: 'Eventos y ferias que se acercan', ir: 'eventos', frase: (n) => `${n} ${n === 1 ? 'evento próximo' : 'eventos próximos'}` },
     { tipo: 'cliente', icono: 'clientes', titulo: 'Clientas para contactar', ir: 'clientes/seguimientos', frase: (n) => `${n} ${n === 1 ? 'clienta' : 'clientas'} para contactar` }
   ];
 
   // Devuelve [{ tipo, nivel: 'alerta'|'atencion'|'info', titulo, detalle, marca, ir: [seccion, parametro] }]
   App.calcularAlertas = async () => {
-    const [cfg, stock, productos, pedidos, eventos, tareasEv, clientes, insumos] = await Promise.all([
+    const [cfg, stock, productos, pedidos, eventos, tareasEv, clientes, insumos, consultas] = await Promise.all([
       App.config(), DB.listar('stock'), DB.listar('productos'), DB.listar('pedidos'),
       DB.listar('eventos', { orden: 'fecha' }), DB.listar('evento_tareas'), DB.listar('clientes'),
-      App.insumosParaReponer ? App.insumosParaReponer().catch(() => []) : []
+      App.insumosParaReponer ? App.insumosParaReponer().catch(() => []) : [],
+      DB.listar('consultas').catch(() => [])
     ]);
+
+    // Consultas que esperan respuesta: nuevas de más de 1 día o presupuestos de más de 3 días
+    const alertasConsultas = [];
+    consultas.forEach((c) => {
+      const desde = c.etapa === 'Presupuesto' ? String(c.presupuesto_at || c.fecha).slice(0, 10) : c.fecha;
+      const dias = -U.diasHasta(desde);
+      if ((c.etapa === 'Nueva' && dias >= 1) || (c.etapa === 'Presupuesto' && dias > 3)) {
+        alertasConsultas.push({
+          tipo: 'consulta', nivel: c.etapa === 'Nueva' ? 'alerta' : 'atencion', marca: c.etapa === 'Nueva' ? 'Sin responder' : 'Sin respuesta',
+          titulo: c.nombre, detalle: `${c.etapa === 'Nueva' ? 'Consultó' : 'Le pasaste presupuesto'} hace ${dias} ${dias === 1 ? 'día' : 'días'}`, ir: ['clientes', 'embudo']
+        });
+      }
+    });
     const prod = U.porId(productos);
     const cli = U.porId(clientes);
-    const alertas = [];
+    const alertas = [...alertasConsultas];
 
     // Stock de productos
     stock.forEach((s) => {
@@ -56,7 +71,7 @@
       alertas.push({
         tipo: 'pedido', nivel: dias > 7 ? 'alerta' : 'atencion', marca: p.estado,
         titulo: `Pedido #${p.id} · ${N.nombreCliente(cli, p.cliente_id)}`,
-        detalle: `Sin cambios hace ${dias} días · ${U.pesos(p.total)}`, ir: ['ventas', 'editar-' + p.id]
+        detalle: `Está "${p.estado}" hace ${dias} días · ${U.pesos(p.total)}`, ir: ['ventas', 'editar-' + p.id]
       });
     });
 
@@ -136,7 +151,7 @@
   });
 
   App.registrar({
-    id: 'alertas', titulo: 'Alertas', icono: 'alertas',
+    id: 'alertas', titulo: 'Alertas', icono: 'alertas', posicion: 'abajo',
     descripcion: 'Lo que necesita tu atención, ordenado por tema.',
     insignia: async () => (await App.calcularAlertas()).filter((a) => a.nivel !== 'info').length,
     async render(cont) {
