@@ -16,16 +16,18 @@
     { tipo: 'pedido', icono: 'ventas', titulo: `Pedidos trabados (+${DIAS_PEDIDO_QUIETO} días)`, ir: 'ventas', frase: (n) => `${n} ${n === 1 ? 'pedido trabado' : 'pedidos trabados'}` },
     { tipo: 'consulta', icono: 'clientes', titulo: 'Consultas sin responder', ir: 'clientes/embudo', frase: (n) => `${n} ${n === 1 ? 'consulta espera' : 'consultas esperan'} respuesta` },
     { tipo: 'evento', icono: 'eventos', titulo: 'Eventos y ferias que se acercan', ir: 'eventos', frase: (n) => `${n} ${n === 1 ? 'evento próximo' : 'eventos próximos'}` },
+    { tipo: 'gastofijo', icono: 'finanzas', titulo: 'Gastos fijos por vencer', ir: 'finanzas/operativos', frase: () => 'Vencen tus gastos fijos' },
     { tipo: 'cliente', icono: 'clientes', titulo: 'Clientas para contactar', ir: 'clientes/seguimientos', frase: (n) => `${n} ${n === 1 ? 'clienta' : 'clientas'} para contactar` }
   ];
 
   // Devuelve [{ tipo, nivel: 'alerta'|'atencion'|'info', titulo, detalle, marca, ir: [seccion, parametro] }]
   App.calcularAlertas = async () => {
-    const [cfg, stock, productos, pedidos, eventos, tareasEv, clientes, insumos, consultas] = await Promise.all([
+    const [cfg, stock, productos, pedidos, eventos, tareasEv, clientes, insumos, consultas, gastosFijos] = await Promise.all([
       App.config(), DB.listar('stock'), DB.listar('productos'), DB.listar('pedidos'),
       DB.listar('eventos', { orden: 'fecha' }), DB.listar('evento_tareas'), DB.listar('clientes'),
       App.insumosParaReponer ? App.insumosParaReponer().catch(() => []) : [],
-      DB.listar('consultas').catch(() => [])
+      DB.listar('consultas').catch(() => []),
+      App.alertasGastosFijos ? App.alertasGastosFijos().catch(() => []) : []
     ]);
 
     // Consultas que esperan respuesta: nuevas de más de 1 día o presupuestos de más de 3 días
@@ -42,7 +44,7 @@
     });
     const prod = U.porId(productos);
     const cli = U.porId(clientes);
-    const alertas = [...alertasConsultas];
+    const alertas = [...gastosFijos, ...alertasConsultas];
 
     // Stock de productos
     stock.forEach((s) => {

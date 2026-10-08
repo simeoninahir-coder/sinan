@@ -13,11 +13,12 @@
       <strong class="kpi-valor">${valor}</strong><span class="kpi-detalle">${detalle || '&nbsp;'}</span></button>`;
 
   async function render(cont) {
-    const [v, consultas, eventos, tareas, personas, alertas, movs, objetivos, notas] = await Promise.all([
+    if (App.asegurarGastosFijos) await App.asegurarGastosFijos();   // anota los gastos fijos vencidos
+    const [v, consultas, eventos, tareas, personas, alertas, movs, objetivos, notas, deuda] = await Promise.all([
       N.cargarVentas(), DB.listar('consultas').catch(() => []), DB.listar('eventos', { orden: 'fecha' }),
       DB.listar('tareas', { orden: 'fecha_limite' }), DB.listar('personas'), App.calcularAlertas(),
       DB.listar('movimientos_financieros', { orden: 'fecha', asc: false }), DB.listar('objetivos_mkt').catch(() => []),
-      DB.listar('agenda_notas', { orden: 'fecha' }).catch(() => [])
+      DB.listar('agenda_notas', { orden: 'fecha' }).catch(() => []), App.deudaOperativa ? App.deudaOperativa() : 0
     ]);
     const hoy = U.hoy();
     const mes = U.mes(hoy);
@@ -92,6 +93,7 @@
     const diaCorto = (iso) => { const f = U.fechaDeIso(iso); return `${f.getDate()} ${U.MESES[f.getMonth()].slice(0, 3)}`; };
 
     cont.innerHTML = `
+      ${alertas.filter((a) => a.tipo === 'gastofijo').map((a) => `<button type="button" class="aviso-vencimiento" data-ir="finanzas/operativos">${App.icono('alertas')}<span><b>${U.esc(a.titulo)}</b> — ${U.esc(a.detalle)}.</span></button>`).join('')}
       <div class="semaforo semaforo-5">${hacer.map((h) => `
         <button type="button" class="semaforo-item tono-${h.n ? h.tono : 'ok'}" data-ir="${h.ir}">
           <span class="sf-icono" aria-hidden="true">${h.n ? App.icono(h.i) : '✓'}</span>
@@ -106,6 +108,7 @@
             ${tarjetaNumero('Ventas del mes', U.pesos(ventasMes), comparacion || `${delMes.length} pedidos`, 'ventas')}
             ${tarjetaNumero('Ganancia del mes', U.pesos(ganancia(delMes)), `gastos del mes: ${U.pesos(gastosMes)}`, 'finanzas')}
             ${tarjetaNumero('Pedidos del mes', delMes.length, `ticket promedio ${U.pesos(delMes.length ? ventasMes / delMes.length : 0)}`, 'reportes')}
+            ${tarjetaNumero('Deuda operativa Sinan', U.pesos(deuda), deuda ? 'gastos fijos registrados sin descontar' : 'sin deuda', 'finanzas/operativos')}
           </div>
 
 

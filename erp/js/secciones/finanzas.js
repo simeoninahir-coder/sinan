@@ -126,10 +126,15 @@
 
   App.registrar({
     id: 'finanzas', titulo: 'Finanzas', icono: 'finanzas', grupo: 'admin',
-    descripcion: 'Lo que entró y salió en cada mes, y el resultado.',
+    descripcion: 'Lo que entró y salió en cada mes, el resultado y los gastos fijos.',
     render(cont, param) {
       periodo = U.mes(U.hoy());
-      dibujar(cont, param === 'nuevo');
+      if (param === 'operativos' || param === 'nuevo') { try { sessionStorage.setItem('pest-finanzas', param === 'operativos' ? 'operativos' : 'movimientos'); } catch { /* nada */ } }
+      App.asegurarGastosFijos();
+      UI.pestanas(cont, [
+        { id: 'movimientos', titulo: 'Movimientos', render: async (c) => { await App.asegurarGastosFijos(); dibujar(c, param === 'nuevo'); } },
+        { id: 'operativos', titulo: 'Gastos operativos', render: App.pestanaGastosOperativos }
+      ], 'finanzas');
     }
   });
 })();

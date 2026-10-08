@@ -603,7 +603,7 @@ button { cursor: pointer; }
 /* ---------------- Inicio (estilo tablero) ---------------- */
 .inicio-grilla { display: grid; grid-template-columns: minmax(0, 2.3fr) minmax(280px, 1fr); gap: 18px; align-items: start; }
 .inicio-izq, .inicio-der { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
 .kpi { display: flex; flex-direction: column; gap: 6px; text-align: left; border: 0; cursor: pointer; transition: transform .12s; color: var(--texto); }
 .kpi:hover { transform: translateY(-2px); }
 .kpi-cab { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: var(--gris-texto); }
@@ -841,3 +841,8 @@ button { cursor: pointer; }
 .barra-periodo h2 { font-size: 22px; min-width: 170px; text-align: center; }
 .barra-periodo .boton-icono[disabled] { opacity: .3; cursor: default; }
 .barra-periodo .selector-chico { margin-left: auto; }
+
+/* Aviso de gastos fijos por vencer (Inicio) */
+.aviso-vencimiento { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; border: 1.5px solid #e9c46a; background: var(--atencion-fondo); color: var(--atencion); border-radius: 16px; padding: 12px 16px; margin-bottom: 14px; font-size: 14.5px; }
+.aviso-vencimiento .icono { flex: none; width: 22px; height: 22px; }
+.aviso-vencimiento b { font-weight: 600; }
