@@ -47,3 +47,6 @@ revoke usage, select on all sequences in schema public from anon;
 insert into gastos_fijos (nombre, monto, dia_vencimiento, estado, desde)
 select * from (values ('CapCut', 4000, 10, 'Activo', '2026-10'), ('Claude', 10000, 10, 'Activo', '2026-10'), ('Google Fotos', 2833, 10, 'Activo', '2026-10')) v
 where not exists (select 1 from gastos_fijos);
+
+-- Grupo (ej: "Herramientas") para mostrar varios gastos fijos como un solo ítem
+alter table gastos_fijos add column if not exists grupo text not null default 'Herramientas';
