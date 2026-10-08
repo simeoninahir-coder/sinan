@@ -6,10 +6,11 @@
    ===================================================================== */
 (function () {
   async function cargar() {
-    const [eventos, tareas, colabs, fin, pedidos] = await Promise.all([
+    const [eventos, tareas, colabs, fin, pedidos, inscriptos] = await Promise.all([
       DB.listar('eventos', { orden: 'fecha', asc: false }), DB.listar('evento_tareas'), DB.listar('evento_colaboradores'),
-      DB.listar('movimientos_financieros'), DB.listar('pedidos')
+      DB.listar('movimientos_financieros'), DB.listar('pedidos'), DB.listar('evento_inscriptos').catch(() => [])
     ]);
+    const ins = U.agrupar(inscriptos, (x) => x.evento_id);
     const t = U.agrupar(tareas, (x) => x.evento_id);
     const c = U.agrupar(colabs, (x) => x.evento_id);
     const f = U.agrupar(fin.filter((x) => x.evento_id), (x) => x.evento_id);
@@ -22,7 +23,12 @@
       e._otrosIngresos = U.sumar(e._movs.filter((m) => m.tipo === 'ingreso'), (m) => m.monto);
       e._ventas = U.sumar(v[e.id] || [], (p) => p.total);
       e._pedidos = (v[e.id] || []).length;
-      e._ingresos = e._otrosIngresos + e._ventas;
+      // Inscriptos (ordenados por fecha de inscripción) y lo recaudado por entradas
+      e._insc = (ins[e.id] || []).sort((a, b) => a.fecha_inscripcion.localeCompare(b.fecha_inscripcion) || a.id - b.id);
+      e._recaudado = U.sumar(e._insc.filter((i) => i.estado_pago === 'Confirmado'), (i) => i.monto);
+      e._pendiente = U.sumar(e._insc.filter((i) => i.estado_pago !== 'Confirmado'), (i) => i.monto);
+      if (e._insc.length) e.inscriptos = e._insc.length;
+      e._ingresos = e._otrosIngresos + e._ventas + e._recaudado;
       e._resultado = e._ingresos - e._gasto;
     });
     return { filas: eventos };
@@ -48,13 +54,40 @@
         <p class="muted" style="margin-top:0">${U.fecha(e.fecha)}${e.hora ? ' · ' + U.esc(e.hora) + ' h' : ''}${e.lugar ? ' · ' + U.esc(e.lugar) : ''}
           · ${UI.etiqueta(e.estado, N.tonoEvento(e.estado))} ${dias >= 0 && e.estado !== 'Realizado' ? `<b>${dias === 0 ? 'Es hoy' : 'Faltan ' + dias + ' días'}</b>` : ''}</p>
         ${e.descripcion ? `<p>${U.esc(e.descripcion)}</p>` : ''}
-        <div class="grilla grilla-3">
+        <div class="grilla ${e.tipo === 'Feria' ? 'grilla-3' : 'grilla-4'}">
           ${e.tipo === 'Feria'
             ? UI.numeroDestacado('Vendido en la feria', U.pesos(e._ventas), `${e._pedidos} ventas · puesto ${U.pesos(e.costo_puesto)}`)
-            : UI.numeroDestacado('Inscriptas', e.cupos ? `${e.inscriptos} / ${e.cupos}` : e.inscriptos, e.precio_entrada ? `Entrada ${U.pesos(e.precio_entrada)} · estimado ${U.pesos(e.precio_entrada * e.inscriptos)}` : 'Entrada libre')}
+            : UI.numeroDestacado('Inscriptos', e.cupos ? `${e.inscriptos} / ${e.cupos}` : e.inscriptos,
+                e.cupos ? (e.cupos - e.inscriptos > 0 ? `quedan ${e.cupos - e.inscriptos} lugares` : 'cupo completo') : 'sin límite de cupos', e.cupos && e.inscriptos >= e.cupos ? 'alerta' : '')
+              + UI.numeroDestacado('Recaudado por entradas', U.pesos(e._recaudado), e._pendiente ? `+ ${U.pesos(e._pendiente)} pendiente de pago` : (e.precio_entrada ? `entrada ${U.pesos(e.precio_entrada)}` : 'entrada libre'), 'ok')}
           ${UI.numeroDestacado('Gasto real', U.pesos(e._gasto), e.presupuesto ? `Presupuesto ${U.pesos(e.presupuesto)}${e._gasto > e.presupuesto ? ' · pasado' : ''}` : 'Sin presupuesto', e.presupuesto && e._gasto > e.presupuesto ? 'alerta' : '')}
           ${UI.numeroDestacado('Resultado', U.pesos(e._resultado), 'ingresos − gastos', e._resultado >= 0 ? 'ok' : 'alerta')}
         </div>
+        ${e.tipo === 'Feria' ? '' : `<section class="tarjeta separado">
+          <div class="tarjeta-cabecera"><h3 style="margin:0">Inscriptos</h3><span class="muted chico">${e._insc.length} ${e._insc.length === 1 ? 'persona' : 'personas'} · ordenados por fecha de inscripción</span></div>
+          <form class="form-inscripto" data-nuevo-inscripto>
+            <input name="nombre" placeholder="Nombre y apellido" required aria-label="Nombre y apellido">
+            <label>Nacimiento<input name="fecha_nacimiento" type="date" aria-label="Fecha de nacimiento"></label>
+            <label>Abonó<span class="con-prefijo"><span>$</span><input name="monto" type="number" min="0" step="1" value="${e.precio_entrada || 0}" aria-label="Monto abonado"></span></label>
+            <label>Inscripción<input name="fecha_inscripcion" type="date" value="${U.hoy()}" required aria-label="Fecha de inscripción"></label>
+            <label>Pago<select name="estado_pago" aria-label="Estado de pago"><option>Pendiente</option><option>Confirmado</option></select></label>
+            <button class="boton boton-chico">Agregar</button>
+          </form>
+          ${UI.tabla({
+            filas: e._insc, vacio: 'Todavía no hay inscriptos. Cargalos arriba.',
+            columnas: [
+              { titulo: 'Nombre y apellido', valor: (i) => `<b style="font-weight:500">${U.esc(i.nombre)}</b>` },
+              { titulo: 'Nacimiento', valor: (i) => i.fecha_nacimiento ? `${U.fecha(i.fecha_nacimiento)} <small class="muted">(${Math.floor(-U.diasHasta(i.fecha_nacimiento) / 365.25)} años)</small>` : '—' },
+              { titulo: 'Abonó', clase: 'num', valor: (i) => U.pesos(i.monto) },
+              { titulo: 'Inscripción', valor: (i) => U.fecha(i.fecha_inscripcion) },
+              { titulo: 'Pago', valor: (i) => UI.etiqueta(i.estado_pago, i.estado_pago === 'Confirmado' ? 'ok' : 'atencion') }
+            ],
+            acciones: (i) => `<div class="botones-fila">
+              ${i.estado_pago === 'Confirmado' ? '' : `<button type="button" class="boton-texto" data-confirmar-pago="${i.id}">Confirmar pago</button>`}
+              <button type="button" class="boton-icono" data-editar-inscripto="${i.id}" aria-label="Editar">✎</button>
+              <button type="button" class="boton-icono boton-icono-peligro" data-borrar-inscripto="${i.id}" aria-label="Borrar">✕</button></div>`
+          })}
+        </section>`}
         <div class="grilla grilla-2 separado">
           <section class="tarjeta">
             <div class="tarjeta-cabecera"><h3 style="margin:0">Checklist</h3><span class="muted chico">${hechas} de ${e._tareas.length}</span></div>
@@ -87,6 +120,7 @@
           <h3>Balance</h3>
           <div class="balance">
             <div><span>Ventas en el evento (${e._pedidos} pedidos)</span><span>${U.pesos(e._ventas)}</span></div>
+            ${e._insc.length ? `<div><span>Entradas cobradas (inscriptos con pago confirmado)</span><span>${U.pesos(e._recaudado)}</span></div>` : ''}
             <div><span>Entradas y otros ingresos (cargados en Finanzas)</span><span>${U.pesos(e._otrosIngresos)}</span></div>
             <div><span>Gastos (cargados en Finanzas)</span><span>−${U.pesos(e._gasto)}</span></div>
             <div class="total"><span>Resultado</span><span>${U.pesos(e._resultado)}</span></div>
@@ -102,10 +136,44 @@
       } else m.cuerpo.innerHTML = html;
     }
 
+    // El número de inscriptos del evento se actualiza solo con la lista
+    async function contarInscriptos() {
+      const n = (await DB.listar('evento_inscriptos')).filter((i) => i.evento_id === id).length;
+      await DB.actualizar('eventos', id, { inscriptos: n });
+    }
+    async function editarInscripto(insId) {
+      const i = (await DB.obtener('evento_inscriptos', insId));
+      UI.formularioModal({
+        titulo: 'Editar inscripto', valores: i,
+        campos: [
+          { campo: 'nombre', etiqueta: 'Nombre y apellido', requerido: true, ancho: 'completo' },
+          { campo: 'fecha_nacimiento', etiqueta: 'Fecha de nacimiento', tipo: 'fecha' },
+          { campo: 'monto', etiqueta: 'Monto abonado', tipo: 'pesos', min: 0, requerido: true },
+          { campo: 'fecha_inscripcion', etiqueta: 'Fecha de inscripción', tipo: 'fecha', requerido: true },
+          { campo: 'estado_pago', etiqueta: 'Estado de pago', tipo: 'select', opciones: ['Pendiente', 'Confirmado'], vacio: false },
+          { campo: 'notas', etiqueta: 'Notas', tipo: 'area', filas: 2 }
+        ],
+        alGuardar: async (d) => { await DB.actualizar('evento_inscriptos', insId, d); UI.aviso('Cambios guardados'); dibujar(); }
+      });
+    }
+
     function activar(raiz) {
       raiz.addEventListener('change', async (ev) => {
         const ch = ev.target.closest('[data-tarea]'); if (!ch) return;
         try { await DB.actualizar('evento_tareas', Number(ch.dataset.tarea), { hecha: ch.checked }); dibujar(); } catch (e) { UI.error(e); }
+      });
+      // Inscriptos: confirmar pago, editar y borrar
+      raiz.addEventListener('click', async (ev) => {
+        const cp = ev.target.closest('[data-confirmar-pago]');
+        const ei = ev.target.closest('[data-editar-inscripto]');
+        const bi = ev.target.closest('[data-borrar-inscripto]');
+        try {
+          if (cp) { await DB.actualizar('evento_inscriptos', Number(cp.dataset.confirmarPago), { estado_pago: 'Confirmado' }); UI.aviso('Pago confirmado'); dibujar(); }
+          if (ei) editarInscripto(Number(ei.dataset.editarInscripto));
+          if (bi && await UI.confirmar('Vas a borrar a esta persona de los inscriptos.')) {
+            await DB.borrar('evento_inscriptos', Number(bi.dataset.borrarInscripto)); await contarInscriptos(); dibujar();
+          }
+        } catch (e) { UI.error(e); }
       });
       raiz.addEventListener('click', async (ev) => {
         const bt = ev.target.closest('[data-borrar-tarea]');
@@ -119,6 +187,12 @@
         ev.preventDefault();
         const f = ev.target;
         try {
+          if (f.matches('[data-nuevo-inscripto]')) {
+            await DB.crear('evento_inscriptos', {
+              evento_id: id, nombre: f.nombre.value.trim(), fecha_nacimiento: f.fecha_nacimiento.value || null,
+              monto: Number(f.monto.value) || 0, fecha_inscripcion: f.fecha_inscripcion.value, estado_pago: f.estado_pago.value });
+            await contarInscriptos(); UI.aviso('Inscripto agregado'); dibujar(); return;
+          }
           if (f.matches('[data-nueva-tarea]')) await DB.crear('evento_tareas', { evento_id: id, tarea: f.tarea.value.trim(), responsable: f.responsable.value.trim() || null });
           else await DB.crear('evento_colaboradores', { evento_id: id, nombre: f.nombre.value.trim(), rol: f.rol.value.trim() || null, aporte: f.aporte.value.trim() || null, contacto: f.contacto.value.trim() || null });
           dibujar();
@@ -194,7 +268,7 @@
           { campo: 'precio_entrada', etiqueta: 'Precio de la entrada (lo que cobrás)', tipo: 'pesos', min: 0, defecto: 0, requerido: true },
           { campo: 'presupuesto', etiqueta: 'Presupuesto de gastos', tipo: 'pesos', min: 0, defecto: 0, requerido: true },
           { campo: 'cupos', etiqueta: 'Cupos', tipo: 'numero', min: 0, paso: 1, defecto: 0, requerido: true },
-          { campo: 'inscriptos', etiqueta: 'Inscriptas', tipo: 'numero', min: 0, paso: 1, defecto: 0, requerido: true },
+          { campo: 'inscriptos', etiqueta: 'Inscriptos', tipo: 'numero', min: 0, paso: 1, defecto: 0, requerido: true, ayuda: 'Si cargás la lista en "Ver", se cuenta solo.' },
           { campo: 'descripcion', etiqueta: 'Descripción', tipo: 'area' },
           { campo: 'resultado', etiqueta: 'Cómo salió (para después del evento)', tipo: 'area', placeholder: 'Qué funcionó, qué cambiarías…' }
         ],
