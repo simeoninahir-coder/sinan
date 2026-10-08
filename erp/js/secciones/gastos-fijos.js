@@ -5,7 +5,7 @@
      Activo     → se descuenta de caja (al vencer se carga como gasto)
      Registrado → no se descuenta: se acumula como "Deuda operativa Sinan"
      Inactivo   → no suma ni avisa
-   Al llegar el vencimiento de cada mes, se anota solo (una vez por mes).
+   Cada mes se anota solo desde el día 1 (con fecha del vencimiento).
    Se usa como pestaña dentro de Finanzas, y desde Inicio y Alertas.
    ===================================================================== */
 (function () {
@@ -29,7 +29,7 @@
       for (const g of gastos.filter(cuenta)) {
         for (let m = g.desde; m <= U.mes(hoy); m = U.isoDeFecha(new Date(Number(m.slice(0, 4)), Number(m.slice(5)), 1)).slice(0, 7)) {
           const vence = `${m}-${String(g.dia_vencimiento).padStart(2, '0')}`;
-          if (vence > hoy || ya.has(g.id + '|' + m)) continue;
+          if (ya.has(g.id + '|' + m)) continue;   // se anota desde el día 1 del mes, con fecha del vencimiento
           const modo = g.estado === 'Activo' ? 'descuenta' : 'registra';
           let reg;
           try { reg = await DB.crear('gastos_fijos_mes', { gasto_fijo_id: g.id, mes: m, monto: g.monto, modo }); }
@@ -66,6 +66,16 @@
       const mov = await DB.crear('movimientos_financieros', { fecha: U.hoy(), tipo: 'egreso', categoria: CATEGORIA, descripcion: `${g ? g.nombre : 'Gasto fijo'} (deuda de ${U.nombreMes(r.mes)})`, monto: r.monto });
       await DB.actualizar('gastos_fijos_mes', r.id, { modo: 'descuenta', movimiento_id: mov.id });
       UI.aviso('Descontado de caja · deuda actualizada'); recargar();
+    } catch (e) { UI.error(e); }
+  }
+
+  // Al revés: un mes que se iba a descontar pasa a deuda (se saca el gasto de Finanzas)
+  async function pasarADeuda(r, g, recargar) {
+    if (!(await UI.confirmar(`${g ? g.nombre : 'Este gasto'} de ${U.nombreMes(r.mes)} (${U.pesos(r.monto)}) no se descuenta de caja: se saca de los gastos de Finanzas y se suma a la deuda operativa.`, { titulo: 'Pasar a deuda', boton: 'Sí, pasar a deuda', peligro: false }))) return;
+    try {
+      if (r.movimiento_id) await DB.borrar('movimientos_financieros', r.movimiento_id);
+      await DB.actualizar('gastos_fijos_mes', r.id, { modo: 'registra', movimiento_id: null });
+      UI.aviso('Pasado a deuda operativa'); recargar();
     } catch (e) { UI.error(e); }
   }
 
@@ -129,12 +139,16 @@
           { titulo: 'Monto', clase: 'num', valor: (r) => U.pesos(r.monto) },
           { titulo: 'Cómo quedó', valor: (r) => r.modo === 'descuenta' ? UI.etiqueta('Descontado de caja', 'ok') : UI.etiqueta('Registrado (deuda)', 'atencion') }
         ],
-        acciones: (r) => (r.modo === 'registra' ? `<button type="button" class="boton-texto" data-pagar="${r.id}">Descontar de caja</button>` : '')
+        acciones: (r) => (r.modo === 'registra'
+          ? `<button type="button" class="boton-texto" data-pagar="${r.id}">Descontar de caja</button>`
+          : `<button type="button" class="boton-texto" data-deuda="${r.id}">Pasar a deuda</button>`)
       });
       caja.onclick = (e) => {
-        const b = e.target.closest('[data-pagar]'); if (!b) return;
-        const r = registros.find((x) => x.id === Number(b.dataset.pagar));
-        pagar(r, g[r.gasto_fijo_id], recargar);
+        const bp = e.target.closest('[data-pagar]');
+        const bd = e.target.closest('[data-deuda]');
+        if (!bp && !bd) return;
+        const r = registros.find((x) => x.id === Number((bp || bd).dataset[bp ? 'pagar' : 'deuda']));
+        if (bp) pagar(r, g[r.gasto_fijo_id], recargar); else pasarADeuda(r, g[r.gasto_fijo_id], recargar);
       };
     }
     return crud;
