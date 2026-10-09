@@ -22,7 +22,6 @@ window.SINAN_DATA = {
     { id: 'billeteras', nombre: 'Billeteras', descripcion: 'Lo justo y necesario, siempre a mano.' },
     { id: 'llaveros',   nombre: 'Llaveros',   descripcion: 'Detalles que hacen la diferencia.' },
     { id: 'accesorios', nombre: 'Accesorios', descripcion: 'Esos toques especiales para vos o para regalar.' },
-    { id: 'medias',     nombre: 'Medias',     descripcion: 'Detalles que se notan, suavidad que se siente.' },
     { id: 'ofertas',    nombre: 'Ofertas',    descripcion: 'Lindos productos a un precio especial.' }
   ],
 
@@ -88,7 +87,7 @@ window.SINAN_DATA = {
       id: 'billetera-pocket',
       nombre: 'Billetera Pocket',
       categoria: 'billeteras',
-      precio: 18900,
+      precio: 19000,
       descripcion: 'Eco cuero con cierre. Seis compartimientos para tarjetas y dos para billetes.',
       stock: 2,
       imagenes: ['assets/productos/billetera-pocket-0.jpg', 'assets/productos/billetera-pocket-1.jpg', 'assets/productos/billetera-pocket-2.jpg']
@@ -125,7 +124,7 @@ window.SINAN_DATA = {
       id: 'mochila-lira-beige',
       nombre: 'Mochila Lira (Beige)',
       categoria: 'mochilas',
-      precio: 47900,
+      precio: 48000,
       descripcion: 'Compartimiento principal con separador y cierre, bolsillo frontal y dos laterales. Interior forrado y tiras regulables.',
       stock: 1,
       imagenes: ['assets/productos/mochila-lira-beige-1.jpg', 'assets/productos/mochila-lira-beige-2.jpg']
@@ -134,7 +133,7 @@ window.SINAN_DATA = {
       id: 'mochila-lira-negro',
       nombre: 'Mochila Lira (Negro)',
       categoria: 'mochilas',
-      precio: 47900,
+      precio: 48000,
       destacado: true,
       descripcion: 'La misma Lira que enamora, ahora en negro. Estructura organizada, materiales que duran y versatilidad total.',
       stock: 1,
@@ -144,7 +143,7 @@ window.SINAN_DATA = {
       id: 'bandolera-anita',
       nombre: 'Bandolera Anita',
       categoria: 'carteras',
-      precio: 25900,
+      precio: 27000,
       descripcion: 'Tela impermeable, forrada por dentro con bolsillo interno con cierre. Mide 21x25 cm.',
       stock: 1,
       imagenes: ['assets/productos/bandolera-anita-2.jpg', 'assets/productos/bandolera-anita-3.jpg', 'assets/productos/bandolera-anita-1.jpg']
@@ -210,40 +209,12 @@ window.SINAN_DATA = {
       imagenes: ['assets/productos/funda-saten-1.jpg']
     },
     {
-      id: 'medias-offline',
-      nombre: 'Medias Offline',
-      categoria: 'medias',
-      precio: 4000,
-      descripcion: 'Diseño minimalista blanco con detalle lavanda y OFFLINE en la caña. Hipoalergénicas y suaves.',
-      stock: 1,
-      imagenes: ['assets/productos/medias-offline-1.jpg', 'assets/productos/medias-offline-2.jpg']
-    },
-    {
-      id: 'medias-osito-corazon',
-      nombre: 'Medias Osito Corazón',
-      categoria: 'medias',
-      precio: 4000,
-      descripcion: 'Rosa pastel con osito en corazón fucsia. Tercio de caña reforzado, suaves y con onda tierna.',
-      stock: 1,
-      imagenes: ['assets/productos/medias-osito-corazon-1.jpg', 'assets/productos/medias-osito-corazon-2.jpg']
-    },
-    {
-      id: 'medias-soff',
-      nombre: 'Medias Soff',
-      categoria: 'medias',
-      precio: 4000,
-      descripcion: 'Suaves, hipoalergénicas y con puntera reforzada para el día a día. Disponibles en distintos colores con rayitas, escribinos por WhatsApp para elegir el tuyo.',
-      stock: 8,
-      nuevo: true,
-      imagenes: ['assets/productos/medias-soff-1.png', 'assets/productos/medias-soff-4.png', 'assets/productos/medias-soff-7.png', 'assets/productos/medias-soff-8.png']
-    },
-    {
       id: 'bolso-rufina',
       nombre: 'Bolso Rufina',
       categoria: 'bolsos',
       precio: 37500,
       destacado: true,
-      descripcion: 'Bolso deportivo de nylon resistente, 32 litros (50x28x23 cm), tres compartimentos internos, correa ajustable y desmontable, plegable. Violeta liso. **+ una media de regalo**',
+      descripcion: 'Bolso deportivo de nylon resistente, 32 litros (50x28x23 cm), tres compartimentos internos, correa ajustable y desmontable, plegable. Violeta liso.',
       stock: 2,
       nuevo: true,
       imagenes: ['assets/productos/bolso-rufina-1.jpg', 'assets/productos/bolso-rufina-2.jpg', 'assets/productos/bolso-rufina-3.jpg', 'assets/productos/bolso-rufina-4.jpg', 'assets/productos/bolso-rufina-5.jpg', 'assets/productos/bolso-rufina-6.jpg']

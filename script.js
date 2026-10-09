@@ -53,6 +53,7 @@
     activarProductoPagina();
     activarResenaZoom();
     activarResenaForm();
+    activarLogoInicio();
     activarAnimacionesScroll();
     abrirProductoPaginaDesdeHash();
   }
@@ -927,6 +928,19 @@
       '</article>';
     }).join('');
     activarZoomEnResenas(wrap);
+  }
+
+  // ===== LOGO: lleva al inicio de la web =====
+  function activarLogoInicio() {
+    var logo = $('.header__logo');
+    if (!logo) return;
+    logo.addEventListener('click', function (e) {
+      e.preventDefault();
+      var pp = $('#producto-pagina');
+      if (pp && pp.classList.contains('open')) cerrarProductoPaginaUI();
+      try { history.replaceState(null, '', location.pathname + location.search); } catch (_) {}
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
   }
 
   // ===== MOBILE MENU =====
