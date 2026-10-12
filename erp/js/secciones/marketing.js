@@ -11,6 +11,7 @@
     { campo: 'red', etiqueta: 'Red', tipo: 'select', opciones: N.REDES, vacio: false, defecto: 'Instagram' },
     { campo: 'formato', etiqueta: 'Formato', tipo: 'select', opciones: N.FORMATOS, vacio: false, defecto: 'Post' },
     { campo: 'pilar_id', etiqueta: 'Pilar', tipo: 'select', numerico: true, opciones: pilares.map((p) => ({ valor: p.id, texto: p.nombre })) },
+    { campo: 'objetivo', etiqueta: 'Objetivo', tipo: 'select', opciones: N.OBJETIVOS_CONTENIDO },
     { campo: 'link', etiqueta: 'Link (cuando se publica)', tipo: 'url' },
     { campo: 'texto', etiqueta: 'Texto / copy', tipo: 'area' },
     { campo: 'alcance', etiqueta: 'Alcance', tipo: 'numero', min: 0, paso: 1 },
@@ -108,10 +109,11 @@
       filtros: [
         { id: 'estado', etiqueta: 'Estado', opciones: N.ESTADOS_PUBLICACION, valor: (p) => p.estado },
         { id: 'pilar', etiqueta: 'Pilar', opciones: (f, x) => x.pilares.map((p) => ({ valor: p.id, texto: p.nombre })), valor: (p) => p.pilar_id },
-        { id: 'red', etiqueta: 'Red', opciones: N.REDES, valor: (p) => p.red }
+        { id: 'objetivo', etiqueta: 'Objetivo', opciones: N.OBJETIVOS_CONTENIDO, valor: (p) => p.objetivo },
+        { id: 'formato', etiqueta: 'Formato', opciones: N.FORMATOS, valor: (p) => p.formato }
       ],
       columnas: [
-        { titulo: 'Publicación', valor: (p) => `<b style="font-weight:500">${U.esc(p.titulo)}</b><br><small class="muted">${U.esc(p.red)} · ${U.esc(p.formato)}</small>` },
+        { titulo: 'Publicación', valor: (p) => `<b style="font-weight:500">${U.esc(p.titulo)}</b><br><small class="muted">${U.esc(p.red)} · ${U.esc(p.formato)}${p.objetivo ? ' · ' + U.esc(p.objetivo) : ''}</small>` },
         { titulo: 'Fecha', valor: (p) => U.fecha(p.fecha) },
         { titulo: 'Pilar', valor: (p, x) => x.pil[p.pilar_id] ? `<span class="chip-color"><i style="background:${U.esc(x.pil[p.pilar_id].color)}"></i>${U.esc(x.pil[p.pilar_id].nombre)}</span>` : '—' },
         { titulo: 'Estado', valor: (p) => UI.etiqueta(p.estado, N.tonoPublicacion(p.estado)) },
@@ -138,7 +140,7 @@
       columnas: [
         { titulo: 'Idea', valor: (i) => `<b style="font-weight:500">${U.esc(i.titulo)}</b>${i.descripcion ? `<br><small class="muted">${U.esc(i.descripcion)}</small>` : ''}` },
         { titulo: 'Pilar', valor: (i, x) => U.esc(x.pil[i.pilar_id]?.nombre || '—') },
-        { titulo: 'Formato', valor: (i) => U.esc(i.formato || '—') },
+        { titulo: 'Formato', valor: (i) => U.esc(i.formato || '—') + (i.objetivo ? `<br><small class="muted">${U.esc(i.objetivo)}</small>` : '') },
         { titulo: 'Prioridad', valor: (i) => UI.etiqueta(i.prioridad, N.tonoPrioridad(i.prioridad)) },
         { titulo: 'Estado', valor: (i) => i.usada ? UI.etiqueta('Usada', 'ok') : UI.etiqueta('Sin usar', 'neutro') }
       ],
@@ -146,13 +148,14 @@
         { campo: 'titulo', etiqueta: 'Idea', requerido: true, ancho: 'completo' },
         { campo: 'pilar_id', etiqueta: 'Pilar', tipo: 'select', numerico: true, opciones: x.pilares.map((p) => ({ valor: p.id, texto: p.nombre })) },
         { campo: 'formato', etiqueta: 'Formato', tipo: 'select', opciones: N.FORMATOS },
+        { campo: 'objetivo', etiqueta: 'Objetivo', tipo: 'select', opciones: N.OBJETIVOS_CONTENIDO },
         { campo: 'prioridad', etiqueta: 'Prioridad', tipo: 'select', opciones: N.PRIORIDADES, vacio: false, defecto: 'Media' },
         { campo: 'usada', etiqueta: '¿Ya se usó?', tipo: 'si_no', textoSi: 'Sí, ya la usé' },
         { campo: 'descripcion', etiqueta: 'Detalle', tipo: 'area' }
       ],
       accionesExtra: (i) => i.usada ? '' : `<button type="button" class="boton-texto" data-accion="usar" title="Pasar al calendario">→ Calendario</button>`,
       alAccion: {
-        usar: (i, x, recargar) => abrirPublicacion(null, { titulo: i.titulo, texto: i.descripcion, pilar_id: i.pilar_id, formato: i.formato || 'Post', estado: 'En preparación' }, x.pilares,
+        usar: (i, x, recargar) => abrirPublicacion(null, { titulo: i.titulo, texto: i.descripcion, pilar_id: i.pilar_id, objetivo: i.objetivo, formato: i.formato || 'Post', estado: 'En preparación' }, x.pilares,
           async () => { await DB.actualizar('ideas_contenido', i.id, { usada: true }); recargar(); })
       }
     });
@@ -162,9 +165,21 @@
   function pestanaPilares(cuerpo) {
     Seccion.crud({
       contenedor: cuerpo, tabla: 'pilares_contenido', nombre: 'pilar',
+      async cargar() {
+        const [filas, pubs] = await Promise.all([DB.listar('pilares_contenido'), DB.listar('publicaciones')]);
+        const hoy = U.hoy();
+        const proximas = pubs.filter((p) => p.fecha.slice(0, 10) >= hoy);
+        const cuenta = (lista) => U.agrupar(lista, (p) => p.pilar_id);
+        return { filas, extra: { todas: cuenta(pubs), proximas: cuenta(proximas), totalProx: proximas.length } };
+      },
       columnas: [
         { titulo: 'Pilar', valor: (p) => `<span class="chip-color"><i style="background:${U.esc(p.color)}"></i><b style="font-weight:500">${U.esc(p.nombre)}</b></span>` },
-        { titulo: 'De qué se trata', valor: (p) => U.esc(p.descripcion || '—') }
+        { titulo: 'De qué se trata', valor: (p) => U.esc(p.descripcion || '—') },
+        { titulo: 'Publicaciones', clase: 'num', valor: (p, x) => U.numero((x.todas[p.id] || []).length) },
+        { titulo: 'Próximas', clase: 'num', valor: (p, x) => {
+          const n = (x.proximas[p.id] || []).length;
+          return x.totalProx ? `${n} <small class="muted">(${Math.round(n * 100 / x.totalProx)}%)</small>` : '—';
+        } }
       ],
       buscar: (p) => p.nombre + ' ' + (p.descripcion || ''),
       campos: [

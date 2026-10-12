@@ -1241,3 +1241,6 @@ grant usage, select on all sequences in schema public to authenticated;
 revoke usage, select on all sequences in schema public from anon;
 
 alter table gastos_fijos add column if not exists grupo text not null default 'Herramientas';
+
+alter table publicaciones add column if not exists objetivo text;
+alter table ideas_contenido add column if not exists objetivo text;

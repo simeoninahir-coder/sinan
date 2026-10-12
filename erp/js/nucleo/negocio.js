@@ -33,6 +33,7 @@
   N.REDES = ['Instagram', 'TikTok', 'Facebook', 'Newsletter', 'Web'];
   N.FORMATOS = ['Post', 'Carrusel', 'Reel', 'Historia', 'Video', 'Mail'];
   N.ESTADOS_PUBLICACION = ['Idea', 'En preparación', 'Programada', 'Publicada'];
+  N.OBJETIVOS_CONTENIDO = ['Motivar', 'Educar', 'Ayudar', 'Conectar', 'Anunciar', 'Vender'];
   N.PRIORIDADES = ['Alta', 'Media', 'Baja'];
   N.ESTADOS_TAREA = ['Pendiente', 'En curso', 'Hecha'];
 
