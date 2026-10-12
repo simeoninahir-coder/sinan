@@ -1244,3 +1244,4 @@ alter table gastos_fijos add column if not exists grupo text not null default 'H
 
 alter table publicaciones add column if not exists objetivo text;
 alter table ideas_contenido add column if not exists objetivo text;
+alter table publicaciones add column if not exists semana text;

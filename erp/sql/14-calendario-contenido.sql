@@ -119,3 +119,6 @@ begin
     ('Si tenés que renovar tu mochila y querés tener todo ordenado y encontrar las cosas fácil…', 'El producto por dentro', 'Reel', 'Ayudar', 'Alta')
   ) as i(titulo, pilar, formato, objetivo, prioridad);
 end $$;
+
+-- Semana (ej: Recta final) para agrupar publicaciones
+alter table publicaciones add column if not exists semana text;

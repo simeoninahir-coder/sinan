@@ -4,31 +4,105 @@
    banco de ideas, pilares de contenido y métricas de Instagram.
    ===================================================================== */
 (function () {
-  const camposPublicacion = (pilares) => [
-    { campo: 'titulo', etiqueta: 'Título / idea', requerido: true, ancho: 'completo' },
-    { campo: 'fecha', etiqueta: 'Fecha', tipo: 'fecha', requerido: true, defecto: U.hoy },
-    { campo: 'estado', etiqueta: 'Estado', tipo: 'select', opciones: N.ESTADOS_PUBLICACION, vacio: false, defecto: 'Idea' },
-    { campo: 'red', etiqueta: 'Red', tipo: 'select', opciones: N.REDES, vacio: false, defecto: 'Instagram' },
-    { campo: 'formato', etiqueta: 'Formato', tipo: 'select', opciones: N.FORMATOS, vacio: false, defecto: 'Post' },
-    { campo: 'pilar_id', etiqueta: 'Pilar', tipo: 'select', numerico: true, opciones: pilares.map((p) => ({ valor: p.id, texto: p.nombre })) },
-    { campo: 'objetivo', etiqueta: 'Objetivo', tipo: 'select', opciones: N.OBJETIVOS_CONTENIDO },
-    { campo: 'link', etiqueta: 'Link (cuando se publica)', tipo: 'url' },
-    { campo: 'texto', etiqueta: 'Texto / copy', tipo: 'area' },
-    { campo: 'alcance', etiqueta: 'Alcance', tipo: 'numero', min: 0, paso: 1 },
-    { campo: 'me_gusta', etiqueta: 'Me gusta', tipo: 'numero', min: 0, paso: 1 },
-    { campo: 'comentarios', etiqueta: 'Comentarios', tipo: 'numero', min: 0, paso: 1 },
-    { campo: 'guardados', etiqueta: 'Guardados', tipo: 'numero', min: 0, paso: 1 }
-  ];
+  // ---------- Ficha de publicación (como una página de Notion) ----------
+  // En el calendario cada publicación se ve como "REEL: tema", "HISTORIA: tema"…
+  const PREFIJO = /^\s*(post|carrusel|reel|historia|historias|video|mail)\s*:\s*/i;
+  const etiquetaPub = (p) => `${String(p.formato || '').toUpperCase()}: ${p.titulo}`;
+  const SEMANAS = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Lanzamiento', 'Recta final', 'Después del evento'];
+  const svg = (d) => `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+  const ICONO = {
+    opcion: svg('<circle cx="12" cy="12" r="9"/><path d="m8.5 10.5 3.5 3.5 3.5-3.5"/>'),
+    fecha: svg('<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'),
+    lista: svg('<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r=".9"/><circle cx="4.5" cy="12" r=".9"/><circle cx="4.5" cy="18" r=".9"/>'),
+    link: svg('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>')
+  };
 
   function abrirPublicacion(fila, valores, pilares, alGuardar) {
-    UI.formularioModal({
-      titulo: fila ? 'Editar publicación' : 'Nueva publicación',
-      campos: camposPublicacion(pilares), valores: fila || valores || {},
-      alGuardar: async (d) => {
+    const v = { estado: 'Idea', fecha: U.hoy(), formato: 'Historia', red: 'Instagram', ...(fila || valores || {}) };
+    const opciones = (lista, actual, vacio = true) => (vacio ? '<option value="">Vacío</option>' : '') + lista.map((o) => {
+      const [valor, texto] = typeof o === 'object' ? [o.valor, o.texto] : [o, o];
+      return `<option value="${U.esc(valor)}" ${String(valor) === String(actual ?? '') ? 'selected' : ''}>${U.esc(texto)}</option>`;
+    }).join('');
+    const prop = (icono, nombre, control) => `<div class="prop"><span class="prop-nombre">${ICONO[icono]}${nombre}</span><div class="prop-valor">${control}</div></div>`;
+    const metrica = (campo, nombre) => `<label class="campo"><span class="campo-etiqueta">${nombre}</span>
+      <input name="${campo}" type="number" min="0" step="1" inputmode="numeric" value="${v[campo] ?? ''}"></label>`;
+    const hayMetricas = ['alcance', 'me_gusta', 'comentarios', 'guardados'].some((c) => v[c] != null);
+
+    const form = document.createElement('form');
+    form.className = 'ficha';
+    form.innerHTML = `
+      <div class="ficha-titulo">
+        <span class="ficha-prefijo"></span>
+        <textarea name="titulo" rows="1" required placeholder="Tema" aria-label="Tema">${U.esc(String(v.titulo || '').replace(PREFIJO, ''))}</textarea>
+      </div>
+      ${prop('opcion', 'Estado', `<select name="estado">${opciones(N.ESTADOS_PUBLICACION, v.estado, false)}</select>`)}
+      ${prop('fecha', 'Fecha', `<input name="fecha" type="date" required value="${U.esc(String(v.fecha || '').slice(0, 10))}">`)}
+      ${prop('opcion', 'Formato', `<select name="formato">${opciones(N.FORMATOS, v.formato, false)}</select>`)}
+      ${prop('lista', 'Objetivo', `<select name="objetivo">${opciones(N.OBJETIVOS_CONTENIDO, v.objetivo)}</select>`)}
+      ${prop('opcion', 'Pilar', `<select name="pilar_id">${opciones(pilares.map((p) => ({ valor: p.id, texto: p.nombre })), v.pilar_id)}</select>`)}
+      ${prop('opcion', 'Semana', `<input name="semana" list="semanas-pub" placeholder="Vacío" value="${U.esc(v.semana || '')}">
+        <datalist id="semanas-pub">${SEMANAS.map((s) => `<option value="${U.esc(s)}">`).join('')}</datalist>`)}
+      ${prop('opcion', 'Red', `<select name="red">${opciones(N.REDES, v.red, false)}</select>`)}
+      ${prop('link', 'Link', `<input name="link" type="url" placeholder="Vacío (pegalo cuando se publique)" value="${U.esc(v.link || '')}">`)}
+      <h3 class="ficha-seccion">Guion</h3>
+      <textarea name="texto" class="ficha-guion" placeholder="Escribí el guion: qué se muestra, qué se dice, el texto de cada slide…">${U.esc(v.texto || '')}</textarea>
+      <details class="ficha-resultados" ${hayMetricas ? 'open' : ''}>
+        <summary>Resultados (cuando ya se publicó)</summary>
+        <div class="ficha-metricas">${metrica('alcance', 'Alcance')}${metrica('me_gusta', 'Me gusta')}${metrica('comentarios', 'Comentarios')}${metrica('guardados', 'Guardados')}</div>
+      </details>
+      <p class="form-error" hidden></p>
+      <div class="acciones-form">
+        ${fila ? '<button type="button" class="boton boton-secundario ficha-borrar" data-borrar>Eliminar</button>' : ''}
+        <button type="button" class="boton boton-secundario" data-cancelar>Cancelar</button>
+        <button type="submit" class="boton">Guardar</button>
+      </div>`;
+    const m = UI.modal({ titulo: fila ? 'Publicación' : 'Nueva publicación', contenido: form, ancho: 'ficha' });
+    const titulo = form.elements.titulo;
+    const prefijo = form.querySelector('.ficha-prefijo');
+    const crecer = (t) => { t.style.height = 'auto'; t.style.height = t.scrollHeight + 'px'; };
+    const actualizarPrefijo = () => { prefijo.textContent = form.elements.formato.value.toUpperCase() + ':'; };
+    const marcarVacios = () => form.querySelectorAll('.prop-valor select').forEach((s) => s.classList.toggle('vacio', !s.value));
+    actualizarPrefijo(); marcarVacios();
+    requestAnimationFrame(() => { crecer(titulo); crecer(form.elements.texto); });
+    form.elements.formato.addEventListener('change', actualizarPrefijo);
+    form.addEventListener('change', marcarVacios);
+    titulo.addEventListener('input', () => {
+      // Si escribe "REEL: algo" en el tema, se toma como formato y queda solo el tema
+      const pre = titulo.value.match(PREFIJO);
+      if (pre) {
+        const f = N.FORMATOS.find((x) => x.toLowerCase() === pre[1].toLowerCase().replace(/s$/, ''));
+        if (f) { form.elements.formato.value = f; actualizarPrefijo(); }
+        titulo.value = titulo.value.replace(PREFIJO, '');
+      }
+      crecer(titulo);
+    });
+    titulo.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
+    form.elements.texto.addEventListener('input', (e) => crecer(e.target));
+    if (!fila && window.innerWidth > 760) titulo.focus();
+    form.querySelector('[data-cancelar]').onclick = m.cerrar;
+    const borrar = form.querySelector('[data-borrar]');
+    if (borrar) borrar.onclick = async () => {
+      if (!(await UI.confirmar(`Se va a eliminar "${etiquetaPub(fila)}".`))) return;
+      try { await DB.borrar('publicaciones', fila.id); UI.aviso('Publicación eliminada'); m.cerrar(); if (alGuardar) alGuardar(); } catch (e) { UI.error(e); }
+    };
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const err = form.querySelector('.form-error'); err.hidden = true;
+      if (!form.reportValidity()) return;
+      const val = (c) => form.elements[c].value.trim() || null;
+      const num = (c) => (form.elements[c].value === '' ? null : Number(form.elements[c].value));
+      const d = {
+        titulo: titulo.value.replace(PREFIJO, '').trim(), estado: val('estado'), fecha: val('fecha'), formato: val('formato'),
+        objetivo: val('objetivo'), pilar_id: num('pilar_id'), semana: val('semana'), red: val('red'), link: val('link'), texto: val('texto'),
+        alcance: num('alcance'), me_gusta: num('me_gusta'), comentarios: num('comentarios'), guardados: num('guardados')
+      };
+      const boton = form.querySelector('[type=submit]'); boton.disabled = true; boton.classList.add('cargando');
+      try {
         if (fila) await DB.actualizar('publicaciones', fila.id, d); else await DB.crear('publicaciones', d);
         UI.aviso('Publicación guardada');
-        alGuardar && alGuardar();
-      }
+        m.cerrar();
+        if (alGuardar) alGuardar();
+      } catch (ex) { err.textContent = ex.message || String(ex); err.hidden = false; } finally { boton.disabled = false; boton.classList.remove('cargando'); }
     });
   }
 
@@ -51,7 +125,7 @@
         celdas.push(`<div class="cal-dia ${iso === U.hoy() ? 'hoy' : ''}" data-dia="${iso}" role="button" tabindex="0" aria-label="${U.fecha(iso)}: ${lista.length} publicaciones">
           <span class="cal-num">${d}</span>
           ${lista.map((p) => `<button type="button" class="cal-pub ${p.estado === 'Publicada' ? 'publicada' : ''}" data-pub="${p.id}"
-             style="--pilar:${U.esc(pil[p.pilar_id]?.color || '#477ab3')}" title="${U.esc(p.titulo)} · ${U.esc(p.formato)} · ${U.esc(p.estado)}">${U.esc(p.titulo)}</button>`).join('')}
+             style="--pilar:${U.esc(pil[p.pilar_id]?.color || '#477ab3')}" title="${U.esc(etiquetaPub(p))} · ${U.esc(p.estado)}">${U.esc(etiquetaPub(p))}</button>`).join('')}
         </div>`);
       }
       cuerpo.innerHTML = `
@@ -75,8 +149,8 @@
         const m = UI.modal({
           titulo: U.fecha(el.dataset.dia), ancho: 'chico',
           contenido: `<ul class="lista-simple">${lista.map((p) => `<li><span class="chip-color"><i style="background:${U.esc(pil[p.pilar_id]?.color || '#477ab3')}"></i></span>
-              <div class="crece">${U.esc(p.titulo)}<small>${U.esc(p.red)} · ${U.esc(p.formato)} · ${U.esc(p.estado)}</small></div>
-              <button type="button" class="boton-texto" data-ver="${p.id}">Editar</button></li>`).join('')}</ul>
+              <div class="crece">${U.esc(etiquetaPub(p))}<small>${U.esc(p.red)} · ${U.esc(p.estado)}${p.semana ? " · " + U.esc(p.semana) : ""}</small></div>
+              <button type="button" class="boton-texto" data-ver="${p.id}">Abrir</button></li>`).join('')}</ul>
             <div class="acciones-form"><button type="button" class="boton" data-otra>+ Otra publicación este día</button></div>`
         });
         m.cuerpo.addEventListener('click', (e) => {
@@ -113,7 +187,7 @@
         { id: 'formato', etiqueta: 'Formato', opciones: N.FORMATOS, valor: (p) => p.formato }
       ],
       columnas: [
-        { titulo: 'Publicación', valor: (p) => `<b style="font-weight:500">${U.esc(p.titulo)}</b><br><small class="muted">${U.esc(p.red)} · ${U.esc(p.formato)}${p.objetivo ? ' · ' + U.esc(p.objetivo) : ''}</small>` },
+        { titulo: 'Publicación', valor: (p) => `<b style="font-weight:500">${U.esc(etiquetaPub(p))}</b><br><small class="muted">${U.esc(p.red)}${p.objetivo ? ' · ' + U.esc(p.objetivo) : ''}${p.semana ? ' · ' + U.esc(p.semana) : ''}</small>` },
         { titulo: 'Fecha', valor: (p) => U.fecha(p.fecha) },
         { titulo: 'Pilar', valor: (p, x) => x.pil[p.pilar_id] ? `<span class="chip-color"><i style="background:${U.esc(x.pil[p.pilar_id].color)}"></i>${U.esc(x.pil[p.pilar_id].nombre)}</span>` : '—' },
         { titulo: 'Estado', valor: (p) => UI.etiqueta(p.estado, N.tonoPublicacion(p.estado)) },

@@ -853,3 +853,34 @@ button { cursor: pointer; }
 .form-inscripto input, .form-inscripto select { border: 1px solid var(--gris-borde); border-radius: var(--radio-chico); padding: 8px 10px; min-height: 40px; background: var(--tarjeta); color: var(--texto); width: 100%; min-width: 0; }
 .form-inscripto .con-prefijo input { padding-left: 24px; }
 @media (max-width: 900px) { .form-inscripto { grid-template-columns: repeat(2, minmax(0, 1fr)); } .form-inscripto > input[name=nombre] { grid-column: 1 / -1; } }
+
+/* ---------------- Ficha de publicación (estilo Notion) ---------------- */
+.modal-ficha { max-width: 760px; }
+.modal-ficha .modal-cabecera h2 { font-family: var(--letra); font-size: 13px; color: var(--gris-texto); }
+.ficha { display: grid; gap: 2px; text-align: left; }
+.ficha-titulo { display: flex; align-items: flex-start; gap: 12px; margin: 4px 0 16px; }
+.ficha-prefijo, .ficha-titulo textarea { font-family: var(--titulos); font-size: 34px; line-height: 1.2; color: var(--tinta); }
+.ficha-prefijo { white-space: nowrap; }
+.ficha-titulo textarea { flex: 1; min-width: 0; border: 0; background: transparent; resize: none; padding: 0; overflow: hidden; }
+.ficha-titulo textarea:focus { outline: none; }
+.ficha-titulo textarea::placeholder { color: var(--gris-claro); }
+.prop { display: grid; grid-template-columns: 180px 1fr; align-items: center; min-height: 40px; }
+.prop-nombre { display: flex; align-items: center; gap: 10px; color: var(--gris-texto); font-size: 14.5px; }
+.prop-valor select, .prop-valor input { width: 100%; border: 1px solid transparent; background: transparent; box-shadow: none; padding: 7px 8px; border-radius: 6px; font: inherit; font-size: 14.5px; color: var(--texto); }
+.prop-valor select:hover, .prop-valor input:hover { background: var(--panel); }
+.prop-valor select:focus, .prop-valor input:focus { outline: none; border-color: var(--celeste); background: var(--tarjeta); }
+.prop-valor select.vacio, .prop-valor input::placeholder { color: var(--gris-claro); }
+.prop-valor select option { color: var(--texto); background: var(--tarjeta); }
+.ficha-seccion { font-family: var(--letra); font-size: 14px; font-weight: 500; color: var(--gris-texto); margin: 16px 0 8px; padding-top: 16px; border-top: 1px solid var(--gris-linea); }
+.ficha-guion { width: 100%; min-height: 220px; border: 1px solid var(--gris-linea); border-radius: 10px; background: var(--tarjeta); padding: 12px 14px; font: inherit; font-size: 15px; line-height: 1.6; color: var(--texto); resize: vertical; }
+.ficha-guion:focus { outline: none; border-color: var(--celeste); }
+.ficha-resultados { margin-top: 14px; }
+.ficha-resultados summary { cursor: pointer; color: var(--gris-texto); font-size: 14px; }
+.ficha-metricas { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+.ficha-borrar { margin-right: auto; color: var(--alerta); }
+@media (max-width: 600px) {
+  .prop { grid-template-columns: 118px 1fr; }
+  .ficha-prefijo, .ficha-titulo textarea { font-size: 26px; }
+  .ficha-titulo { gap: 8px; }
+  .ficha-metricas { grid-template-columns: 1fr 1fr; }
+}
