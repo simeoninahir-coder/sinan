@@ -884,3 +884,24 @@ button { cursor: pointer; }
   .ficha-titulo { gap: 8px; }
   .ficha-metricas { grid-template-columns: 1fr 1fr; }
 }
+
+/* ---------------- Filtro de canal del calendario ---------------- */
+.filtro-canal { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 14px; }
+.filtro-canal-texto { color: var(--gris-texto); font-size: 14px; margin-right: 2px; }
+.filtro-canal button { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--gris-borde); background: var(--tarjeta); color: var(--tinta); border-radius: 999px; padding: 8px 16px; font: inherit; font-size: 14.5px; cursor: pointer; }
+.filtro-canal button:hover { border-color: var(--celeste); }
+.filtro-canal button span { font-size: 12px; background: var(--celeste-suave); border-radius: 999px; padding: 1px 8px; }
+.filtro-canal button.activo { background: var(--azul); border-color: var(--azul); color: #fff; }
+.filtro-canal button.activo span { background: rgba(255, 255, 255, .25); }
+.cal-pub[data-canal="Canal WA"]::before, .cal-pub[data-canal="Ambos"]::before { content: "WA"; display: inline-block; font-size: 10px; font-weight: 600; line-height: 1.5; color: #fff; background: #2f7d4f; border-radius: 4px; padding: 0 4px; margin-right: 5px; vertical-align: 1px; }
+.cal-pub[data-canal="Ambos"]::before { content: "IG+WA"; }
+@media (max-width: 760px) { .cal-pub::before { display: none !important; } .filtro-canal button { padding: 7px 12px; } }
+
+/* ---------------- Checklist de eventos: tarea con descripción ---------------- */
+.tarea-abrir { display: block; background: none; border: 0; padding: 2px 4px; margin: -2px -4px; border-radius: 6px; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.tarea-abrir:hover { background: var(--panel); }
+.lista-simple .tarea-abrir.hecha { text-decoration: none; }
+.lista-simple .tarea-abrir.hecha .tarea-nombre { text-decoration: line-through; color: var(--gris-claro); }
+.tarea-desc { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; white-space: pre-line; color: var(--gris-texto); font-size: 13px; margin-top: 2px; }
+.tarea-desc-vacia { color: var(--gris-claro); font-size: 12.5px; }
+.kpi-unidad { font-size: 15px; font-weight: 400; color: var(--gris-texto); }

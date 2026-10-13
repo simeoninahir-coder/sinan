@@ -8,7 +8,16 @@
   // Listas de opciones (se pueden ampliar acá)
   N.CATEGORIAS = ['Bolsos', 'Mochilas', 'Carteras', 'Billeteras', 'Llaveros', 'Accesorios', 'Medias', 'Por mayor'];
   N.ESTADOS_PRODUCTO = ['Activo', 'Pausado', 'Agotado', 'Discontinuado'];
-  N.CANALES = ['Presencial', 'Feria', 'Instagram', 'Web', 'WhatsApp', 'Evento', 'Otro'];
+  // Canal de venta. "Presencial" se abre según cómo llegó la clienta.
+  N.CANALES = ['Presencial · Recomendación', 'Presencial · Clienta nueva', 'Presencial · Clienta que vuelve', 'Feria', 'Evento', 'Instagram', 'WhatsApp', 'Web', 'Otro'];
+  // Cómo llegó una clienta o por dónde consultó
+  N.ORIGENES = ['Recomendación', 'Presencial', 'Feria', 'Evento', 'Instagram', 'WhatsApp', 'Web', 'Otro'];
+  N.esPresencial = (canal) => String(canal || '').startsWith('Presencial');
+  N.origenDeCanal = (canal) => (canal === 'Presencial · Recomendación' ? 'Recomendación' : N.esPresencial(canal) ? 'Presencial' : canal);
+  N.canalDeOrigen = (origen) => (origen === 'Recomendación' ? 'Presencial · Recomendación' : origen === 'Presencial' ? 'Presencial · Clienta nueva'
+    : N.CANALES.includes(origen) ? origen : 'Instagram');
+  // Dónde sale cada contenido
+  N.CANALES_CONTENIDO = ['Instagram', 'Canal WA', 'Ambos'];
   N.TIPOS_EVENTO = ['Encuentro', 'Feria', 'Taller', 'Otro'];
   N.ETIQUETAS_CLIENTE = ['VIP', 'Mayorista', 'Familia', 'Amiga', 'Influencer', 'Compañera de trabajo'];
   N.TIPOS_INTERACCION = ['WhatsApp', 'Instagram', 'Llamada', 'En persona', 'Mail'];
@@ -31,7 +40,7 @@
   N.CATEGORIAS_INGRESO = ['Entradas de eventos', 'Colaboraciones', 'Aporte propio', 'Otros'];
   N.MEDIOS_PAGO = ['Efectivo', 'Transferencia', 'Mercado Pago', 'Tarjeta'];
   N.REDES = ['Instagram', 'TikTok', 'Facebook', 'Newsletter', 'Web'];
-  N.FORMATOS = ['Post', 'Carrusel', 'Reel', 'Historia', 'Video', 'Mail'];
+  N.FORMATOS = ['Post', 'Carrusel', 'Reel', 'Historia', 'Video', 'Mensaje', 'Mail'];
   N.ESTADOS_PUBLICACION = ['Idea', 'En preparación', 'Programada', 'Publicada'];
   N.OBJETIVOS_CONTENIDO = ['Motivar', 'Educar', 'Ayudar', 'Conectar', 'Anunciar', 'Vender'];
   N.PRIORIDADES = ['Alta', 'Media', 'Baja'];

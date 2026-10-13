@@ -33,7 +33,7 @@
 
   const camposCliente = [
     { campo: 'nombre', etiqueta: 'Nombre y apellido', requerido: true },
-    { campo: 'canal_origen', etiqueta: 'Cómo llegó', tipo: 'select', opciones: N.CANALES },
+    { campo: 'canal_origen', etiqueta: 'Cómo llegó', tipo: 'select', opciones: N.ORIGENES },
     { campo: 'telefono', etiqueta: 'Teléfono / WhatsApp', tipo: 'tel' },
     { campo: 'instagram', etiqueta: 'Instagram', placeholder: '@usuario' },
     { campo: 'email', etiqueta: 'Email', tipo: 'email' },
@@ -172,7 +172,7 @@
         { id: 'seg', etiqueta: 'Segmento', opciones: [
           { valor: 'frecuente', texto: 'Frecuentes (3+ compras)' }, { valor: 'recurrente', texto: 'Recurrentes (2 compras)' },
           { valor: 'nueva', texto: 'Nuevas (1 compra)' }, { valor: 'inactiva', texto: `Inactivas (+${N.DIAS_INACTIVA} días)` }, { valor: 'sin', texto: 'Sin compras' }], valor: (c) => c._seg.id },
-        { id: 'canal', etiqueta: 'Origen', opciones: (f) => [...new Set([...N.CANALES, ...f.map((c) => c.canal_origen).filter(Boolean)])], valor: (c) => c.canal_origen },
+        { id: 'canal', etiqueta: 'Origen', opciones: (f) => [...new Set([...N.ORIGENES, ...f.map((c) => c.canal_origen).filter(Boolean)])], valor: (c) => c.canal_origen },
         { id: 'etiqueta', etiqueta: 'Etiqueta', opciones: (f) => [...new Set(f.flatMap((c) => c.etiquetas || []))].sort(), valor: (c) => (c.etiquetas || []).join('|'), contiene: true }
       ],
       columnas: [

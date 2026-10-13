@@ -84,11 +84,18 @@
       ...tareas.filter((t) => t.estado !== 'Hecha' && t.fecha_limite).map((t) => ({ fecha: t.fecha_limite, texto: t.titulo + (t.persona_id && gente[t.persona_id] ? ' · ' + gente[t.persona_id].nombre : ''), tipo: 'Tarea', tarea: t.id, vencida: t.fecha_limite < hoy }))
     ].sort((a, b) => a.fecha.localeCompare(b.fecha)).slice(0, 8);
 
+    const nombreMesAnt = U.MESES[Number(mesAnt.slice(5)) - 1];
     let comparacion = '';
     if (ventasAnt > 0) {
       const varPct = (ventasMes - ventasAnt) / ventasAnt * 100;
-      comparacion = `<span class="variacion ${varPct >= 0 ? 'sube' : 'baja'}">${varPct >= 0 ? '▲' : '▼'} ${U.porcentaje(Math.abs(varPct))}</span> vs. ${U.MESES[Number(mesAnt.slice(5)) - 1]}`;
+      comparacion = `<span class="variacion ${varPct >= 0 ? 'sube' : 'baja'}">${varPct >= 0 ? '▲' : '▼'} ${U.porcentaje(Math.abs(varPct))}</span> vs. ${nombreMesAnt}`;
     }
+    // Ventas del mes en cantidad: cuántas ventas y cuántos productos
+    const unidades = (ps) => U.sumar(ps, (p) => U.sumar(p.items, (i) => i.cantidad));
+    const cantAnt = validos.filter((p) => U.mes(p.fecha) === mesAnt).length;
+    const difCant = delMes.length - cantAnt;
+    const detalleCant = `${unidades(delMes)} ${unidades(delMes) === 1 ? 'producto' : 'productos'} · ` +
+      (difCant ? `<span class="variacion ${difCant > 0 ? 'sube' : 'baja'}">${difCant > 0 ? '▲' : '▼'} ${Math.abs(difCant)}</span> vs. ${nombreMesAnt} (${cantAnt})` : `igual que ${nombreMesAnt}`);
     const iniciales = (t) => String(t || '?').trim().split(/\s+/).slice(0, 2).map((x) => x[0]).join('').toUpperCase();
     const diaCorto = (iso) => { const f = U.fechaDeIso(iso); return `${f.getDate()} ${U.MESES[f.getMonth()].slice(0, 3)}`; };
 
@@ -105,9 +112,9 @@
       <div class="inicio-grilla separado">
         <div class="inicio-izq">
           <div class="kpis">
-            ${tarjetaNumero('Ventas del mes', U.pesos(ventasMes), comparacion || `${delMes.length} pedidos`, 'ventas')}
+            ${tarjetaNumero('Ventas del mes', `${delMes.length} <small class="kpi-unidad">${delMes.length === 1 ? 'venta' : 'ventas'}</small>`, detalleCant, 'ventas')}
+            ${tarjetaNumero('Facturado del mes', U.pesos(ventasMes), comparacion || `ticket promedio ${U.pesos(delMes.length ? ventasMes / delMes.length : 0)}`, 'reportes')}
             ${tarjetaNumero('Ganancia del mes', U.pesos(ganancia(delMes)), `gastos del mes: ${U.pesos(gastosMes)}`, 'finanzas')}
-            ${tarjetaNumero('Pedidos del mes', delMes.length, `ticket promedio ${U.pesos(delMes.length ? ventasMes / delMes.length : 0)}`, 'reportes')}
             ${tarjetaNumero('Deuda operativa Sinan', U.pesos(deuda), deuda ? 'gastos fijos registrados sin descontar' : 'sin deuda', 'finanzas/operativos')}
           </div>
 

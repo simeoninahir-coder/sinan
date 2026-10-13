@@ -26,7 +26,7 @@
   function abrirConsulta(fila, d, alGuardar) {
     const campos = [
       { campo: 'fecha', etiqueta: 'Fecha', tipo: 'fecha', requerido: true, defecto: U.hoy },
-      { campo: 'canal', etiqueta: 'Por dónde consultó', tipo: 'select', opciones: N.CANALES, vacio: false, defecto: 'Instagram' },
+      { campo: 'canal', etiqueta: 'Por dónde consultó', tipo: 'select', opciones: N.ORIGENES, vacio: false, defecto: 'Instagram' },
       { campo: 'nombre', etiqueta: 'Nombre', requerido: true, sugerencias: d.clientes.map((c) => c.nombre), ayuda: 'Si ya es clienta, elegila de la lista.' },
       { campo: 'contacto', etiqueta: 'Teléfono o Instagram', placeholder: '@usuario o 11 1234-5678' },
       { campo: 'producto_id', etiqueta: 'Producto que consultó', tipo: 'select', numerico: true, vacio: 'Otro / no está en la lista',
@@ -108,7 +108,7 @@
       const p = d.prod[c.producto_id];
       const items = p ? [{ producto_id: p.id, color: c.color && (p.colores || []).includes(c.color) ? c.color : (p.colores || [])[0] || 'Único',
         cantidad: c.cantidad || 1, precio_unitario: c.presupuesto ? Math.round(c.presupuesto / (c.cantidad || 1)) : p.precio }] : [];
-      await App.nuevaVenta({ cliente_id: clienteId, canal: c.canal && N.CANALES.includes(c.canal) ? c.canal : 'Instagram', responsable_id: c.responsable_id,
+      await App.nuevaVenta({ cliente_id: clienteId, canal: N.canalDeOrigen(c.canal), responsable_id: c.responsable_id,
         notas: `Desde consulta #${c.id}${!p && c.producto_texto ? ' · ' + c.producto_texto : ''}`, items },
       async (pedidoId) => {
         await DB.actualizar('consultas', c.id, { etapa: 'Ganada', pedido_id: pedidoId, cerrada_at: new Date().toISOString(), actualizado: new Date().toISOString() });

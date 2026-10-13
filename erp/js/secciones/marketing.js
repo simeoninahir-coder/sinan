@@ -8,7 +8,8 @@
   // En el calendario cada publicación se ve como "REEL: tema", "HISTORIA: tema"…
   const PREFIJO = /^\s*(post|carrusel|reel|historia|historias|video|mail)\s*:\s*/i;
   const etiquetaPub = (p) => `${String(p.formato || '').toUpperCase()}: ${p.titulo}`;
-  const SEMANAS = ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Lanzamiento', 'Recta final', 'Después del evento'];
+  const TIPOS = ['Mensaje', 'Anuncio', 'Detrás de escena', 'Colaboración', 'Beneficio exclusivo', 'Hype final', 'Víspera', 'Evento en vivo'];
+  const SEMANAS =['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Lanzamiento', 'Recta final', 'Después del evento'];
   const svg = (d) => `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   const ICONO = {
     opcion: svg('<circle cx="12" cy="12" r="9"/><path d="m8.5 10.5 3.5 3.5 3.5-3.5"/>'),
@@ -18,7 +19,7 @@
   };
 
   function abrirPublicacion(fila, valores, pilares, alGuardar) {
-    const v = { estado: 'Idea', fecha: U.hoy(), formato: 'Historia', red: 'Instagram', ...(fila || valores || {}) };
+    const v = { estado: 'Idea', fecha: U.hoy(), formato: 'Historia', canal: 'Instagram', ...(fila || valores || {}) };
     const opciones = (lista, actual, vacio = true) => (vacio ? '<option value="">Vacío</option>' : '') + lista.map((o) => {
       const [valor, texto] = typeof o === 'object' ? [o.valor, o.texto] : [o, o];
       return `<option value="${U.esc(valor)}" ${String(valor) === String(actual ?? '') ? 'selected' : ''}>${U.esc(texto)}</option>`;
@@ -42,7 +43,9 @@
       ${prop('opcion', 'Pilar', `<select name="pilar_id">${opciones(pilares.map((p) => ({ valor: p.id, texto: p.nombre })), v.pilar_id)}</select>`)}
       ${prop('opcion', 'Semana', `<input name="semana" list="semanas-pub" placeholder="Vacío" value="${U.esc(v.semana || '')}">
         <datalist id="semanas-pub">${SEMANAS.map((s) => `<option value="${U.esc(s)}">`).join('')}</datalist>`)}
-      ${prop('opcion', 'Red', `<select name="red">${opciones(N.REDES, v.red, false)}</select>`)}
+      ${prop('opcion', 'Canal', `<select name="canal">${opciones(N.CANALES_CONTENIDO, v.canal, false)}</select>`)}
+      ${prop('lista', 'Tipo', `<input name="tipo" list="tipos-pub" placeholder="Vacío" value="${U.esc(v.tipo || '')}">
+        <datalist id="tipos-pub">${TIPOS.map((s) => `<option value="${U.esc(s)}">`).join('')}</datalist>`)}
       ${prop('link', 'Link', `<input name="link" type="url" placeholder="Vacío (pegalo cuando se publique)" value="${U.esc(v.link || '')}">`)}
       <h3 class="ficha-seccion">Guion</h3>
       <textarea name="texto" class="ficha-guion" placeholder="Escribí el guion: qué se muestra, qué se dice, el texto de cada slide…">${U.esc(v.texto || '')}</textarea>
@@ -93,7 +96,7 @@
       const num = (c) => (form.elements[c].value === '' ? null : Number(form.elements[c].value));
       const d = {
         titulo: titulo.value.replace(PREFIJO, '').trim(), estado: val('estado'), fecha: val('fecha'), formato: val('formato'),
-        objetivo: val('objetivo'), pilar_id: num('pilar_id'), semana: val('semana'), red: val('red'), link: val('link'), texto: val('texto'),
+        objetivo: val('objetivo'), pilar_id: num('pilar_id'), semana: val('semana'), canal: val('canal'), tipo: val('tipo'), link: val('link'), texto: val('texto'),
         alcance: num('alcance'), me_gusta: num('me_gusta'), comentarios: num('comentarios'), guardados: num('guardados')
       };
       const boton = form.querySelector('[type=submit]'); boton.disabled = true; boton.classList.add('cargando');
@@ -109,10 +112,16 @@
   // ---------- Calendario mensual ----------
   function pestanaCalendario(cuerpo) {
     let mes = U.mes(U.hoy());
+    // Filtro por canal (se recuerda en este navegador). Lo de "Ambos" aparece en los dos.
+    let canal = 'Todo';
+    try { canal = localStorage.getItem('filtroCanalContenido') || 'Todo'; } catch (e) { /* sin almacenamiento */ }
+    const FILTROS = ['Todo', 'Instagram', 'Canal WA'];
+    const pasaFiltro = (p, c) => c === 'Todo' || p.canal === c || p.canal === 'Ambos';
     async function dibujar() {
       const [pubs, pilares] = await Promise.all([DB.listar('publicaciones', { orden: 'fecha' }), DB.listar('pilares_contenido')]);
       const pil = U.porId(pilares);
-      const porDia = U.agrupar(pubs.filter((p) => U.mes(p.fecha) === mes), (p) => p.fecha.slice(0, 10));
+      const delMes = pubs.filter((p) => U.mes(p.fecha) === mes);
+      const porDia = U.agrupar(delMes.filter((p) => pasaFiltro(p, canal)),(p) => p.fecha.slice(0, 10));
       const [a, m] = mes.split('-').map(Number);
       const primero = new Date(a, m - 1, 1);
       const offset = (primero.getDay() + 6) % 7; // lunes = 0
@@ -124,8 +133,8 @@
         const lista = porDia[iso] || [];
         celdas.push(`<div class="cal-dia ${iso === U.hoy() ? 'hoy' : ''}" data-dia="${iso}" role="button" tabindex="0" aria-label="${U.fecha(iso)}: ${lista.length} publicaciones">
           <span class="cal-num">${d}</span>
-          ${lista.map((p) => `<button type="button" class="cal-pub ${p.estado === 'Publicada' ? 'publicada' : ''}" data-pub="${p.id}"
-             style="--pilar:${U.esc(pil[p.pilar_id]?.color || '#477ab3')}" title="${U.esc(etiquetaPub(p))} · ${U.esc(p.estado)}">${U.esc(etiquetaPub(p))}</button>`).join('')}
+          ${lista.map((p) => `<button type="button" class="cal-pub ${p.estado === 'Publicada' ? 'publicada' : ''}" data-pub="${p.id}" data-canal="${U.esc(p.canal || 'Instagram')}"
+             style="--pilar:${U.esc(pil[p.pilar_id]?.color || '#477ab3')}" title="${U.esc(etiquetaPub(p))} · ${U.esc(p.canal || 'Instagram')} · ${U.esc(p.estado)}">${U.esc(etiquetaPub(p))}</button>`).join('')}
         </div>`);
       }
       cuerpo.innerHTML = `
@@ -134,29 +143,40 @@
           <h2>${U.nombreMes(mes)}</h2>
           <button type="button" class="boton boton-secundario boton-chico" data-mes="1" aria-label="Mes siguiente">→</button>
         </div>
+        <div class="filtro-canal" role="group" aria-label="Ver por canal">
+          <span class="filtro-canal-texto">Ver:</span>
+          ${FILTROS.map((f) => `<button type="button" class="${canal === f ? 'activo' : ''}" data-filtro-canal="${f}" aria-pressed="${canal === f}">${f}<span>${delMes.filter((p) => pasaFiltro(p, f)).length}</span></button>`).join('')}
+        </div>
         <div class="calendario">
           ${['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d) => `<div class="cal-dia-nombre">${d}</div>`).join('')}
           ${celdas.join('')}
         </div>
         <p class="muted chico separado">Tocá un día para agregar una publicación. ${pilares.map((p) => `<span class="chip-color"><i style="background:${U.esc(p.color)}"></i>${U.esc(p.nombre)}</span>`).join('')}</p>`;
+      cuerpo.querySelectorAll('[data-filtro-canal]').forEach((b) => b.onclick = () => {
+        canal = b.dataset.filtroCanal;
+        try { localStorage.setItem('filtroCanalContenido', canal); } catch (e) { /* sin almacenamiento */ }
+        dibujar();
+      });
+      // Nueva publicación en un día: toma el canal que se está viendo
+      const nueva = (fecha) => abrirPublicacion(null, { fecha, canal: canal === 'Todo' ? 'Instagram' : canal, formato: canal === 'Canal WA' ? 'Mensaje' : 'Historia' }, pilares, dibujar);
       cuerpo.querySelectorAll('[data-mes]').forEach((b) => b.onclick = () => {
         const f = new Date(a, m - 1 + Number(b.dataset.mes), 1); mes = U.isoDeFecha(f).slice(0, 7); dibujar();
       });
       // Día vacío: nueva publicación. Día con publicaciones: lista para elegir (más cómodo en el celular)
       const abrirDia = (el) => {
         const lista = porDia[el.dataset.dia] || [];
-        if (!lista.length) return abrirPublicacion(null, { fecha: el.dataset.dia }, pilares, dibujar);
+        if (!lista.length) return nueva(el.dataset.dia);
         const m = UI.modal({
           titulo: U.fecha(el.dataset.dia), ancho: 'chico',
           contenido: `<ul class="lista-simple">${lista.map((p) => `<li><span class="chip-color"><i style="background:${U.esc(pil[p.pilar_id]?.color || '#477ab3')}"></i></span>
-              <div class="crece">${U.esc(etiquetaPub(p))}<small>${U.esc(p.red)} · ${U.esc(p.estado)}${p.semana ? " · " + U.esc(p.semana) : ""}</small></div>
+              <div class="crece">${U.esc(etiquetaPub(p))}<small>${U.esc(p.canal)} · ${U.esc(p.estado)}${p.semana ? " · " + U.esc(p.semana) : ""}</small></div>
               <button type="button" class="boton-texto" data-ver="${p.id}">Abrir</button></li>`).join('')}</ul>
             <div class="acciones-form"><button type="button" class="boton" data-otra>+ Otra publicación este día</button></div>`
         });
         m.cuerpo.addEventListener('click', (e) => {
           const v = e.target.closest('[data-ver]');
           if (v) { m.cerrar(); abrirPublicacion(lista.find((p) => p.id === Number(v.dataset.ver)), null, pilares, dibujar); }
-          if (e.target.closest('[data-otra]')) { m.cerrar(); abrirPublicacion(null, { fecha: el.dataset.dia }, pilares, dibujar); }
+          if (e.target.closest('[data-otra]')) { m.cerrar(); nueva(el.dataset.dia); }
         });
       };
       cuerpo.querySelector('.calendario').addEventListener('click', (e) => {
@@ -179,15 +199,16 @@
         const [filas, pilares] = await Promise.all([DB.listar('publicaciones', { orden: 'fecha', asc: false }), DB.listar('pilares_contenido')]);
         return { filas, extra: { pilares, pil: U.porId(pilares) } };
       },
-      buscar: (p) => [p.titulo, p.texto, p.red, p.formato].join(' '),
+      buscar: (p) => [p.titulo, p.texto, p.canal, p.tipo, p.formato].join(' '),
       filtros: [
         { id: 'estado', etiqueta: 'Estado', opciones: N.ESTADOS_PUBLICACION, valor: (p) => p.estado },
         { id: 'pilar', etiqueta: 'Pilar', opciones: (f, x) => x.pilares.map((p) => ({ valor: p.id, texto: p.nombre })), valor: (p) => p.pilar_id },
+        { id: 'canal', etiqueta: 'Canal', opciones: N.CANALES_CONTENIDO, valor: (p) => p.canal },
         { id: 'objetivo', etiqueta: 'Objetivo', opciones: N.OBJETIVOS_CONTENIDO, valor: (p) => p.objetivo },
         { id: 'formato', etiqueta: 'Formato', opciones: N.FORMATOS, valor: (p) => p.formato }
       ],
       columnas: [
-        { titulo: 'Publicación', valor: (p) => `<b style="font-weight:500">${U.esc(etiquetaPub(p))}</b><br><small class="muted">${U.esc(p.red)}${p.objetivo ? ' · ' + U.esc(p.objetivo) : ''}${p.semana ? ' · ' + U.esc(p.semana) : ''}</small>` },
+        { titulo: 'Publicación', valor: (p) => `<b style="font-weight:500">${U.esc(etiquetaPub(p))}</b><br><small class="muted">${U.esc(p.canal)}${p.tipo ? ' · ' + U.esc(p.tipo) : ''}${p.objetivo ? ' · ' + U.esc(p.objetivo) : ''}${p.semana ? ' · ' + U.esc(p.semana) : ''}</small>` },
         { titulo: 'Fecha', valor: (p) => U.fecha(p.fecha) },
         { titulo: 'Pilar', valor: (p, x) => x.pil[p.pilar_id] ? `<span class="chip-color"><i style="background:${U.esc(x.pil[p.pilar_id].color)}"></i>${U.esc(x.pil[p.pilar_id].nombre)}</span>` : '—' },
         { titulo: 'Estado', valor: (p) => UI.etiqueta(p.estado, N.tonoPublicacion(p.estado)) },

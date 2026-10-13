@@ -93,7 +93,10 @@
             <div class="tarjeta-cabecera"><h3 style="margin:0">Checklist</h3><span class="muted chico">${hechas} de ${e._tareas.length}</span></div>
             <ul class="lista-simple">${e._tareas.map((t) => `<li>
               <input type="checkbox" data-tarea="${t.id}" ${t.hecha ? 'checked' : ''} aria-label="Hecha">
-              <div class="crece ${t.hecha ? 'hecha' : ''}">${U.esc(t.tarea)}${t.responsable ? `<small>${U.esc(t.responsable)}</small>` : ''}</div>
+              <button type="button" class="crece tarea-abrir ${t.hecha ? 'hecha' : ''}" data-abrir-tarea="${t.id}" title="Ver o escribir la descripción">
+                <span class="tarea-nombre">${U.esc(t.tarea)}</span>${t.responsable ? `<small>${U.esc(t.responsable)}</small>` : ''}
+                ${t.descripcion ? `<span class="tarea-desc">${U.esc(t.descripcion)}</span>` : '<span class="tarea-desc tarea-desc-vacia">+ Agregar descripción</span>'}
+              </button>
               <button type="button" class="boton-icono boton-icono-peligro" data-borrar-tarea="${t.id}" aria-label="Borrar tarea">✕</button></li>`).join('') || '<li class="muted">Sin tareas todavía.</li>'}</ul>
             <form class="form-linea" data-nueva-tarea>
               <input name="tarea" placeholder="Nueva tarea" required aria-label="Nueva tarea">
@@ -157,7 +160,26 @@
       });
     }
 
+    // Cada tarea del checklist se abre para escribir una descripción (ej: las opciones de mini regalo)
+    async function editarTarea(tareaId) {
+      const t = await DB.obtener('evento_tareas', tareaId);
+      UI.formularioModal({
+        titulo: 'Tarea del checklist', valores: t,
+        campos: [
+          { campo: 'tarea', etiqueta: 'Tarea', requerido: true, ancho: 'completo' },
+          { campo: 'responsable', etiqueta: 'Responsable' },
+          { campo: 'hecha', etiqueta: 'Estado', tipo: 'si_no', textoSi: 'Ya está hecha' },
+          { campo: 'descripcion', etiqueta: 'Descripción', tipo: 'area', filas: 8, placeholder: 'Ej: opciones de mini regalo, precios, dónde comprarlo, ideas…' }
+        ],
+        alGuardar: async (d) => { await DB.actualizar('evento_tareas', tareaId, d); UI.aviso('Tarea guardada'); dibujar(); }
+      });
+    }
+
     function activar(raiz) {
+      raiz.addEventListener('click', (ev) => {
+        const at = ev.target.closest('[data-abrir-tarea]');
+        if (at) editarTarea(Number(at.dataset.abrirTarea));
+      });
       raiz.addEventListener('change', async (ev) => {
         const ch = ev.target.closest('[data-tarea]'); if (!ch) return;
         try { await DB.actualizar('evento_tareas', Number(ch.dataset.tarea), { hecha: ch.checked }); dibujar(); } catch (e) { UI.error(e); }

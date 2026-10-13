@@ -1245,3 +1245,9 @@ alter table gastos_fijos add column if not exists grupo text not null default 'H
 alter table publicaciones add column if not exists objetivo text;
 alter table ideas_contenido add column if not exists objetivo text;
 alter table publicaciones add column if not exists semana text;
+
+alter table publicaciones add column if not exists canal text not null default 'Instagram';
+alter table publicaciones add column if not exists tipo text;
+alter table evento_tareas add column if not exists descripcion text;
+alter table pedidos drop constraint if exists pedidos_canal_check;
+alter table pedidos add constraint pedidos_canal_check check (canal in ('Presencial', 'Presencial · Recomendación', 'Presencial · Clienta nueva', 'Presencial · Clienta que vuelve', 'Feria', 'Evento', 'Instagram', 'WhatsApp', 'Web', 'Otro'));
