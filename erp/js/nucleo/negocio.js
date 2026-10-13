@@ -8,14 +8,14 @@
   // Listas de opciones (se pueden ampliar acá)
   N.CATEGORIAS = ['Bolsos', 'Mochilas', 'Carteras', 'Billeteras', 'Llaveros', 'Accesorios', 'Medias', 'Por mayor'];
   N.ESTADOS_PRODUCTO = ['Activo', 'Pausado', 'Agotado', 'Discontinuado'];
-  // Canal de venta. "Presencial" se abre según cómo llegó la clienta.
-  N.CANALES = ['Presencial · Recomendación', 'Presencial · Clienta nueva', 'Presencial · Clienta que vuelve', 'Feria', 'Evento', 'Instagram', 'WhatsApp', 'Web', 'Otro'];
+  // Canal de venta. Las ventas en mano se separan según cómo llegó la clienta.
+  N.CANALES = ['Recomendación', 'Clienta nueva', 'Clienta que vuelve', 'Feria', 'Evento', 'Instagram', 'WhatsApp', 'Web', 'Otro'];
   // Cómo llegó una clienta o por dónde consultó
-  N.ORIGENES = ['Recomendación', 'Presencial', 'Feria', 'Evento', 'Instagram', 'WhatsApp', 'Web', 'Otro'];
-  N.esPresencial = (canal) => String(canal || '').startsWith('Presencial');
-  N.origenDeCanal = (canal) => (canal === 'Presencial · Recomendación' ? 'Recomendación' : N.esPresencial(canal) ? 'Presencial' : canal);
-  N.canalDeOrigen = (origen) => (origen === 'Recomendación' ? 'Presencial · Recomendación' : origen === 'Presencial' ? 'Presencial · Clienta nueva'
-    : N.CANALES.includes(origen) ? origen : 'Instagram');
+  N.ORIGENES = ['Recomendación', 'Feria', 'Evento', 'Instagram', 'WhatsApp', 'Web', 'Otro'];
+  // Ventas que se entregan y cobran en el momento
+  N.esEnMano = (canal) => ['Recomendación', 'Clienta nueva', 'Clienta que vuelve', 'Feria', 'Evento'].includes(canal);
+  N.origenDeCanal = (canal) => (N.ORIGENES.includes(canal) ? canal : null);
+  N.canalDeOrigen = (origen) => (N.CANALES.includes(origen) ? origen : 'Instagram');
   // Dónde sale cada contenido
   N.CANALES_CONTENIDO = ['Instagram', 'Canal WA', 'Ambos'];
   N.TIPOS_EVENTO = ['Encuentro', 'Feria', 'Taller', 'Otro'];

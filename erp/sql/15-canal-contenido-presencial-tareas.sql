@@ -39,3 +39,11 @@ from (values
   ('2026-11-21', 'Canal WA', 'Evento en vivo', 'Mensaje desde el lugar + gracias', 'Conectar')
 ) as v(fecha, canal, tipo, titulo, objetivo)
 where not exists (select 1 from publicaciones p where p.titulo = v.titulo and p.fecha = v.fecha::date);
+
+-- Sin canal "Presencial": las ventas en mano son Recomendación / Clienta nueva / Clienta que vuelve
+alter table pedidos drop constraint if exists pedidos_canal_check;
+update pedidos set canal = case canal when 'Presencial · Recomendación' then 'Recomendación' when 'Presencial · Clienta que vuelve' then 'Clienta que vuelve' else 'Clienta nueva' end where canal like 'Presencial%';
+alter table pedidos add constraint pedidos_canal_check check (canal in ('Recomendación', 'Clienta nueva', 'Clienta que vuelve', 'Feria', 'Evento', 'Instagram', 'WhatsApp', 'Web', 'Otro'));
+alter table pedidos alter column canal set default 'Clienta nueva';
+update clientes set canal_origen = null where canal_origen = 'Presencial';
+update consultas set canal = 'Otro' where canal = 'Presencial';

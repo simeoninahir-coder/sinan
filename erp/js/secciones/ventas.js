@@ -22,7 +22,7 @@
         opciones: [{ valor: NUEVO_CLIENTE, texto: 'Cliente nueva…' }, ...clientes.map((c) => ({ valor: c.id, texto: c.nombre }))] },
       { campo: '_cli_nombre', etiqueta: 'Nombre de la clienta nueva', noGuardar: true },
       { campo: '_cli_contacto', etiqueta: 'Teléfono o Instagram', noGuardar: true },
-      { campo: 'canal', etiqueta: 'Canal de venta', tipo: 'select', opciones: N.CANALES, requerido: true, vacio: false, defecto: 'Presencial · Clienta nueva' },
+      { campo: 'canal', etiqueta: 'Canal de venta', tipo: 'select', opciones: N.CANALES, requerido: true, vacio: false, defecto: 'Clienta nueva' },
       { campo: 'medio_pago', etiqueta: 'Medio de pago', tipo: 'select', opciones: N.MEDIOS_PAGO, vacio: 'Sin definir', defecto: 'Transferencia' },
       { campo: 'responsable_id', etiqueta: 'Responsable del pedido', tipo: 'select', numerico: true, vacio: 'Sin asignar',
         opciones: personas.filter((p) => p.activa || p.id === pedido?.responsable_id).map((p) => ({ valor: p.id, texto: p.nombre })) },
@@ -74,12 +74,12 @@
     };
     form.cliente_id.addEventListener('change', toggleCliente); toggleCliente();
 
-    // En persona: según su historial la clienta es nueva o vuelve (si vino recomendada se respeta)
+    // Según su historial la clienta es nueva o vuelve (si vino recomendada o por otro canal se respeta)
     form.cliente_id.addEventListener('change', () => {
-      if (!N.esPresencial(form.canal.value) || form.canal.value === 'Presencial · Recomendación') return;
+      if (!['Clienta nueva', 'Clienta que vuelve'].includes(form.canal.value)) return;
       const id = Number(form.cliente_id.value);
       const compro = id && (ctx.pedidos || []).some((p) => p.cliente_id === id && p.id !== pedido?.id && N.pedidoValido(p) && p.fecha <= form.fecha.value);
-      form.canal.value = compro ? 'Presencial · Clienta que vuelve' : 'Presencial · Clienta nueva';
+      form.canal.value = compro ? 'Clienta que vuelve' : 'Clienta nueva';
     });
 
     // Si el canal es Feria/Evento, elige sola la feria o evento de esa fecha
@@ -162,10 +162,10 @@
     form.envio.addEventListener('input', actualizar);
     form.querySelector('[data-agregar]').onclick = () => agregarItem();
 
-    // Presencial o feria: se entrega y se cobra en el momento → tilda todo solo (si es nueva)
+    // Venta en mano o en feria: se entrega y se cobra en el momento → tilda todo solo (si es nueva)
     form.canal.addEventListener('change', () => {
       if (pedido) return;
-      const enMano = N.esPresencial(form.canal.value) || ['Feria', 'Evento'].includes(form.canal.value);
+      const enMano = N.esEnMano(form.canal.value);
       N.PASOS_PEDIDO.forEach((s) => { form[s.campo].checked = enMano; });
       if (enMano && !form.envio_metodo.value) form.envio_metodo.value = 'En mano (presencial)';
     });
