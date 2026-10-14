@@ -7,15 +7,13 @@
   // ---------- Ficha de publicación (como una página de Notion) ----------
   // En el calendario cada publicación se ve como "REEL: tema", "HISTORIA: tema"…
   const PREFIJO = /^\s*(post|carrusel|reel|historia|historias|video|mail)\s*:\s*/i;
-  const etiquetaPub = (p) => `${String(p.formato || '').toUpperCase()}: ${p.titulo}`;
-  const TIPOS = ['Mensaje', 'Anuncio', 'Detrás de escena', 'Colaboración', 'Beneficio exclusivo', 'Hype final', 'Víspera', 'Evento en vivo'];
-  const SEMANAS =['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4', 'Lanzamiento', 'Recta final', 'Después del evento'];
+  // Sin tema queda solo el formato (ej: "REEL"): sirve para marcar que ese día hay que subir algo
+  const etiquetaPub = (p) => String(p.formato || '').toUpperCase() + (p.titulo ? `: ${p.titulo}` : '');
   const svg = (d) => `<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
   const ICONO = {
     opcion: svg('<circle cx="12" cy="12" r="9"/><path d="m8.5 10.5 3.5 3.5 3.5-3.5"/>'),
     fecha: svg('<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>'),
-    lista: svg('<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r=".9"/><circle cx="4.5" cy="12" r=".9"/><circle cx="4.5" cy="18" r=".9"/>'),
-    link: svg('<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>')
+    lista: svg('<path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r=".9"/><circle cx="4.5" cy="12" r=".9"/><circle cx="4.5" cy="18" r=".9"/>')
   };
 
   function abrirPublicacion(fila, valores, pilares, alGuardar) {
@@ -34,19 +32,14 @@
     form.innerHTML = `
       <div class="ficha-titulo">
         <span class="ficha-prefijo"></span>
-        <textarea name="titulo" rows="1" required placeholder="Tema" aria-label="Tema">${U.esc(String(v.titulo || '').replace(PREFIJO, ''))}</textarea>
+        <textarea name="titulo" rows="1" placeholder="Tema (podés dejarlo vacío)" aria-label="Tema">${U.esc(String(v.titulo || '').replace(PREFIJO, ''))}</textarea>
       </div>
       ${prop('opcion', 'Estado', `<select name="estado">${opciones(N.ESTADOS_PUBLICACION, v.estado, false)}</select>`)}
       ${prop('fecha', 'Fecha', `<input name="fecha" type="date" required value="${U.esc(String(v.fecha || '').slice(0, 10))}">`)}
       ${prop('opcion', 'Formato', `<select name="formato">${opciones(N.FORMATOS, v.formato, false)}</select>`)}
       ${prop('lista', 'Objetivo', `<select name="objetivo">${opciones(N.OBJETIVOS_CONTENIDO, v.objetivo)}</select>`)}
       ${prop('opcion', 'Pilar', `<select name="pilar_id">${opciones(pilares.map((p) => ({ valor: p.id, texto: p.nombre })), v.pilar_id)}</select>`)}
-      ${prop('opcion', 'Semana', `<input name="semana" list="semanas-pub" placeholder="Vacío" value="${U.esc(v.semana || '')}">
-        <datalist id="semanas-pub">${SEMANAS.map((s) => `<option value="${U.esc(s)}">`).join('')}</datalist>`)}
       ${prop('opcion', 'Canal', `<select name="canal">${opciones(N.CANALES_CONTENIDO, v.canal, false)}</select>`)}
-      ${prop('lista', 'Tipo', `<input name="tipo" list="tipos-pub" placeholder="Vacío" value="${U.esc(v.tipo || '')}">
-        <datalist id="tipos-pub">${TIPOS.map((s) => `<option value="${U.esc(s)}">`).join('')}</datalist>`)}
-      ${prop('link', 'Link', `<input name="link" type="url" placeholder="Vacío (pegalo cuando se publique)" value="${U.esc(v.link || '')}">`)}
       <h3 class="ficha-seccion">Guion</h3>
       <textarea name="texto" class="ficha-guion" placeholder="Escribí el guion: qué se muestra, qué se dice, el texto de cada slide…">${U.esc(v.texto || '')}</textarea>
       <details class="ficha-resultados" ${hayMetricas ? 'open' : ''}>
@@ -96,7 +89,7 @@
       const num = (c) => (form.elements[c].value === '' ? null : Number(form.elements[c].value));
       const d = {
         titulo: titulo.value.replace(PREFIJO, '').trim(), estado: val('estado'), fecha: val('fecha'), formato: val('formato'),
-        objetivo: val('objetivo'), pilar_id: num('pilar_id'), semana: val('semana'), canal: val('canal'), tipo: val('tipo'), link: val('link'), texto: val('texto'),
+        objetivo: val('objetivo'), pilar_id: num('pilar_id'), canal: val('canal'), texto: val('texto'),
         alcance: num('alcance'), me_gusta: num('me_gusta'), comentarios: num('comentarios'), guardados: num('guardados')
       };
       const boton = form.querySelector('[type=submit]'); boton.disabled = true; boton.classList.add('cargando');
@@ -169,7 +162,7 @@
         const m = UI.modal({
           titulo: U.fecha(el.dataset.dia), ancho: 'chico',
           contenido: `<ul class="lista-simple">${lista.map((p) => `<li><span class="chip-color"><i style="background:${U.esc(pil[p.pilar_id]?.color || '#477ab3')}"></i></span>
-              <div class="crece">${U.esc(etiquetaPub(p))}<small>${U.esc(p.canal)} · ${U.esc(p.estado)}${p.semana ? " · " + U.esc(p.semana) : ""}</small></div>
+              <div class="crece">${U.esc(etiquetaPub(p))}<small>${U.esc(p.canal)} · ${U.esc(p.estado)}</small></div>
               <button type="button" class="boton-texto" data-ver="${p.id}">Abrir</button></li>`).join('')}</ul>
             <div class="acciones-form"><button type="button" class="boton" data-otra>+ Otra publicación este día</button></div>`
         });
@@ -179,7 +172,60 @@
           if (e.target.closest('[data-otra]')) { m.cerrar(); nueva(el.dataset.dia); }
         });
       };
-      cuerpo.querySelector('.calendario').addEventListener('click', (e) => {
+      // Arrastrar una publicación a otro día (con el mouse o con el dedo). Si no se mueve, es un clic y se abre.
+      const cal = cuerpo.querySelector('.calendario');
+      let arrastre = null;
+      let ignorarClicHasta = 0;
+      cal.addEventListener('pointerdown', (e) => {
+        const chip = e.target.closest('[data-pub]');
+        if (!chip || e.button !== 0) return;
+        arrastre = { chip, x: e.clientX, y: e.clientY, activo: false, fantasma: null, destino: null };
+        chip.setPointerCapture(e.pointerId);
+      });
+      cal.addEventListener('pointermove', (e) => {
+        if (!arrastre) return;
+        if (!arrastre.activo) {
+          if (Math.hypot(e.clientX - arrastre.x, e.clientY - arrastre.y) < 6) return;
+          arrastre.activo = true;
+          const f = arrastre.chip.cloneNode(true);
+          f.classList.add('cal-fantasma');
+          f.style.width = Math.max(arrastre.chip.offsetWidth, 120) + 'px';
+          document.body.appendChild(f);
+          arrastre.fantasma = f;
+          arrastre.chip.classList.add('arrastrando');
+        }
+        arrastre.fantasma.style.left = e.clientX + 10 + 'px';
+        arrastre.fantasma.style.top = e.clientY + 10 + 'px';
+        const dia = document.elementFromPoint(e.clientX, e.clientY)?.closest('.cal-dia[data-dia]') || null;
+        if (dia !== arrastre.destino) {
+          if (arrastre.destino) arrastre.destino.classList.remove('destino');
+          if (dia) dia.classList.add('destino');
+          arrastre.destino = dia;
+        }
+      });
+      const soltar = async (e) => {
+        const a = arrastre; arrastre = null;
+        if (!a || !a.activo) return;
+        ignorarClicHasta = Date.now() + 400;
+        a.fantasma.remove();
+        a.chip.classList.remove('arrastrando');
+        if (a.destino) a.destino.classList.remove('destino');
+        if (e.type === 'pointercancel' || !a.destino) return;
+        const fecha = a.destino.dataset.dia;
+        const pub = pubs.find((p) => p.id === Number(a.chip.dataset.pub));
+        if (!pub || pub.fecha.slice(0, 10) === fecha) return;
+        a.destino.appendChild(a.chip);
+        try {
+          await DB.actualizar('publicaciones', pub.id, { fecha });
+          UI.aviso(`Pasó al ${U.fecha(fecha)}`);
+        } catch (er) { UI.error(er); }
+        dibujar();
+      };
+      cal.addEventListener('pointerup', soltar);
+      cal.addEventListener('pointercancel', soltar);
+
+      cal.addEventListener('click', (e) => {
+        if (Date.now() < ignorarClicHasta) return;
         const pub = e.target.closest('[data-pub]');
         if (pub) return abrirPublicacion(pubs.find((p) => p.id === Number(pub.dataset.pub)), null, pilares, dibujar);
         const dia = e.target.closest('[data-dia]'); if (dia) abrirDia(dia);
@@ -199,7 +245,7 @@
         const [filas, pilares] = await Promise.all([DB.listar('publicaciones', { orden: 'fecha', asc: false }), DB.listar('pilares_contenido')]);
         return { filas, extra: { pilares, pil: U.porId(pilares) } };
       },
-      buscar: (p) => [p.titulo, p.texto, p.canal, p.tipo, p.formato].join(' '),
+      buscar: (p) => [p.titulo, p.texto, p.canal, p.formato].join(' '),
       filtros: [
         { id: 'estado', etiqueta: 'Estado', opciones: N.ESTADOS_PUBLICACION, valor: (p) => p.estado },
         { id: 'pilar', etiqueta: 'Pilar', opciones: (f, x) => x.pilares.map((p) => ({ valor: p.id, texto: p.nombre })), valor: (p) => p.pilar_id },
@@ -208,7 +254,7 @@
         { id: 'formato', etiqueta: 'Formato', opciones: N.FORMATOS, valor: (p) => p.formato }
       ],
       columnas: [
-        { titulo: 'Publicación', valor: (p) => `<b style="font-weight:500">${U.esc(etiquetaPub(p))}</b><br><small class="muted">${U.esc(p.canal)}${p.tipo ? ' · ' + U.esc(p.tipo) : ''}${p.objetivo ? ' · ' + U.esc(p.objetivo) : ''}${p.semana ? ' · ' + U.esc(p.semana) : ''}</small>` },
+        { titulo: 'Publicación', valor: (p) => `<b style="font-weight:500">${U.esc(etiquetaPub(p))}</b><br><small class="muted">${U.esc(p.canal)}${p.objetivo ? ' · ' + U.esc(p.objetivo) : ''}</small>` },
         { titulo: 'Fecha', valor: (p) => U.fecha(p.fecha) },
         { titulo: 'Pilar', valor: (p, x) => x.pil[p.pilar_id] ? `<span class="chip-color"><i style="background:${U.esc(x.pil[p.pilar_id].color)}"></i>${U.esc(x.pil[p.pilar_id].nombre)}</span>` : '—' },
         { titulo: 'Estado', valor: (p) => UI.etiqueta(p.estado, N.tonoPublicacion(p.estado)) },
