@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bolso Cielo — Sinan</title>
+  <meta name="description" content="Bolso Cielo: dos compartimentos con cierre, espacio para zapatillas y correa regulable. Comprá por WhatsApp." />
+  <meta name="theme-color" content="#4279B2" />
+  <meta property="og:title" content="Bolso Cielo — Sinan" />
+  <meta property="og:description" content="Un bolso que se adapta a tu movimiento. Comprá por WhatsApp." />
+  <meta property="og:type" content="website" />
+
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+
+  <link rel="icon" type="image/png" href="../assets/isotipo.png" />
+  <link rel="apple-touch-icon" href="../assets/isotipo.png" />
+
+  <!-- Mismas tipografías que la página principal -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Gilda+Display&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- styles.css = paleta, tipografía y header de la página principal. producto.css = solo esta página -->
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="producto.css" />
+</head>
+<body data-producto-id="bolso-cielo">
+
+  <!-- Íconos reutilizables (se dibujan una sola vez) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <symbol id="ic-wa" viewBox="0 0 24 24">
+      <path d="M20.52 3.48A11.78 11.78 0 0012.04 0C5.5 0 .2 5.3.2 11.84a11.7 11.7 0 001.62 5.95L0 24l6.36-1.78a11.83 11.83 0 005.68 1.45h.01c6.54 0 11.84-5.3 11.84-11.84 0-3.16-1.23-6.13-3.37-8.35zM12.05 21.5h-.01a9.66 9.66 0 01-4.92-1.35l-.35-.21-3.78 1.06 1.08-3.69-.23-.38a9.65 9.65 0 01-1.48-5.1c0-5.34 4.34-9.68 9.69-9.68 2.59 0 5.02 1.01 6.85 2.84a9.62 9.62 0 012.84 6.85c0 5.34-4.34 9.68-9.69 9.68zm5.31-7.25c-.29-.15-1.72-.85-1.99-.95-.27-.1-.46-.15-.66.15-.2.29-.76.95-.93 1.14-.17.2-.34.22-.63.07-.29-.15-1.22-.45-2.33-1.43-.86-.77-1.44-1.72-1.61-2.01-.17-.29-.02-.45.13-.6.13-.13.29-.34.44-.51.15-.17.2-.29.29-.49.1-.2.05-.37-.02-.51-.07-.15-.66-1.59-.9-2.18-.24-.57-.48-.49-.66-.5-.17-.01-.37-.01-.57-.01-.2 0-.51.07-.78.37-.27.29-1.02 1-1.02 2.43 0 1.43 1.05 2.82 1.2 3.02.15.2 2.07 3.16 5.02 4.43.7.3 1.25.48 1.67.62.7.22 1.34.19 1.84.12.56-.08 1.72-.7 1.96-1.38.24-.68.24-1.27.17-1.38-.07-.12-.27-.2-.56-.34z"/>
+    </symbol>
+  </svg>
+
+  <!-- ===== HEADER (igual al de la página principal: logo + nav) ===== -->
+  <header class="header" id="top">
+    <div class="container header__inner">
+      <a href="../index.html" class="header__logo" aria-label="Sinan — inicio">
+        <img src="../assets/logo-horizontal.png" alt="Sinan" />
+      </a>
+      <nav class="header__nav" aria-label="Navegación principal">
+        <a href="../index.html#catalogo">Catálogo</a>
+        <a href="../index.html#sobre">Sobre Sinan</a>
+        <a href="../index.html#resenas">Reseñas</a>
+        <a href="../index.html#newsletter">Newsletter</a>
+        <a href="../index.html#contacto">Contacto</a>
+      </nav>
+      <div class="header__acciones">
+        <button class="header__menu-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="mobile-menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+    <div class="header__mobile" id="mobile-menu" hidden>
+      <a href="../index.html#catalogo">Catálogo</a>
+      <a href="../index.html#sobre">Sobre Sinan</a>
+      <a href="../index.html#resenas">Reseñas</a>
+      <a href="../index.html#newsletter">Newsletter</a>
+      <a href="../index.html#contacto">Contacto</a>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ===== 2 + 3. GALERÍA + INFO DEL PRODUCTO ===== -->
+    <section class="pg-top">
+      <div class="container pg-top__grid">
+
+        <!-- Galería: en mobile se desliza con el dedo; abajo, miniaturas clickeables -->
+        <div class="pg-gallery">
+          <div class="pg-stage">
+            <div class="pg-track" id="pg-track" tabindex="0" aria-label="Fotos del Bolso Cielo">
+
+              <figure class="pg-slide">
+                <!-- reemplazar con foto 1 (ideal: el bolso entero sobre fondo claro) -->
+                <img src="../assets/productos/bolso-cielo-4.jpg" width="819" height="1456" alt="Bolso Cielo negro sobre una mesa, vista general" fetchpriority="high" data-zoom-group="galeria" />
+              </figure>
+              <figure class="pg-slide">
+                <!-- reemplazar con foto 2 -->
+                <img src="../assets/productos/bolso-cielo-3.jpg" width="619" height="1100" alt="Bolso Cielo negro apoyado en un banco de plaza" loading="lazy" data-zoom-group="galeria" />
+              </figure>
+              <figure class="pg-slide">
+                <!-- reemplazar con foto 3 -->
+                <img src="../assets/productos/bolso-cielo-1.jpg" width="619" height="1100" alt="Abriendo el compartimento principal del Bolso Cielo" loading="lazy" data-zoom-group="galeria" />
+              </figure>
+              <figure class="pg-slide">
+                <!-- reemplazar con foto 4 -->
+                <img src="../assets/productos/bolso-cielo-2.jpg" width="619" height="1100" alt="Interior del Bolso Cielo con bolsillo con cierre" loading="lazy" data-zoom-group="galeria" />
+              </figure>
+              <!-- Para sumar la foto 5 o 6: copiá uno de los <figure class="pg-slide"> de arriba y cambiá el src.
+                   Las miniaturas se generan solas. -->
+
+              <!-- VIDEO (YouTube). Subí el video a YouTube como "No listado", copiá el ID y pegalo abajo en data-youtube-id.
+                   Mientras diga REEMPLAZAR_ID_YOUTUBE el video no se muestra. Más detalle al final de este archivo. -->
+              <figure class="pg-slide pg-slide--video" id="pg-video" data-youtube-id="REEMPLAZAR_ID_YOUTUBE"></figure>
+
+            </div>
+            <button type="button" class="pg-arrow pg-arrow--prev" id="pg-prev" aria-label="Foto anterior">&#8249;</button>
+            <button type="button" class="pg-arrow pg-arrow--next" id="pg-next" aria-label="Foto siguiente">&#8250;</button>
+            <span class="pg-counter" id="pg-counter" aria-live="polite"></span>
+          </div>
+          <div class="pg-thumbs" id="pg-thumbs"></div>
+        </div>
+
+        <!-- Info -->
+        <div class="pg-info">
+          <p class="pg-eyebrow">Bolsos</p>
+          <h1 class="pg-title">Bolso Cielo</h1>
+
+          <!-- Badge de stock: se actualiza solo desde data/productos.js (¡Solo queda 1! / Sin stock / se oculta si hay mucho) -->
+          <p class="pg-badge js-stock-badge">Stock limitado</p>
+
+          <!-- Precio: se actualiza solo desde data/productos.js -->
+          <p class="pg-price" id="pg-price">$&nbsp;36.700</p>
+
+          <p class="pg-desc">Un bolso que se adapta a tu movimiento. Dos compartimentos principales con cierre, espacio para zapatillas y bolsillos para lo esencial, con correa regulable para llevarlo como más te guste.</p>
+
+          <!-- Selector de color. Para sumar un color: copiá un <button class="pg-swatch"> y cambiá data-color y --sw.
+               Opcional: data-slide="N" lleva la galería a la foto N (empieza en 0) al elegir ese color. -->
+          <div class="pg-colores" id="pg-colores" role="radiogroup" aria-label="Color">
+            <span class="pg-colores__label">Color: <strong id="pg-color-nombre">Negro</strong></span>
+            <div class="pg-colores__list">
+              <button type="button" class="pg-swatch is-active" role="radio" aria-checked="true" aria-label="Negro" title="Negro" data-color="Negro" style="--sw:#1A1A1A"></button>
+            </div>
+          </div>
+
+          <a class="btn pg-cta" href="https://wa.me/5491126724433" target="_blank" rel="noopener" data-wa-cta>
+            <svg class="pg-cta__icon" aria-hidden="true"><use href="#ic-wa"/></svg>
+            <span class="pg-cta__txt">Comprar por WhatsApp</span>
+          </a>
+          <p class="pg-note">Te respondo el mismo día y coordinamos el pago y el envío.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== 4. CARACTERÍSTICAS ===== -->
+    <section class="pg-section">
+      <div class="container">
+        <header class="pg-head">
+          <p class="section-eyebrow">Pensado para vos</p>
+          <h2 class="section-title">Lo que tiene el Bolso Cielo</h2>
+        </header>
+        <div class="pg-features">
+          <div class="pg-feature">
+            <span class="pg-feature__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h4M7 16.5h4"/></svg>
+            </span>
+            <h3>Dos compartimentos con cierre</h3>
+            <p>Organizá tus cosas y tenelas siempre a mano.</p>
+          </div>
+          <div class="pg-feature">
+            <span class="pg-feature__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17V11l4-1.5 2.5 2.5 3-.8 5.5 2.3c1.5.6 3 1.2 3 3V17z"/><path d="M3 20h18"/><path d="M9.5 12l1.2 1.6M12 11.2l1.2 1.6"/></svg>
+            </span>
+            <h3>Espacio para zapatillas</h3>
+            <p>Un lugar pensado para llevar tus zapas.</p>
+          </div>
+          <div class="pg-feature">
+            <span class="pg-feature__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h9M17 8h3M4 16h3M11 16h9"/><circle cx="15" cy="8" r="2"/><circle cx="9" cy="16" r="2"/></svg>
+            </span>
+            <h3>Correa regulable</h3>
+            <p>Ajustala a tu medida y llevalo como más te guste.</p>
+          </div>
+          <div class="pg-feature">
+            <span class="pg-feature__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/><path d="M9 12l2 2 4-4"/></svg>
+            </span>
+            <h3>Material resistente</h3>
+            <p>Hecho para acompañarte todos los días.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 5. GALERÍA AMPLIADA (zoom al clickear) ===== -->
+    <section class="pg-section pg-section--soft" id="angulos">
+      <div class="container">
+        <header class="pg-head">
+          <p class="section-eyebrow">Mirala de cerca</p>
+          <h2 class="section-title">Desde todos los ángulos</h2>
+          <p class="pg-head__sub">Tocá una foto para verla en grande.</p>
+        </header>
+        <div class="pg-angulos">
+          <figure>
+            <button type="button" class="pg-angulo" data-zoom-group="angulos" aria-label="Ampliar foto: vista general">
+              <!-- reemplazar con foto de ángulo 1 -->
+              <img src="../assets/productos/bolso-cielo-4.jpg" width="819" height="1456" alt="Bolso Cielo, vista general" loading="lazy" />
+            </button>
+            <figcaption>Vista general</figcaption>
+          </figure>
+          <figure>
+            <button type="button" class="pg-angulo" data-zoom-group="angulos" aria-label="Ampliar foto: en uso">
+              <!-- reemplazar con foto de ángulo 2 -->
+              <img src="../assets/productos/bolso-cielo-3.jpg" width="619" height="1100" alt="Bolso Cielo en uso" loading="lazy" />
+            </button>
+            <figcaption>En uso</figcaption>
+          </figure>
+          <figure>
+            <button type="button" class="pg-angulo" data-zoom-group="angulos" aria-label="Ampliar foto: compartimento principal">
+              <!-- reemplazar con foto de ángulo 3 -->
+              <img src="../assets/productos/bolso-cielo-1.jpg" width="619" height="1100" alt="Compartimento principal del Bolso Cielo" loading="lazy" />
+            </button>
+            <figcaption>Compartimento principal</figcaption>
+          </figure>
+          <figure>
+            <button type="button" class="pg-angulo" data-zoom-group="angulos" aria-label="Ampliar foto: bolsillo interior">
+              <!-- reemplazar con foto de ángulo 4 -->
+              <img src="../assets/productos/bolso-cielo-2.jpg" width="619" height="1100" alt="Bolsillo interior con cierre del Bolso Cielo" loading="lazy" />
+            </button>
+            <figcaption>Bolsillo interior</figcaption>
+          </figure>
+          <!-- Para sumar más ángulos: copiá un <figure> de arriba y cambiá el src, el alt y el texto -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 6. RESEÑAS (se cargan solas desde data/productos.js: las que digan producto: 'Bolso Cielo') ===== -->
+    <section class="pg-section pg-resenas" id="pg-resenas" hidden>
+      <div class="container">
+        <header class="pg-head">
+          <p class="section-eyebrow">Lo que dicen las clientas</p>
+          <h2 class="section-title">Historias <em>reales</em></h2>
+        </header>
+        <div class="resenas__grid" id="pg-resenas-grid"></div>
+      </div>
+    </section>
+
+    <!-- ===== 7. PREGUNTAS FRECUENTES ===== -->
+    <section class="pg-section pg-section--soft">
+      <div class="container">
+        <header class="pg-head">
+          <p class="section-eyebrow">Dudas</p>
+          <h2 class="section-title">Preguntas frecuentes</h2>
+        </header>
+        <div class="pg-faq">
+          <details>
+            <summary>¿Qué medidas tiene?</summary>
+            <div class="pg-faq__body">
+              <!-- COMPLETAR con las medidas reales (largo x alto x ancho) -->
+              <p>Es un bolso tipo deportivo, con lugar para tu ropa de entrenamiento y tus zapatillas. Si necesitás las medidas exactas, escribime por WhatsApp y te las paso.</p>
+            </div>
+          </details>
+          <details>
+            <summary>¿Hacen envíos?</summary>
+            <div class="pg-faq__body">
+              <p>Sí, hago envíos dentro de mi zona y lo coordinamos por WhatsApp una vez que confirmás tu compra. Escribime con tu localidad y te confirmo.</p>
+            </div>
+          </details>
+          <details>
+            <summary>¿En qué colores viene?</summary>
+            <div class="pg-faq__body">
+              <!-- ACTUALIZAR cuando haya más colores (y sumar el círculo en el selector de arriba) -->
+              <p>Por ahora tengo disponible el color negro. Si querés saber si va a entrar en otro color, escribime.</p>
+            </div>
+          </details>
+          <details>
+            <summary>¿Cómo lo cuido?</summary>
+            <div class="pg-faq__body">
+              <!-- REVISAR: consejo general, ajustarlo al material real del bolso -->
+              <p>Pasale un paño húmedo con un poquito de jabón neutro y dejalo secar al aire. Evitá la plancha, el secarropas y los productos fuertes.</p>
+            </div>
+          </details>
+          <details>
+            <summary>¿Cómo compro?</summary>
+            <div class="pg-faq__body">
+              <p>Tocá "Comprar por WhatsApp": se abre un mensaje con tu pedido ya armado y coordinamos el pago y el envío por ahí. Los cambios se coordinan caso a caso.</p>
+            </div>
+          </details>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 8. CTA FINAL ===== -->
+    <section class="pg-final">
+      <div class="container pg-final__inner">
+        <h2 class="section-title">¿Te lo llevás?</h2>
+        <p class="pg-final__sub">Escribime por WhatsApp y coordinamos el pago y el envío.</p>
+        <p class="pg-badge js-stock-badge">Stock limitado</p>
+        <a class="btn pg-cta pg-cta--final" href="https://wa.me/5491126724433" target="_blank" rel="noopener" data-wa-cta>
+          <svg class="pg-cta__icon" aria-hidden="true"><use href="#ic-wa"/></svg>
+          <span class="pg-cta__txt">Comprar por WhatsApp</span>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Zoom de fotos (se abre al tocar una foto de la galería, de "Desde todos los ángulos" o de una reseña) -->
+  <div class="pg-lightbox" id="pg-lightbox" role="dialog" aria-modal="true" aria-label="Foto ampliada">
+    <button type="button" class="pg-lightbox__btn pg-lightbox__close" id="pg-lightbox-close" aria-label="Cerrar">&times;</button>
+    <button type="button" class="pg-lightbox__btn pg-lightbox__nav pg-lightbox__nav--prev" id="pg-lightbox-prev" aria-label="Foto anterior">&#8249;</button>
+    <img id="pg-lightbox-img" src="" alt="" />
+    <button type="button" class="pg-lightbox__btn pg-lightbox__nav pg-lightbox__nav--next" id="pg-lightbox-next" aria-label="Foto siguiente">&#8250;</button>
+  </div>
+
+  <!--
+    ============================================================
+    DÓNDE SUBIR EL VIDEO
+    1. Subilo a YouTube (youtube.com → "Crear" → "Subir video"). Elegí visibilidad "No listado":
+       no aparece en tu canal ni en búsquedas, pero se puede ver desde esta página.
+       Sirven tanto videos normales como Shorts (verticales).
+    2. Copiá el ID del video, que es lo que va después de "v=" (youtube.com/watch?v=ESTE_ES_EL_ID)
+       o después de "youtu.be/" o "shorts/".
+    3. Pegalo arriba, en <figure id="pg-video" data-youtube-id="...">, en lugar de REEMPLAZAR_ID_YOUTUBE.
+    El video aparece como una foto más de la galería (con su miniatura) y recién carga YouTube cuando
+    la clienta le da play, así la página sigue liviana.
+    ============================================================
+  -->
+
+  <script src="../data/productos.js"></script>
+  <script src="producto.js" defer></script>
+</body>
+</html>
