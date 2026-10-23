@@ -1305,6 +1305,7 @@ h1 em, h2 em, h3 em {
 .resena__foto {
   display: block;
   width: calc(100% + 48px);
+  max-width: none;
   max-height: 220px;
   object-fit: cover;
   margin: -28px -24px 16px;
