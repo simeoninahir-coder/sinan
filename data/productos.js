@@ -94,6 +94,7 @@ window.SINAN_DATA = {
     },
     {
       id: 'bolso-cielo',
+      pagina: 'productos/bolso-cielo.html',
       nombre: 'Bolso Cielo',
       categoria: 'bolsos',
       precio: 36700,

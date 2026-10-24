@@ -399,6 +399,7 @@
   function abrirProductoPagina(productoId, opts) {
     var p = DATA.productos.find(function (x) { return x.id === productoId; });
     if (!p) return;
+    if (p.pagina) { window.location.href = p.pagina; return; }
     opts = opts || {};
     productoPaginaState.producto = p;
     productoPaginaState.idx = 0;
