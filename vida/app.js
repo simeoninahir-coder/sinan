@@ -58,6 +58,35 @@ const corto = (s) => {
 const fechaLocal = (ts) => aStr(new Date(ts));
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
+/* ---------- Íconos (trazo fino, toman el color del texto) ---------- */
+const ICONOS = {
+  sol: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>',
+  semana: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M7 14h10M7 18h6"/>',
+  calendario: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/>',
+  bandeja: '<path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/>',
+  mas: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  mas2: '<path d="M12 5v14M5 12h14"/>',
+  check: '<path d="M20 6 9 17l-5-5"/>',
+  estrella: '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>',
+  repetir: '<path d="m17 2 4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14"/><path d="m7 22-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/>',
+  campana: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  reloj: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  brote: '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>',
+  comillas: '<path d="M3 21c3 0 7-1 7-8V5c0-1.25-.76-2-2-2H4c-1.25 0-2 .75-2 2v6c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 0-1 1v3c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.76-2-2-2h-4c-1.25 0-2 .75-2 2v6c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/>',
+  corazon: '<path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/>',
+  objetivo: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  libro: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  revision: '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
+  paleta: '<circle cx="13.5" cy="6.5" r="1"/><circle cx="17.5" cy="10.5" r="1"/><circle cx="8.5" cy="7.5" r="1"/><circle cx="6.5" cy="12.5" r="1"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.93 0 1.65-.75 1.65-1.69 0-.44-.18-.84-.44-1.13-.29-.29-.44-.65-.44-1.12a1.64 1.64 0 0 1 1.67-1.67h2c3.05 0 5.55-2.5 5.55-5.55C21.97 6.01 17.46 2 12 2z"/>',
+  lapiz: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  atras: '<path d="m15 18-6-6 6-6"/>',
+  arriba: '<path d="m18 15-6-6-6 6"/>',
+  abajo: '<path d="m6 9 6 6 6-6"/>',
+  x: '<path d="M18 6 6 18M6 6l12 12"/>',
+  calMas: '<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M12 14v4M10 16h4"/>'
+};
+const ico = (n) => `<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONOS[n]}</svg>`;
+
 /* ---------- Utilidades ---------- */
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
@@ -148,7 +177,7 @@ async function sembrar() {
       { nombre: 'Leer mi frase del día', tipo: 'frase', orden: 3 }
     ]))),
     db(sb.from('frases').insert([
-      { texto: 'No tengo que hacer todo hoy. Solo lo de hoy.' },
+      { texto: 'Me trato con la misma paciencia y el mismo cariño que le doy a quienes quiero.' },
       { texto: 'Lo que está anotado ya no me ocupa la cabeza.' },
       { texto: 'Paso a paso también se llega.' }
     ])),
@@ -282,13 +311,13 @@ function itemTarea(t, { fecha = true } = {}) {
   const roja = t.reprogramaciones > 2 && !t.hecha;
   const vencida = !t.hecha && t.fecha && t.fecha < hoy();
   return `<li class="item ${t.hecha ? 'hecha' : ''} ${roja ? 'roja' : ''}" style="${estiloProyecto(p)}">
-    <button class="check ${t.hecha ? 'lleno' : ''}" data-a="toggleTarea" data-id="${t.id}" aria-label="Marcar como hecha">${t.hecha ? '✓' : ''}</button>
+    <button class="check ${t.hecha ? 'lleno' : ''}" data-a="toggleTarea" data-id="${t.id}" aria-label="Marcar como hecha">${t.hecha ? ico('check') : ''}</button>
     <div class="cuerpo clickable" data-a="editarTarea" data-id="${t.id}">
-      <div class="titulo">${t.prioridad === 'importante' ? '<span class="estrella">★</span> ' : ''}${esc(t.titulo)}</div>
+      <div class="titulo">${t.prioridad === 'importante' ? '<span class="estrella">' + ico('estrella') + '</span> ' : ''}${esc(t.titulo)}</div>
       <div class="meta">
         <span>${esc(p.nombre)}</span>
         ${fecha && t.fecha ? `<span class="${vencida ? 'vencida' : ''}">${vencida ? 'era para ' : ''}${corto(t.fecha)}</span>` : ''}
-        ${t.reprogramaciones ? `<span>↻ movida ${t.reprogramaciones} ${t.reprogramaciones === 1 ? 'vez' : 'veces'}</span>` : ''}
+        ${t.reprogramaciones ? `<span>${ico('repetir')} movida ${t.reprogramaciones} ${t.reprogramaciones === 1 ? 'vez' : 'veces'}</span>` : ''}
       </div>
       ${roja ? `<div class="pregunta">¿Esto lo vas a hacer o lo soltamos?</div>
         <div class="botones-chicos">
@@ -302,7 +331,7 @@ function itemTarea(t, { fecha = true } = {}) {
 function itemRecurrente(r) {
   const p = proyecto(r.proyecto_id);
   return `<li class="item recurrente clickable" style="${estiloProyecto(p)}" data-a="editarRecurrente" data-id="${r.id}">
-    <span aria-hidden="true">${r.tipo === 'recordatorio' ? '🔔' : '🕒'}</span>
+    ${ico(r.tipo === 'recordatorio' ? 'campana' : 'reloj')}
     <div class="cuerpo">
       <div class="titulo">${esc(r.titulo)}</div>
       <div class="meta"><span>${esc(p.nombre)}</span>${r.hora ? `<span>${r.hora.slice(0, 5)}</span>` : ''}${r.duracion_min && r.tipo === 'bloque' ? `<span>${r.duracion_min} min</span>` : ''}</div>
@@ -313,12 +342,12 @@ function itemRecurrente(r) {
 function filaHabito(hb, f) {
   const reg = registro(hb.id, f);
   const n = racha(hb.id);
-  const rachaTxt = n ? `🌱 ${n} ${n === 1 ? 'día' : 'días seguidos'}` : '';
+  const rachaTxt = n ? `${ico('brote')} ${n} ${n === 1 ? 'día' : 'días seguidos'}` : '';
   let extra = '';
   if (hb.version_corta && !reg) {
     extra = `<button class="btn chico sec" data-a="habitoCorto" data-id="${hb.id}" data-f="${f}" style="margin-top:6px">${esc(hb.version_corta)}</button>`;
   } else if (reg && reg.corta) {
-    extra = `<div class="sub">✓ hiciste la versión corta — también cuenta</div>`;
+    extra = `<div class="sub">Hiciste la versión corta — también cuenta</div>`;
   }
   if (hb.tipo === 'gratitud') {
     const g = S.gratitudes.find((x) => x.fecha === f);
@@ -335,8 +364,8 @@ function filaHabito(hb, f) {
     }
   }
   const check = hb.tipo === 'gratitud'
-    ? `<button class="check ${reg ? 'lleno' : ''}" data-a="abrirGratitud" aria-label="Escribir agradecimientos">${reg ? '✓' : ''}</button>`
-    : `<button class="check ${reg ? 'lleno' : ''}" data-a="toggleHabito" data-id="${hb.id}" data-f="${f}" aria-label="Marcar hábito">${reg ? '✓' : ''}</button>`;
+    ? `<button class="check ${reg ? 'lleno' : ''}" data-a="abrirGratitud" aria-label="Escribir agradecimientos">${reg ? ico('check') : ''}</button>`
+    : `<button class="check ${reg ? 'lleno' : ''}" data-a="toggleHabito" data-id="${hb.id}" data-f="${f}" aria-label="Marcar hábito">${reg ? ico('check') : ''}</button>`;
   return `<div class="habito">
     ${check}
     <div class="cuerpo">
@@ -362,7 +391,7 @@ function cabecera(titulo, sub = '') {
   return `<div class="cabecera"><div><h1>${titulo}</h1>${sub ? `<div class="fecha">${sub}</div>` : ''}</div></div>`;
 }
 function volver(a = 'mas') {
-  return `<button class="btn fantasma" data-a="ir" data-v="${a}" style="margin:-6px 0 4px -10px">← Volver</button>`;
+  return `<button class="btn fantasma" data-a="ir" data-v="${a}" style="margin:-6px 0 4px -10px">${ico('atras')} Volver</button>`;
 }
 
 /* ---------- Vistas ---------- */
@@ -383,15 +412,15 @@ VISTAS.hoy = () => {
 
   return `${cabecera('Hoy', cap(largo(h)))}
   ${frase ? `<div class="frase-dia">“${esc(frase.texto)}”<small>tu frase de hoy</small></div>` : ''}
-  ${revPendiente ? `<div class="aviso-suave"><span>🌿 Es domingo: ¿hacemos la revisión de la semana?</span><button class="btn chico" data-a="ir" data-v="revision">Empezar</button></div>` : ''}
-  ${nBandeja ? `<div class="aviso-suave"><span>📥 Tenés ${nBandeja} ${nBandeja === 1 ? 'cosa' : 'cosas'} en la bandeja sin ordenar.</span><button class="btn chico sec" data-a="irBandeja">Ver</button></div>` : ''}
+  ${revPendiente ? `<div class="aviso-suave"><span>Es domingo: ¿hacemos la revisión de la semana?</span><button class="btn chico" data-a="ir" data-v="revision">Empezar</button></div>` : ''}
+  ${nBandeja ? `<div class="aviso-suave"><span>Tenés ${nBandeja} ${nBandeja === 1 ? 'cosa' : 'cosas'} en la bandeja sin ordenar.</span><button class="btn chico sec" data-a="irBandeja">Ver</button></div>` : ''}
 
   <h2>Lo importante de hoy</h2>
   ${mostrar.length ? `<ul class="lista">${mostrar.map((t) => itemTarea(t)).join('')}</ul>`
-    : `<div class="vacio">${hechasHoy.length ? 'Terminaste lo de hoy. Disfrutá el resto del día 💜' : 'Nada pendiente para hoy. Respirá tranqui.'}</div>`}
+    : `<div class="vacio">${hechasHoy.length ? 'Terminaste lo de hoy. Disfrutá el resto del día.' : 'Nada pendiente para hoy. Respirá tranqui.'}</div>`}
   ${resto > 0 && !verMasHoy ? `<button class="btn fantasma" data-a="verMasHoy">Hay ${resto} más para hoy, pero con 3 alcanza. Ver igual</button>` : ''}
   ${verMasHoy && resto > 0 ? `<button class="btn fantasma" data-a="verMasHoy">Mostrar solo 3</button>` : ''}
-  ${hechasHoy.length ? `<div class="sub" style="margin-top:6px">✓ Ya hiciste hoy: ${hechasHoy.map((t) => esc(t.titulo)).join(' · ')}</div>` : ''}
+  ${hechasHoy.length ? `<div class="sub" style="margin-top:6px">Ya hiciste hoy: ${hechasHoy.map((t) => esc(t.titulo)).join(' · ')}</div>` : ''}
 
   ${recs.length ? `<h2>Bloques y recordatorios de hoy</h2><ul class="lista">${recs.map(itemRecurrente).join('')}</ul>` : ''}
 
@@ -485,7 +514,7 @@ VISTAS.tareas = () => {
         <button class="check" data-a="toggleTarea" data-id="${t.id}" aria-label="Ya está hecha"></button>
         <div class="cuerpo"><div class="titulo">${esc(t.titulo)}</div><div class="meta"><span>anotada ${corto(fechaLocal(t.creado_en))}</span></div></div>
         <button class="btn chico sec" data-a="editarTarea" data-id="${t.id}">Ordenar</button>
-      </li>`).join('')}</ul>` : '<div class="vacio">Bandeja vacía. Todo en su lugar ✨</div>'}`;
+      </li>`).join('')}</ul>` : '<div class="vacio">Bandeja vacía. Todo en su lugar.</div>'}`;
   } else if (segTareas === 'pendientes') {
     const filtro = `<div class="chips" style="margin-bottom:14px">
       <button class="chip ${!filtroProyecto ? 'sel' : ''}" data-a="filtroProyecto" data-v="">Todos</button>
@@ -498,7 +527,7 @@ VISTAS.tareas = () => {
     const hechas = S.tareas.filter((t) => t.hecha).sort((a, b) => (b.hecha_en || '').localeCompare(a.hecha_en || '')).slice(0, 60);
     const soltadas = S.tareas.filter((t) => t.soltada && !t.hecha).sort((a, b) => (b.soltada_en || '').localeCompare(a.soltada_en || ''));
     cuerpo = `<h3>Hechas</h3><div style="height:8px"></div>
-    ${hechas.length ? `<ul class="lista">${hechas.map((t) => itemTarea(t)).join('')}</ul>` : '<div class="vacio">Todavía nada. Ya va a haber 💪</div>'}
+    ${hechas.length ? `<ul class="lista">${hechas.map((t) => itemTarea(t)).join('')}</ul>` : '<div class="vacio">Todavía nada por acá.</div>'}
     <h2>Soltadas</h2><p class="sub">Cosas que decidiste no hacer. Si cambiás de idea, las recuperás.</p>
     ${soltadas.length ? `<ul class="lista">${soltadas.map((t) => `<li class="item" style="${estiloProyecto(proyecto(t.proyecto_id))}">
         <div class="cuerpo"><div class="titulo">${esc(t.titulo)}</div><div class="meta"><span>${esc(proyecto(t.proyecto_id).nombre)}</span></div></div>
@@ -510,18 +539,18 @@ VISTAS.tareas = () => {
 VISTAS.mas = () => {
   const actual = S.aprendizajes.find((a) => a.estado === 'actual');
   const opciones = [
-    ['habitos', '🌱', 'Hábitos', 'Rachas y edición', '#CFEBDD'],
-    ['frases', '💬', 'Mis frases', `${S.frases.length} guardadas`, '#F6D6DF'],
-    ['gratitud', '🙏', 'Diario de gratitud', 'Todo lo que agradeciste', '#FAF0C2'],
-    ['repetidos', '🕒', 'Bloques y recordatorios', 'Lo que se repite', '#D4E6F5'],
-    ['objetivos', '🎯', 'Objetivos', 'Metas grandes', '#FBE0C8'],
-    ['aprendiendo', '📚', 'Aprendiendo ahora', actual ? esc(actual.titulo) : 'Elegí una cosa', '#E8DFF5'],
-    ['revision', '🌿', 'Revisión semanal', 'Los domingos', '#DDEFC9'],
-    ['proyectos', '🎨', 'Proyectos', 'Nombres y colores', '#F3D9F0']
+    ['habitos', 'brote', 'Hábitos', 'Rachas y edición', '#CFEBDD'],
+    ['frases', 'comillas', 'Mis frases', `${S.frases.length} guardadas`, '#F6D6DF'],
+    ['gratitud', 'corazon', 'Diario de gratitud', 'Todo lo que agradeciste', '#FAF0C2'],
+    ['repetidos', 'repetir', 'Bloques y recordatorios', 'Lo que se repite', '#D4E6F5'],
+    ['objetivos', 'objetivo', 'Objetivos', 'Metas grandes', '#FBE0C8'],
+    ['aprendiendo', 'libro', 'Aprendiendo ahora', actual ? esc(actual.titulo) : 'Elegí una cosa', '#E8DFF5'],
+    ['revision', 'revision', 'Revisión semanal', 'Los domingos', '#DDEFC9'],
+    ['proyectos', 'paleta', 'Proyectos', 'Nombres y colores', '#F3D9F0']
   ];
   return `${cabecera('Más')}
-  <div class="grilla-mas">${opciones.map(([v, ico, t, s, c]) =>
-    `<button style="--chip:${c}" data-a="ir" data-v="${v}"><span class="ico">${ico}</span><b>${t}</b><span class="sub">${s}</span></button>`).join('')}</div>
+  <div class="grilla-mas">${opciones.map(([v, ic, t, s, c]) =>
+    `<button style="--chip:${c}" data-a="ir" data-v="${v}"><span class="ico-tile">${ico(ic)}</span><b>${t}</b><span class="sub">${s}</span></button>`).join('')}</div>
   <div style="text-align:center;margin-top:30px">
     <div class="sub">${esc(S.user.email)}</div>
     <button class="btn fantasma" data-a="salir">Cerrar sesión</button>
@@ -538,11 +567,11 @@ VISTAS.habitos = () => {
     }
     const n = racha(hb.id);
     return `<div class="tarjeta">
-      <div class="fila entre"><h3>${esc(hb.nombre)}</h3><button class="icono-btn" data-a="editarHabito" data-id="${hb.id}" aria-label="Editar">✏️</button></div>
+      <div class="fila entre"><h3>${esc(hb.nombre)}</h3><button class="icono-btn" data-a="editarHabito" data-id="${hb.id}" aria-label="Editar">${ico('lapiz')}</button></div>
       ${hb.detalle ? `<div class="sub">${esc(hb.detalle)}</div>` : ''}
       ${hb.version_corta ? `<div class="sub">También cuenta: ${esc(hb.version_corta)}</div>` : ''}
       <div class="puntos">${puntos}</div>
-      <div class="sub" style="margin-top:6px">${n ? `🌱 Racha: ${n} ${n === 1 ? 'día' : 'días seguidos'}` : 'Sin racha todavía — hoy puede ser el primer día'}</div>
+      <div class="sub" style="margin-top:6px">${n ? `${ico('brote')} Racha: ${n} ${n === 1 ? 'día' : 'días seguidos'}` : 'Sin racha todavía — hoy puede ser el primer día'}</div>
     </div>`;
   }).join('');
   return `${volver()}${cabecera('Hábitos', 'Últimos 14 días')}
@@ -558,7 +587,7 @@ VISTAS.frases = () => `${volver()}${cabecera('Mis frases', 'La app te muestra un
   </form>
   ${S.frases.length ? `<ul class="lista">${S.frases.slice().reverse().map((fr) => `<li class="item" style="--color:var(--rosa)">
     <div class="cuerpo"><div class="titulo">“${esc(fr.texto)}”</div></div>
-    <button class="icono-btn" data-a="editarFrase" data-id="${fr.id}" aria-label="Editar">✏️</button></li>`).join('')}</ul>` : '<div class="vacio">Todavía no guardaste frases.</div>'}`;
+    <button class="icono-btn" data-a="editarFrase" data-id="${fr.id}" aria-label="Editar">${ico('lapiz')}</button></li>`).join('')}</ul>` : '<div class="vacio">Todavía no guardaste frases.</div>'}`;
 
 VISTAS.gratitud = () => {
   const entradas = S.gratitudes.filter((g) => g.items.length).sort((a, b) => b.fecha.localeCompare(a.fecha));
@@ -574,11 +603,11 @@ VISTAS.repetidos = () => {
   const lista = S.recurrentes.slice().sort((a, b) => Number(b.activo) - Number(a.activo)).map((r) => {
     const p = proyecto(r.proyecto_id);
     return `<div class="tarjeta" style="border-left:6px solid ${p.color}${r.activo ? '' : ';opacity:.55'}">
-      <div class="fila entre"><h3>${r.tipo === 'recordatorio' ? '🔔' : '🕒'} ${esc(r.titulo)}</h3><button class="icono-btn" data-a="editarRecurrente" data-id="${r.id}" aria-label="Editar">✏️</button></div>
+      <div class="fila entre"><h3>${ico(r.tipo === 'recordatorio' ? 'campana' : 'reloj')} ${esc(r.titulo)}</h3><button class="icono-btn" data-a="editarRecurrente" data-id="${r.id}" aria-label="Editar">${ico('lapiz')}</button></div>
       <div class="sub">${esc(p.nombre)} · ${describirRegla(r)}${r.activo ? '' : ' · en pausa'}</div>
       ${r.notas ? `<div style="margin-top:6px;font-size:.92rem">${esc(r.notas)}</div>` : ''}
       <div class="sub" style="margin-top:6px">Próxima vez: ${corto(proximaFecha(r))}</div>
-      <a class="btn chico sec" style="display:inline-block;margin-top:10px;text-decoration:none" href="${linkGoogle(r)}" target="_blank" rel="noopener">📆 Agregar a Google Calendar</a>
+      <a class="btn chico sec" style="display:inline-block;margin-top:10px;text-decoration:none" href="${linkGoogle(r)}" target="_blank" rel="noopener">${ico('calMas')} Agregar a Google Calendar</a>
     </div>`;
   }).join('');
   return `${volver()}${cabecera('Bloques y recordatorios', 'Lo que se repite solo')}
@@ -608,7 +637,7 @@ VISTAS.objetivos = () => {
   return `${volver()}${cabecera('Objetivos', 'Metas grandes, en pasos chicos')}
   ${activos.map(tarjeta).join('') || '<div class="vacio">Sin objetivos por ahora.</div>'}
   <button class="btn ancho" data-a="nuevoObjetivo">+ Nuevo objetivo</button>
-  ${terminados.length ? `<h2>Logrados 🎉</h2>${terminados.map(tarjeta).join('')}` : ''}`;
+  ${terminados.length ? `<h2>Logrados</h2>${terminados.map(tarjeta).join('')}` : ''}`;
 };
 
 VISTAS.objetivo = () => {
@@ -619,7 +648,7 @@ VISTAS.objetivo = () => {
   const ts = S.tareas.filter((t) => t.objetivo_id === o.id && !t.soltada)
     .sort((a, b) => Number(a.hecha) - Number(b.hecha) || (a.fecha || '').localeCompare(b.fecha || ''));
   return `${volver('objetivos')}
-  <div class="fila entre"><h1>${esc(o.titulo)}</h1><button class="icono-btn" data-a="editarObjetivo" data-id="${o.id}" aria-label="Editar">✏️</button></div>
+  <div class="fila entre"><h1>${esc(o.titulo)}</h1><button class="icono-btn" data-a="editarObjetivo" data-id="${o.id}" aria-label="Editar">${ico('lapiz')}</button></div>
   <div class="sub">${esc(p.nombre)}</div>
   ${o.descripcion ? `<p>${esc(o.descripcion)}</p>` : ''}
   <div class="barra"><div style="width:${pr.pct}%"></div></div>
@@ -656,20 +685,20 @@ VISTAS.aprendiendo = () => {
   ${espera.length ? `<ul class="lista">${espera.map((a, i) => `<li class="item" style="--color:var(--cielo)">
     <div class="cuerpo"><div class="titulo">${i + 1}. ${esc(a.titulo)}</div></div>
     ${actual ? '' : `<button class="btn chico" data-a="empezarAprendizaje" data-id="${a.id}">Empezar</button>`}
-    <button class="icono-btn" data-a="moverEspera" data-id="${a.id}" data-v="-1" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>↑</button>
-    <button class="icono-btn" data-a="moverEspera" data-id="${a.id}" data-v="1" aria-label="Bajar" ${i === espera.length - 1 ? 'disabled' : ''}>↓</button>
-    <button class="icono-btn" data-a="borrarAprendizaje" data-id="${a.id}" aria-label="Sacar">✕</button>
+    <button class="icono-btn" data-a="moverEspera" data-id="${a.id}" data-v="-1" aria-label="Subir" ${i === 0 ? 'disabled' : ''}>${ico('arriba')}</button>
+    <button class="icono-btn" data-a="moverEspera" data-id="${a.id}" data-v="1" aria-label="Bajar" ${i === espera.length - 1 ? 'disabled' : ''}>${ico('abajo')}</button>
+    <button class="icono-btn" data-a="borrarAprendizaje" data-id="${a.id}" aria-label="Sacar">${ico('x')}</button>
   </li>`).join('')}</ul>` : '<div class="vacio">La lista de espera está vacía.</div>'}
   <form data-form="nuevoAprendizaje" class="fila" style="flex-wrap:nowrap;margin-top:8px">
     <input type="text" name="titulo" placeholder="Algo que quiero aprender algún día" maxlength="200">
     <button class="btn">Sumar</button>
   </form>
-  ${terminados.length ? `<h2>Ya aprendí 🎓</h2><ul class="lista">${terminados.map((a) => `<li class="item" style="--color:var(--menta)"><div class="cuerpo"><div class="titulo">${esc(a.titulo)}</div><div class="meta">${a.terminado_en ? `<span>terminado ${corto(a.terminado_en)}</span>` : ''}</div></div></li>`).join('')}</ul>` : ''}`;
+  ${terminados.length ? `<h2>Ya aprendí</h2><ul class="lista">${terminados.map((a) => `<li class="item" style="--color:var(--menta)"><div class="cuerpo"><div class="titulo">${esc(a.titulo)}</div><div class="meta">${a.terminado_en ? `<span>terminado ${corto(a.terminado_en)}</span>` : ''}</div></div></li>`).join('')}</ul>` : ''}`;
 };
 
 VISTAS.proyectos = () => `${volver()}${cabecera('Proyectos')}
   <ul class="lista">${S.proyectos.map((p) => `<li class="item clickable" style="${estiloProyecto(p)}${p.archivado ? ';opacity:.5' : ''}" data-a="editarProyecto" data-id="${p.id}">
-    <div class="cuerpo"><div class="titulo">${esc(p.nombre)}</div><div class="meta"><span>${tareasActivas().filter((t) => t.proyecto_id === p.id).length} pendientes</span>${p.archivado ? '<span>archivado</span>' : ''}</div></div><span>✏️</span></li>`).join('')}</ul>
+    <div class="cuerpo"><div class="titulo">${esc(p.nombre)}</div><div class="meta"><span>${tareasActivas().filter((t) => t.proyecto_id === p.id).length} pendientes</span>${p.archivado ? '<span>archivado</span>' : ''}</div></div><span class="sub">${ico('lapiz')}</span></li>`).join('')}</ul>
   <button class="btn ancho" data-a="nuevoProyecto">+ Nuevo proyecto</button>`;
 
 /* ---------- Revisión semanal ---------- */
@@ -693,7 +722,7 @@ VISTAS.revision = () => {
   const d = datosSemana(ini);
   const barra = `<div class="pasos">${[1, 2, 3, 4].map((i) => `<i class="${rev.paso >= i ? 'ok' : ''}"></i>`).join('')}</div>`;
   const nav = (sig = 'Siguiente') => `<div class="fila entre" style="margin-top:22px">
-    <button class="btn fantasma" data-a="revPaso" data-v="-1">← Atrás</button>
+    <button class="btn fantasma" data-a="revPaso" data-v="-1">${ico('atras')} Atrás</button>
     <button class="btn" data-a="revPaso" data-v="1">${sig}</button></div>`;
 
   if (rev.paso === 0) {
@@ -738,8 +767,8 @@ VISTAS.revision = () => {
           <button class="btn chico sec" data-a="toggleTarea" data-id="${t.id}">Ya la hice</button>
         </div>
       </div>`;
-    }).join('') : '<div class="vacio">No quedó nada pendiente. ¡Qué bien! 🌿</div>'}
-    ${nb ? `<div class="aviso-suave"><span>📥 Además tenés ${nb} en la bandeja. Podés ordenarlas después desde Tareas.</span></div>` : ''}
+    }).join('') : '<div class="vacio">No quedó nada pendiente.</div>'}
+    ${nb ? `<div class="aviso-suave"><span>Además tenés ${nb} en la bandeja. Podés ordenarlas después desde Tareas.</span></div>` : ''}
     ${nav()}`;
   }
   if (rev.paso === 3) {
@@ -764,7 +793,7 @@ VISTAS.revision = () => {
     ${nav('Terminar revisión')}`;
   }
   return `<div class="tarjeta" style="text-align:center;padding:30px 20px">
-    <div style="font-size:2.4rem">🌿</div><h1>Semana cerrada</h1>
+    <div class="ico-grande">${ico('revision')}</div><h1>Semana cerrada</h1>
     <p>Todo está anotado y en su lugar. Tus 3 prioridades te esperan en Hoy y en Semana desde el lunes.</p>
     <button class="btn" data-a="finRevision">Listo</button></div>`;
 };
@@ -805,7 +834,7 @@ function renderNuevaClave() {
 }
 
 /* ---------- Dibujar ---------- */
-const NAV = [['hoy', '🌤', 'Hoy'], ['semana', '📅', 'Semana'], ['calendario', '🗓', 'Calendario'], ['tareas', '📥', 'Tareas'], ['mas', '✨', 'Más']];
+const NAV = [['hoy', 'sol', 'Hoy'], ['semana', 'semana', 'Semana'], ['calendario', 'calendario', 'Calendario'], ['tareas', 'bandeja', 'Tareas'], ['mas', 'mas', 'Más']];
 const SECCION_DE = { habitos: 'mas', frases: 'mas', gratitud: 'mas', repetidos: 'mas', objetivos: 'mas', objetivo: 'mas', aprendiendo: 'mas', revision: 'mas', proyectos: 'mas' };
 let vistaAnterior = null;
 
@@ -814,8 +843,8 @@ function render() {
   const y = window.scrollY;
   const activa = SECCION_DE[vista] || vista;
   $app.innerHTML = `<main>${VISTAS[vista]()}</main>
-  <nav class="abajo">${NAV.map(([v, ico, t]) => `<button class="${activa === v ? 'activo' : ''}" data-a="ir" data-v="${v}"><span class="ico">${ico}</span>${t}</button>`).join('')}</nav>
-  <button class="fab" data-a="capturar" aria-label="Anotar algo rápido">+</button>`;
+  <nav class="abajo">${NAV.map(([v, ic, t]) => `<button class="${activa === v ? 'activo' : ''}" data-a="ir" data-v="${v}">${ico(ic)}${t}</button>`).join('')}</nav>
+  <button class="fab" data-a="capturar" aria-label="Anotar algo rápido">${ico('mas2')}</button>`;
   window.scrollTo(0, vistaAnterior === vista ? y : 0);
   vistaAnterior = vista;
 }
@@ -862,7 +891,7 @@ function editorTarea(t, preset = {}) {
       </div>
       <input type="date" name="fecha" value="${v.fecha}">
     </div>
-    <div class="campo" style="margin-bottom:14px"><span class="etiqueta">Prioridad</span>${chipsOpciones('prioridad', [['importante', '★ Importante'], ['puede_esperar', 'Puede esperar']], v.prioridad)}</div>
+    <div class="campo" style="margin-bottom:14px"><span class="etiqueta">Prioridad</span>${chipsOpciones('prioridad', [['importante', 'Importante'], ['puede_esperar', 'Puede esperar']], v.prioridad)}</div>
     ${objetivos.length ? `<label class="campo"><span>¿Es parte de un objetivo? (opcional)</span><select name="objetivo_id"><option value="">No</option>${objetivos.map((o) => `<option value="${o.id}" ${o.id === v.objetivo_id ? 'selected' : ''}>${esc(o.titulo)}</option>`).join('')}</select></label>` : ''}
     <label class="campo"><span>Notas (opcional)</span><textarea name="notas" maxlength="2000" style="min-height:60px">${esc(v.notas)}</textarea></label>
     <div id="errores-tarea" class="falta"></div>
@@ -878,7 +907,7 @@ function editorRecurrente(r) {
   const modo = g.freq === 'semanal' ? 'semanal' : g.dia_mes ? 'mes_dia' : 'mes_semana';
   abrirModal(`<h2>${r ? 'Editar' : 'Nuevo'} bloque o recordatorio</h2>
     <label class="campo"><span>Nombre</span><input type="text" name="titulo" value="${esc(r?.titulo || '')}" maxlength="200" ${r ? '' : 'autofocus'}></label>
-    <div class="campo" style="margin-bottom:14px"><span class="etiqueta">Tipo</span>${chipsOpciones('tipo', [['bloque', '🕒 Bloque de tiempo'], ['recordatorio', '🔔 Recordatorio']], r?.tipo || 'bloque')}</div>
+    <div class="campo" style="margin-bottom:14px"><span class="etiqueta">Tipo</span>${chipsOpciones('tipo', [['bloque', 'Bloque de tiempo'], ['recordatorio', 'Recordatorio']], r?.tipo || 'bloque')}</div>
     <div class="campo" style="margin-bottom:14px"><span class="etiqueta">Proyecto</span>${chipsProyecto(r?.proyecto_id || '')}</div>
     <div class="campo" style="margin-bottom:14px"><span class="etiqueta">¿Cada cuánto?</span>${chipsOpciones('modo', [['semanal', 'Ciertos días de la semana'], ['mes_semana', 'Una semana del mes'], ['mes_dia', 'Un día fijo del mes']], modo)}</div>
     <div data-si="modo=semanal" class="campo" style="margin-bottom:14px">
@@ -962,7 +991,7 @@ A.editarTarea = ({ id }) => editorTarea(S.tareas.find((t) => t.id === id));
 A.loHago = async ({ id }) => {
   const t = await actualizar('tareas', id, { reprogramaciones: 0 });
   render();
-  aviso('¡Bien! Elegí una fecha que sea real 💜');
+  aviso('¡Bien! Elegí una fecha que sea real.');
   editorTarea(t, { sinContar: true });
 };
 
@@ -980,7 +1009,7 @@ A.guardarTarea = async () => {
   if (!datos.titulo) faltan.push('qué hay que hacer');
   if (!datos.proyecto_id) faltan.push('el proyecto');
   if (!datos.fecha) faltan.push('la fecha');
-  if (faltan.length) { $modal.querySelector('#errores-tarea').textContent = `Falta ${faltan.join(', ')}. Sin fecha no se guarda 🙂`; return; }
+  if (faltan.length) { $modal.querySelector('#errores-tarea').textContent = `Falta ${faltan.join(', ')}. Sin fecha no se guarda.`; return; }
   const t = modalCtx.tarea;
   if (t) {
     if (!t.en_bandeja && t.fecha && datos.fecha > t.fecha && !modalCtx.sinContar) datos.reprogramaciones = t.reprogramaciones + 1;
@@ -990,20 +1019,20 @@ A.guardarTarea = async () => {
   }
   cerrarModal();
   render();
-  aviso(datos.reprogramaciones > 2 ? 'Guardada. Ojo: ya la moviste varias veces.' : 'Guardada ✓');
+  aviso(datos.reprogramaciones > 2 ? 'Guardada. Ojo: ya la moviste varias veces.' : 'Guardada');
 };
 A.toggleTarea = async ({ id }) => {
   const t = S.tareas.find((x) => x.id === id);
   const hecha = !t.hecha;
   await actualizar('tareas', id, { hecha, hecha_en: hecha ? new Date().toISOString() : null });
   render();
-  if (hecha) aviso('¡Hecho! ✓');
+  if (hecha) aviso('¡Hecho!');
 };
 A.soltar = async ({ id }) => {
   await actualizar('tareas', id, { soltada: true, soltada_en: new Date().toISOString() });
   cerrarModal();
   render();
-  aviso('Soltada. Una cosa menos en la cabeza 🍃');
+  aviso('Soltada. Una cosa menos en la cabeza.');
 };
 A.recuperar = async ({ id }) => {
   await actualizar('tareas', id, { soltada: false, soltada_en: null, reprogramaciones: 0 });
@@ -1027,7 +1056,7 @@ A.toggleHabito = async ({ id, f }) => {
 A.habitoCorto = async ({ id, f }) => {
   if (!registro(id, f)) await insertar('habito_registros', { habito_id: id, fecha: f, corta: true });
   render();
-  aviso('Versión corta: ¡también cuenta! 🌱');
+  aviso('Versión corta: también cuenta.');
 };
 A.abrirGratitud = () => { gratitudAbierta = true; render(); const i = document.querySelector('[name="g0"]'); if (i) i.focus(); };
 A.cerrarGratitud = () => { gratitudAbierta = false; render(); };
@@ -1150,7 +1179,7 @@ A.terminarObjetivo = async ({ id }) => {
   const o = S.objetivos.find((x) => x.id === id);
   await actualizar('objetivos', id, { terminado: !o.terminado });
   render();
-  if (!o.terminado) aviso('¡Objetivo cumplido! 🎉');
+  if (!o.terminado) aviso('¡Objetivo cumplido!');
 };
 
 // Aprendiendo ahora
@@ -1241,7 +1270,7 @@ A.revReprogramar = async ({ id }) => {
 };
 A.revSugerencia = ({ v }) => {
   const libre = [0, 1, 2].map((i) => document.getElementById(`rev-p${i}`)).find((el) => !el.value.trim());
-  if (libre) libre.value = v; else aviso('Ya elegiste 3. Con eso alcanza 💜');
+  if (libre) libre.value = v; else aviso('Ya elegiste 3. Con eso alcanza.');
 };
 A.finRevision = () => { rev = null; vista = 'hoy'; render(); };
 
@@ -1266,7 +1295,7 @@ F.ingresar = async (form, submitter) => {
       if (data.user && data.user.identities && !data.user.identities.length) {
         renderIngreso('Ese mail ya tiene cuenta. Tocá “Entrar”. Si no te acordás la contraseña, tocá “¿Te olvidaste la contraseña?”.', email);
       } else if (data.session) { S.user = data.user; await entrar(); }
-      else renderIngreso('📩 Te mandamos un mail. Tocá el link para confirmar tu cuenta y después volvé acá y tocá “Entrar”. (Si el link abre una página con error, no pasa nada: la cuenta igual queda confirmada.)');
+      else renderIngreso('Te mandamos un mail. Tocá el link para confirmar tu cuenta y después volvé acá y tocá “Entrar”. (Si el link abre una página con error, no pasa nada: la cuenta igual queda confirmada.)');
     } else {
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) throw error;
@@ -1305,7 +1334,7 @@ A.olvideClave = async () => {
   if (!email) { renderIngreso('Escribí tu mail arriba y después tocá “¿Te olvidaste la contraseña?”.'); return; }
   const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: URL_APP });
   renderIngreso(error ? `No se pudo mandar el mail: ${esc(error.message)}`
-    : '📩 Te mandamos un mail para elegir una contraseña nueva. Abrí el link desde este mismo dispositivo.', email);
+    : 'Te mandamos un mail para elegir una contraseña nueva. Abrí el link desde este mismo dispositivo.', email);
 };
 F.captura = async (form) => {
   const titulo = form.titulo.value.trim();
@@ -1313,7 +1342,7 @@ F.captura = async (form) => {
   await insertar('tareas', { titulo, en_bandeja: true });
   form.titulo.value = '';
   form.titulo.focus();
-  $modal.querySelector('#captura-ok').textContent = `✓ “${titulo}” quedó en la bandeja. Podés seguir anotando.`;
+  $modal.querySelector('#captura-ok').textContent = `“${titulo}” quedó en la bandeja. Podés seguir anotando.`;
   render();
 };
 F.bandejaRapida = async (form) => {
@@ -1337,14 +1366,14 @@ F.gratitud = async (form) => {
   }
   gratitudAbierta = false;
   render();
-  if (items.length) aviso('Guardado en tu diario 🙏');
+  if (items.length) aviso('Guardado en tu diario');
 };
 F.nuevaFrase = async (form) => {
   const texto = form.texto.value.trim();
   if (!texto) return;
   await insertar('frases', { texto });
   render();
-  aviso('Frase guardada 💬');
+  aviso('Frase guardada');
 };
 F.notaAprendizaje = async (form) => {
   const texto = form.texto.value.trim();
@@ -1391,7 +1420,14 @@ document.addEventListener('visibilitychange', async () => {
 });
 
 /* ---------- Arranque ---------- */
-async function entrar() {
+// Al iniciar sesión, el aviso de la conexión y el formulario llaman los dos a entrar():
+// se usa una sola carga para que los datos iniciales no se creen dos veces.
+let entrando = null;
+function entrar() {
+  if (!entrando) entrando = cargarAlEntrar().finally(() => { entrando = null; });
+  return entrando;
+}
+async function cargarAlEntrar() {
   $app.innerHTML = '<div class="cargando">Preparando tu día…</div>';
   try {
     await cargarTodo();

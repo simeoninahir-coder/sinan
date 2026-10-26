@@ -1,6 +1,6 @@
 /* Permite instalar la app y abrirla aunque falle la conexión.
    Siempre intenta traer lo último de internet; si no hay, usa la copia guardada. */
-const CACHE = 'calma-v2';
+const CACHE = 'calma-v3';
 
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => {
