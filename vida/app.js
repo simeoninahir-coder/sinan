@@ -5,6 +5,9 @@
 (() => {
 'use strict';
 
+// Se mira antes de conectar, porque la conexión limpia la dirección al leer el link del mail
+const vieneDeRecuperar = location.hash.includes('type=recovery');
+const URL_APP = location.href.split('#')[0].split('?')[0];
 const sb = window.supabase.createClient(window.CALMA_CONFIG.supabaseUrl, window.CALMA_CONFIG.supabaseKey);
 const $app = document.getElementById('app');
 const $modal = document.createElement('div');
@@ -767,17 +770,36 @@ VISTAS.revision = () => {
 };
 
 /* ---------- Pantalla de ingreso ---------- */
-function renderIngreso(msg = '') {
+const campoClave = (autocompletar) => `<label class="campo"><span>Contraseña</span>
+  <div class="fila" style="flex-wrap:nowrap">
+    <input type="password" name="clave" required minlength="6" autocomplete="${autocompletar}" autocapitalize="none" autocorrect="off" spellcheck="false">
+    <button type="button" class="btn chico sec" data-a="verClave">Ver</button>
+  </div></label>`;
+
+function renderIngreso(msg = '', email = '') {
   $app.innerHTML = `<div class="ingreso">
     <img class="logo" src="iconos/icono-192.png" alt="">
     <h1>Calma</h1>
     <p class="intro">Todo anotado, todo en su lugar.</p>
     <form data-form="ingresar">
-      <label class="campo"><span>Tu mail</span><input type="email" name="email" required autocomplete="email"></label>
-      <label class="campo"><span>Contraseña</span><input type="password" name="clave" required minlength="6" autocomplete="current-password"></label>
+      <label class="campo"><span>Tu mail</span><input type="email" name="email" value="${esc(email)}" required autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
+      ${campoClave('current-password')}
       ${msg ? `<div class="aviso-suave">${msg}</div>` : ''}
       <button class="btn ancho" name="modo" value="entrar">Entrar</button>
+      <button type="button" class="btn fantasma ancho" data-a="olvideClave">¿Te olvidaste la contraseña?</button>
       <button class="btn sec ancho" name="modo" value="crear" style="margin-top:10px">Es mi primera vez: crear cuenta</button>
+    </form>
+  </div>`;
+}
+
+function renderNuevaClave() {
+  $app.innerHTML = `<div class="ingreso">
+    <img class="logo" src="iconos/icono-192.png" alt="">
+    <h1>Contraseña nueva</h1>
+    <p class="intro">Elegí una contraseña que te acuerdes (mínimo 6 caracteres).</p>
+    <form data-form="nuevaClave">
+      ${campoClave('new-password')}
+      <button class="btn ancho">Guardar y entrar</button>
     </form>
   </div>`;
 }
@@ -1239,9 +1261,11 @@ F.ingresar = async (form, submitter) => {
   btns.forEach((b) => { b.disabled = true; });
   try {
     if (submitter && submitter.value === 'crear') {
-      const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: location.href.split('#')[0] } });
+      const { data, error } = await sb.auth.signUp({ email, password, options: { emailRedirectTo: URL_APP } });
       if (error) throw error;
-      if (data.session) { S.user = data.user; await entrar(); }
+      if (data.user && data.user.identities && !data.user.identities.length) {
+        renderIngreso('Ese mail ya tiene cuenta. Tocá “Entrar”. Si no te acordás la contraseña, tocá “¿Te olvidaste la contraseña?”.', email);
+      } else if (data.session) { S.user = data.user; await entrar(); }
       else renderIngreso('📩 Te mandamos un mail. Tocá el link para confirmar tu cuenta y después volvé acá y tocá “Entrar”. (Si el link abre una página con error, no pasa nada: la cuenta igual queda confirmada.)');
     } else {
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
@@ -1252,10 +1276,36 @@ F.ingresar = async (form, submitter) => {
   } catch (e) {
     const m = String(e.message || e);
     renderIngreso(/confirm/i.test(m) ? 'Falta confirmar tu mail: buscá el mail de confirmación (mirá también en spam).'
-      : /invalid/i.test(m) ? 'Mail o contraseña incorrectos.'
+      : /invalid/i.test(m) ? 'La contraseña no coincide con la que pusiste al crear la cuenta. Tocá “Ver” para revisar lo que escribiste (ojo con la mayúscula automática del celu), o tocá “¿Te olvidaste la contraseña?”.'
         : /already/i.test(m) ? 'Ese mail ya tiene cuenta. Tocá “Entrar”.'
-          : `No se pudo: ${esc(m)}`);
+          : `No se pudo: ${esc(m)}`, email);
   }
+};
+F.nuevaClave = async (form) => {
+  const password = form.clave.value;
+  if (password.length < 6) return aviso('Tiene que tener al menos 6 caracteres');
+  const { data, error } = await sb.auth.updateUser({ password });
+  if (error) { aviso(`No se pudo: ${error.message}`); return; }
+  S.user = data.user;
+  aviso('¡Listo! Contraseña nueva guardada');
+  await entrar();
+};
+A.salirForzado = async () => {
+  await sb.auth.signOut({ scope: 'local' });
+  S.user = null;
+  renderIngreso();
+};
+A.verClave = (_, el) => {
+  const input = el.closest('form').querySelector('[name="clave"]');
+  input.type = input.type === 'password' ? 'text' : 'password';
+  el.textContent = input.type === 'password' ? 'Ver' : 'Ocultar';
+};
+A.olvideClave = async () => {
+  const email = document.querySelector('[data-form="ingresar"] [name="email"]').value.trim();
+  if (!email) { renderIngreso('Escribí tu mail arriba y después tocá “¿Te olvidaste la contraseña?”.'); return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: URL_APP });
+  renderIngreso(error ? `No se pudo mandar el mail: ${esc(error.message)}`
+    : '📩 Te mandamos un mail para elegir una contraseña nueva. Abrí el link desde este mismo dispositivo.', email);
 };
 F.captura = async (form) => {
   const titulo = form.titulo.value.trim();
@@ -1349,14 +1399,17 @@ async function entrar() {
     render();
   } catch (err) {
     console.error(err);
-    $app.innerHTML = '<div class="cargando">No se pudo conectar. Revisá internet y recargá.</div>';
+    $app.innerHTML = `<div class="cargando"><div style="text-align:center">No se pudo conectar. Revisá internet y recargá.<br>
+      <button class="btn sec" style="margin-top:16px" data-a="salirForzado">Volver a entrar con mi mail</button></div></div>`;
   }
 }
 
 (async () => {
   const { data } = await sb.auth.getSession();
   S.user = data.session?.user || null;
-  if (S.user) await entrar(); else renderIngreso();
+  if (S.user && vieneDeRecuperar) renderNuevaClave();
+  else if (S.user) await entrar();
+  else renderIngreso();
   sb.auth.onAuthStateChange((evento, sesion) => {
     if (evento === 'SIGNED_OUT') { S.user = null; renderIngreso(); }
     else if (evento === 'SIGNED_IN' && !S.user && sesion) { S.user = sesion.user; entrar(); }
