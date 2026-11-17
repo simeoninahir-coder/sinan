@@ -79,9 +79,11 @@
   function verDetalle(id, recargarLista) {
     let m = null;
     async function dibujar() {
-      const { filas } = await cargar();
+      const [{ filas }, clientes] = await Promise.all([cargar(), DB.listar('clientes', { orden: 'nombre' })]);
       const e = filas.find((x) => x.id === id);
       if (!e) return;
+      const opcionesClienta = (actual) => '<option value="">No, es nueva</option>' + clientes.map((c) =>
+        `<option value="${c.id}" ${c.id === actual ? 'selected' : ''}>${U.esc(c.nombre)}</option>`).join('');
       const hechas = e._tareas.filter((t) => t.hecha).length;
       const dias = U.diasHasta(e.fecha);
       const html = `
@@ -101,6 +103,7 @@
           <div class="tarjeta-cabecera"><h3 style="margin:0">Inscriptos</h3><span class="muted chico">${e._insc.length} ${e._insc.length === 1 ? 'persona' : 'personas'} · ordenados por fecha de inscripción</span></div>
           <form class="form-inscripto" data-nuevo-inscripto>
             <input name="nombre" placeholder="Nombre y apellido" required aria-label="Nombre y apellido">
+            <label>¿Ya es clienta?<select name="cliente_id" aria-label="¿Ya es clienta?">${opcionesClienta(null)}</select></label>
             <label>Nacimiento<input name="fecha_nacimiento" type="date" aria-label="Fecha de nacimiento"></label>
             <label>Abonó<span class="con-prefijo"><span>$</span><input name="monto" type="number" min="0" step="1" value="${e.precio_entrada || 0}" aria-label="Monto abonado"></span></label>
             <label>Inscripción<input name="fecha_inscripcion" type="date" value="${U.hoy()}" required aria-label="Fecha de inscripción"></label>
@@ -179,11 +182,13 @@
       await DB.actualizar('eventos', id, { inscriptos: n });
     }
     async function editarInscripto(insId) {
-      const i = (await DB.obtener('evento_inscriptos', insId));
+      const [i, clientes] = await Promise.all([DB.obtener('evento_inscriptos', insId), DB.listar('clientes', { orden: 'nombre' })]);
       UI.formularioModal({
         titulo: 'Editar inscripto', valores: i,
         campos: [
           { campo: 'nombre', etiqueta: 'Nombre y apellido', requerido: true, ancho: 'completo' },
+          { campo: 'cliente_id', etiqueta: 'Es la clienta', tipo: 'select', numerico: true, vacio: 'Sin vincular', ancho: 'completo',
+            opciones: clientes.map((c) => ({ valor: c.id, texto: c.nombre })), ayuda: 'Si ya te compró antes, elegí su ficha.' },
           { campo: 'fecha_nacimiento', etiqueta: 'Fecha de nacimiento', tipo: 'fecha' },
           { campo: 'monto', etiqueta: 'Monto abonado', tipo: 'pesos', min: 0, requerido: true },
           { campo: 'fecha_inscripcion', etiqueta: 'Fecha de inscripción', tipo: 'fecha', requerido: true },
@@ -247,8 +252,10 @@
             const nombre = f.nombre.value.trim();
             const nacimiento = f.fecha_nacimiento.value || null;
             // Queda también como clienta (si ya existe con ese nombre, se usa esa ficha)
+            // Si eligió una clienta de la lista se usa esa; si no, se busca por nombre o se crea
             const clientes = await DB.listar('clientes');
-            let clienta = clientes.find((c) => U.normalizar(c.nombre).trim() === U.normalizar(nombre));
+            let clienta = f.cliente_id.value ? clientes.find((c) => c.id === Number(f.cliente_id.value))
+              : clientes.find((c) => U.normalizar(c.nombre).trim() === U.normalizar(nombre));
             if (!clienta) clienta = await DB.crear('clientes', { nombre, fecha_nacimiento: nacimiento, canal_origen: 'Evento' });
             else if (nacimiento && !clienta.fecha_nacimiento) await DB.actualizar('clientes', clienta.id, { fecha_nacimiento: nacimiento });
             await DB.crear('evento_inscriptos', {

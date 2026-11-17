@@ -848,7 +848,7 @@ button { cursor: pointer; }
 .aviso-vencimiento b { font-weight: 600; }
 
 /* Eventos: formulario rápido de inscriptos */
-.form-inscripto { display: grid; grid-template-columns: minmax(160px, 2fr) repeat(4, minmax(110px, 1fr)) auto; gap: 8px; align-items: end; margin-bottom: 14px; }
+.form-inscripto { display: grid; grid-template-columns: minmax(160px, 2fr) minmax(140px, 1.3fr) repeat(4, minmax(110px, 1fr)) auto; gap: 8px; align-items: end; margin-bottom: 14px; }
 .form-inscripto label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--gris-texto); }
 .form-inscripto input, .form-inscripto select { border: 1px solid var(--gris-borde); border-radius: var(--radio-chico); padding: 8px 10px; min-height: 40px; background: var(--tarjeta); color: var(--texto); width: 100%; min-width: 0; }
 .form-inscripto .con-prefijo input { padding-left: 24px; }
