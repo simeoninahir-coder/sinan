@@ -103,6 +103,49 @@
   }
 
   // ---------- Calendario mensual ----------
+  // ---------- Fechas importantes (arriba del calendario) ----------
+  // Eventos y ferias, fiestas del año y las fechas que se agregan a mano
+  const dosDig = (n) => String(n).padStart(2, '0');
+  function fechasDelAnio(anio) {
+    const tercerDomingo = (mes) => {
+      const primero = 1 + (7 - new Date(anio, mes - 1, 1).getDay()) % 7;
+      return `${anio}-${dosDig(mes)}-${dosDig(primero + 14)}`;
+    };
+    return [
+      { fecha: `${anio}-01-01`, nombre: 'Año Nuevo' },
+      { fecha: `${anio}-02-14`, nombre: 'San Valentín' },
+      { fecha: `${anio}-03-08`, nombre: 'Día de la Mujer' },
+      { fecha: tercerDomingo(6), nombre: 'Día del Padre' },
+      { fecha: `${anio}-07-20`, nombre: 'Día del Amigo' },
+      { fecha: tercerDomingo(8), nombre: 'Día de las Infancias' },
+      { fecha: `${anio}-09-21`, nombre: 'Día de la Primavera' },
+      { fecha: tercerDomingo(10), nombre: 'Día de la Madre' },
+      { fecha: `${anio}-12-25`, nombre: 'Navidad' }
+    ];
+  }
+  function fechasImportantesHTML(eventos, propias) {
+    const anio = Number(U.hoy().slice(0, 4));
+    const todas = [
+      ...eventos.filter((e) => e.estado !== 'Cancelado').map((e) => ({ fecha: e.fecha, nombre: e.nombre, tipo: e.tipo === 'Feria' ? 'Feria' : 'Evento' })),
+      ...fechasDelAnio(anio).concat(fechasDelAnio(anio + 1)).map((f) => ({ ...f, tipo: 'Fiesta' })),
+      ...propias.map((f) => ({ fecha: f.fecha, nombre: f.nombre, tipo: 'Mía', id: f.id }))
+    ].filter((f) => U.diasHasta(f.fecha) >= 0).sort((a, b) => a.fecha.localeCompare(b.fecha)).slice(0, 6);
+    const falta = (d) => (d === 0 ? 'es hoy' : d === 1 ? 'mañana' : `faltan ${d} días`);
+    return `<section class="fechas-importantes">
+        <div class="fechas-cab"><h3>Fechas importantes</h3>
+          <button type="button" class="boton-texto" data-nueva-fecha>+ Agregar fecha</button></div>
+        <div class="fechas-lista">${todas.map((f) => {
+          const d = U.diasHasta(f.fecha);
+          return `<div class="fecha-item ${d <= 7 ? 'cerca' : ''}">
+            <span class="fecha-dias">${falta(d)}</span>
+            <b>${U.esc(f.nombre)}</b>
+            <small>${U.fecha(f.fecha)} · ${f.tipo}</small>
+            ${f.id ? `<button type="button" class="boton-icono boton-icono-peligro fecha-borrar" data-borrar-fecha="${f.id}" aria-label="Borrar fecha">✕</button>` : ''}
+          </div>`;
+        }).join('') || '<p class="muted chico">No hay fechas próximas.</p>'}</div>
+      </section>`;
+  }
+
   function pestanaCalendario(cuerpo) {
     let mes = U.mes(U.hoy());
     // Filtro por canal (se recuerda en este navegador). Lo de "Ambos" aparece en los dos.
@@ -111,7 +154,8 @@
     const FILTROS = ['Todo', 'Instagram', 'Canal WA'];
     const pasaFiltro = (p, c) => c === 'Todo' || p.canal === c || p.canal === 'Ambos';
     async function dibujar() {
-      const [pubs, pilares] = await Promise.all([DB.listar('publicaciones', { orden: 'fecha' }), DB.listar('pilares_contenido')]);
+      const [pubs, pilares, eventos, propias] = await Promise.all([DB.listar('publicaciones', { orden: 'fecha' }), DB.listar('pilares_contenido'),
+        DB.listar('eventos').catch(() => []), DB.listar('fechas_importantes', { orden: 'fecha' }).catch(() => [])]);
       const pil = U.porId(pilares);
       const delMes = pubs.filter((p) => U.mes(p.fecha) === mes);
       const porDia = U.agrupar(delMes.filter((p) => pasaFiltro(p, canal)),(p) => p.fecha.slice(0, 10));
@@ -131,6 +175,7 @@
         </div>`);
       }
       cuerpo.innerHTML = `
+        ${fechasImportantesHTML(eventos, propias)}
         <div class="cal-cabecera">
           <button type="button" class="boton boton-secundario boton-chico" data-mes="-1" aria-label="Mes anterior">←</button>
           <h2>${U.nombreMes(mes)}</h2>
@@ -145,6 +190,18 @@
           ${celdas.join('')}
         </div>
         <p class="muted chico separado">Tocá un día para agregar una publicación. ${pilares.map((p) => `<span class="chip-color"><i style="background:${U.esc(p.color)}"></i>${U.esc(p.nombre)}</span>`).join('')}</p>`;
+      cuerpo.querySelector('[data-nueva-fecha]').onclick = () => UI.formularioModal({
+        titulo: 'Agregar fecha importante', ancho: 'chico',
+        campos: [
+          { campo: 'nombre', etiqueta: 'Qué pasa ese día', requerido: true, placeholder: 'Ej: Cumple de Sinan, lanzamiento…' },
+          { campo: 'fecha', etiqueta: 'Fecha', tipo: 'fecha', requerido: true }
+        ],
+        alGuardar: async (d) => { await DB.crear('fechas_importantes', d); UI.aviso('Fecha agregada'); dibujar(); }
+      });
+      cuerpo.querySelectorAll('[data-borrar-fecha]').forEach((b) => b.onclick = async () => {
+        if (!(await UI.confirmar('Vas a borrar esta fecha importante.'))) return;
+        try { await DB.borrar('fechas_importantes', Number(b.dataset.borrarFecha)); dibujar(); } catch (e) { UI.error(e); }
+      });
       cuerpo.querySelectorAll('[data-filtro-canal]').forEach((b) => b.onclick = () => {
         canal = b.dataset.filtroCanal;
         try { localStorage.setItem('filtroCanalContenido', canal); } catch (e) { /* sin almacenamiento */ }

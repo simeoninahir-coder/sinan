@@ -911,3 +911,22 @@ button { cursor: pointer; }
 .cal-pub.arrastrando { opacity: .35; }
 .cal-pub.cal-fantasma { position: fixed; z-index: 100; pointer-events: none; cursor: grabbing; font-size: 12.5px; height: auto; padding: 4px 8px; border-left: 3px solid var(--pilar, var(--azul)); background: var(--celeste-suave); box-shadow: 0 8px 24px rgba(18, 54, 78, .25); }
 .cal-dia.destino { border-color: var(--azul); box-shadow: inset 0 0 0 2px var(--azul); }
+
+/* ---------------- Eventos: lo destacado (próximo evento o feria) ---------------- */
+.destacado-evento { margin-bottom: 16px; }
+.destacado-cab { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+.destacado-cab h2 { margin: 2px 0; font-size: 26px; }
+
+/* ---------------- Fechas importantes (arriba del calendario) ---------------- */
+.fechas-importantes { margin-bottom: 18px; }
+.fechas-cab { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+.fechas-cab h3 { margin: 0; }
+.fechas-lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+.fecha-item { position: relative; display: flex; flex-direction: column; gap: 2px; background: var(--tarjeta); border: 1px solid var(--gris-linea); border-radius: 12px; padding: 10px 12px; }
+.fecha-item b { font-weight: 500; color: var(--tinta); line-height: 1.25; padding-right: 18px; }
+.fecha-item small { color: var(--gris-texto); font-size: 12.5px; }
+.fecha-dias { font-size: 12.5px; color: var(--azul); font-weight: 500; }
+.fecha-item.cerca { border-color: var(--azul); }
+.fecha-item.cerca .fecha-dias { color: var(--alerta); }
+.fecha-borrar { position: absolute; top: 4px; right: 4px; }
+@media (max-width: 600px) { .fechas-lista { grid-template-columns: 1fr 1fr; } }

@@ -109,7 +109,10 @@
         { campo: 'medio_pago', etiqueta: 'Medio de pago', tipo: 'select', opciones: N.MEDIOS_PAGO },
         { campo: 'proveedor_id', etiqueta: 'Proveedor', tipo: 'select', numerico: true, vacio: 'Ninguno', opciones: x.proveedores.map((p) => ({ valor: p.id, texto: p.nombre })) },
         { campo: 'evento_id', etiqueta: 'Feria o evento', tipo: 'select', numerico: true, vacio: 'Ninguno', opciones: x.eventos.map((e) => ({ valor: e.id, texto: e.nombre })), ayuda: 'Se suma a su balance.' },
-        { campo: 'campana_id', etiqueta: 'Campaña de marketing', tipo: 'select', numerico: true, vacio: 'Ninguna', opciones: x.campanas.map((c) => ({ valor: c.id, texto: c.nombre })), ayuda: 'Se suma al gasto de la campaña.' }
+        // Campaña: solo aparece si hay alguna activa o planificada (o si este gasto ya tenía una)
+        ...(x.campanas.some((c) => c.estado === 'Activa' || c.estado === 'Planificada') || fila?.campana_id
+          ? [{ campo: 'campana_id', etiqueta: 'Campaña de marketing', tipo: 'select', numerico: true, vacio: 'Ninguna', opciones: x.campanas.map((c) => ({ valor: c.id, texto: c.nombre })), ayuda: 'Se suma al gasto de la campaña.' }]
+          : [])
       ]
     });
     if (abrirNuevo) setTimeout(() => crud.nuevo(), 300);

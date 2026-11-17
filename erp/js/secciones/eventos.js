@@ -31,7 +31,38 @@
       e._ingresos = e._otrosIngresos + e._ventas + e._recaudado;
       e._resultado = e._ingresos - e._gasto;
     });
-    return { filas: eventos };
+    return { filas: eventos, extra: { todos: eventos } };
+  }
+
+  // Lo destacado arriba: el próximo evento o feria (o el último, si no hay ninguno por venir)
+  function destacado(todos) {
+    const vivos = todos.filter((e) => e.estado !== 'Cancelado');
+    const proximos = vivos.filter((e) => U.diasHasta(e.fecha) >= 0).sort((a, b) => a.fecha.localeCompare(b.fecha));
+    const e = proximos[0] || vivos.filter((x) => U.diasHasta(x.fecha) < 0).sort((a, b) => b.fecha.localeCompare(a.fecha))[0];
+    if (!e) return '';
+    const dias = U.diasHasta(e.fecha);
+    const cuando = dias === 0 ? 'es hoy' : dias === 1 ? 'es mañana' : dias > 1 ? `faltan ${dias} días` : 'ya pasó';
+    const feria = e.tipo === 'Feria';
+    const gasto = UI.numeroDestacado('Gastos del evento', U.pesos(e._gasto),
+      e.presupuesto ? `presupuesto ${U.pesos(e.presupuesto)}${e._gasto > e.presupuesto ? ' · pasado' : ''}` : 'cargados en Finanzas',
+      e.presupuesto && e._gasto > e.presupuesto ? 'alerta' : '');
+    const resultado = UI.numeroDestacado(dias >= 0 ? 'Resultado hasta ahora' : 'Resultado', U.pesos(e._resultado), 'lo que entró − lo que salió', e._resultado >= 0 ? 'ok' : 'alerta');
+    const tarjetas = feria
+      ? UI.numeroDestacado('Vendido en la feria', U.pesos(e._ventas), `${e._pedidos} ${e._pedidos === 1 ? 'venta' : 'ventas'}`) + gasto + resultado
+      : UI.numeroDestacado('Inscriptos', e.cupos ? `${e.inscriptos} / ${e.cupos}` : e.inscriptos,
+          e.cupos ? (e.cupos - e.inscriptos > 0 ? `quedan ${e.cupos - e.inscriptos} lugares` : 'cupo completo') : '&nbsp;')
+        + UI.numeroDestacado('Ingresó por entradas', U.pesos(e._recaudado),
+          [e._pendiente ? `+ ${U.pesos(e._pendiente)} pendiente de pago` : null, e._ventas ? `ventas ${U.pesos(e._ventas)}` : null].filter(Boolean).join(' · ') || (e.precio_entrada ? `entrada ${U.pesos(e.precio_entrada)}` : 'entrada libre'), 'ok')
+        + gasto + resultado;
+    return `<div class="destacado-evento">
+        <div class="destacado-cab">
+          <div><span class="muted chico">${dias >= 0 ? (feria ? 'Próxima feria' : 'Próximo evento') : (feria ? 'Última feria' : 'Último evento')}</span>
+            <h2>${U.esc(e.nombre)}</h2>
+            <span class="muted chico">${U.fecha(e.fecha)}${e.hora ? ' · ' + U.esc(e.hora) + ' h' : ''} · ${cuando}</span></div>
+          <button type="button" class="boton boton-secundario boton-chico" data-ver-destacado="${e.id}">Ver detalle</button>
+        </div>
+        <div class="grilla grilla-4">${tarjetas}</div>
+      </div>`;
   }
 
   function barraPresupuesto(e) {
@@ -251,16 +282,7 @@
           return r;
         },
         buscar: (e) => [e.nombre, e.tipo, e.lugar, e.descripcion, e.resultado].join(' '),
-        resumen: (filas) => {
-          const ferias = filas.filter((e) => e.tipo === 'Feria');
-          if (!ferias.length) return '';
-          const res = U.sumar(ferias, (e) => e._resultado);
-          return `<div class="grilla grilla-3">
-            ${UI.numeroDestacado('Ferias', ferias.length, 'en lo filtrado')}
-            ${UI.numeroDestacado('Vendido en ferias', U.pesos(U.sumar(ferias, (e) => e._ventas)), `puestos y gastos: ${U.pesos(U.sumar(ferias, (e) => e._gasto))}`)}
-            ${UI.numeroDestacado('Resultado de ferias', U.pesos(res), 'ventas − gastos', res >= 0 ? 'ok' : 'alerta')}
-          </div>`;
-        },
+        resumen: (filas, x) => destacado(x.todos || filas),
         filtros: [
           { id: 'tipo', etiqueta: 'Tipo', opciones: N.TIPOS_EVENTO, valor: (e) => e.tipo || 'Encuentro' },
           { id: 'estado', etiqueta: 'Estado', opciones: N.ESTADOS_EVENTO, valor: (e) => e.estado },
@@ -308,6 +330,10 @@
         mensajeBorrar: () => 'Se borran también su checklist y colaboradores. Los gastos y ventas quedan pero sin evento.',
         accionesExtra: () => `<button type="button" class="boton-texto" data-accion="ver">Ver</button>`,
         alAccion: { ver: (e, x, recargar) => verDetalle(e.id, recargar) }
+      });
+      cont.addEventListener('click', (ev) => {
+        const b = ev.target.closest('[data-ver-destacado]');
+        if (b) verDetalle(Number(b.dataset.verDestacado), crud.recargar);
       });
     }
   });
