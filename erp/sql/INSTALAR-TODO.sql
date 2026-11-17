@@ -1272,3 +1272,6 @@ revoke all on fechas_importantes from anon;
 grant select, insert, update, delete on fechas_importantes to authenticated;
 grant usage, select on all sequences in schema public to authenticated;
 revoke usage, select on all sequences in schema public from anon;
+
+alter table evento_inscriptos add column if not exists cliente_id bigint references clientes(id) on delete set null;
+alter table publicaciones add column if not exists referencias jsonb not null default '[]'::jsonb;

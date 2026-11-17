@@ -11,6 +11,9 @@
       DB.listar('movimientos_financieros'), DB.listar('pedidos'), DB.listar('evento_inscriptos').catch(() => [])
     ]);
     const ins = U.agrupar(inscriptos, (x) => x.evento_id);
+    // Cada inscripta es también clienta: se cuenta cuántas veces compró
+    const compras = U.agrupar(pedidos.filter((p) => p.cliente_id && N.pedidoValido(p)), (p) => p.cliente_id);
+    inscriptos.forEach((i) => { i._compras = i.cliente_id ? (compras[i.cliente_id] || []).length : 0; });
     const t = U.agrupar(tareas, (x) => x.evento_id);
     const c = U.agrupar(colabs, (x) => x.evento_id);
     const f = U.agrupar(fin.filter((x) => x.evento_id), (x) => x.evento_id);
@@ -107,7 +110,7 @@
           ${UI.tabla({
             filas: e._insc, vacio: 'Todavía no hay inscriptos. Cargalos arriba.',
             columnas: [
-              { titulo: 'Nombre y apellido', valor: (i) => `<b style="font-weight:500">${U.esc(i.nombre)}</b>` },
+              { titulo: 'Nombre y apellido', valor: (i) => `<b style="font-weight:500">${U.esc(i.nombre)}</b><br><small class="muted">${i._compras ? `Compró ${i._compras} ${i._compras === 1 ? 'vez' : 'veces'}` : 'Todavía no compró'}</small>` },
               { titulo: 'Nacimiento', valor: (i) => i.fecha_nacimiento ? `${U.fecha(i.fecha_nacimiento)} <small class="muted">(${Math.floor(-U.diasHasta(i.fecha_nacimiento) / 365.25)} años)</small>` : '—' },
               { titulo: 'Abonó', clase: 'num', valor: (i) => U.pesos(i.monto) },
               { titulo: 'Inscripción', valor: (i) => U.fecha(i.fecha_inscripcion) },
@@ -241,10 +244,17 @@
         const f = ev.target;
         try {
           if (f.matches('[data-nuevo-inscripto]')) {
+            const nombre = f.nombre.value.trim();
+            const nacimiento = f.fecha_nacimiento.value || null;
+            // Queda también como clienta (si ya existe con ese nombre, se usa esa ficha)
+            const clientes = await DB.listar('clientes');
+            let clienta = clientes.find((c) => U.normalizar(c.nombre).trim() === U.normalizar(nombre));
+            if (!clienta) clienta = await DB.crear('clientes', { nombre, fecha_nacimiento: nacimiento, canal_origen: 'Evento' });
+            else if (nacimiento && !clienta.fecha_nacimiento) await DB.actualizar('clientes', clienta.id, { fecha_nacimiento: nacimiento });
             await DB.crear('evento_inscriptos', {
-              evento_id: id, nombre: f.nombre.value.trim(), fecha_nacimiento: f.fecha_nacimiento.value || null,
+              evento_id: id, cliente_id: clienta.id, nombre, fecha_nacimiento: nacimiento,
               monto: Number(f.monto.value) || 0, fecha_inscripcion: f.fecha_inscripcion.value, estado_pago: f.estado_pago.value });
-            await contarInscriptos(); UI.aviso('Inscripto agregado'); dibujar(); return;
+            await contarInscriptos(); UI.aviso('Inscripto agregado (y cargado en Clientes)'); dibujar(); return;
           }
           if (f.matches('[data-nueva-tarea]')) await DB.crear('evento_tareas', { evento_id: id, tarea: f.tarea.value.trim(), responsable: f.responsable.value.trim() || null });
           else await DB.crear('evento_colaboradores', { evento_id: id, nombre: f.nombre.value.trim(), rol: f.rol.value.trim() || null, aporte: f.aporte.value.trim() || null, contacto: f.contacto.value.trim() || null });

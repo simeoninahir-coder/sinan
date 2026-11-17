@@ -42,6 +42,17 @@
       ${prop('opcion', 'Canal', `<select name="canal">${opciones(N.CANALES_CONTENIDO, v.canal, false)}</select>`)}
       <h3 class="ficha-seccion">Guion</h3>
       <textarea name="texto" class="ficha-guion" placeholder="Escribí el guion: qué se muestra, qué se dice, el texto de cada slide…">${U.esc(v.texto || '')}</textarea>
+      <div class="ficha-refs">
+        <div class="refs-lista"></div>
+        <div class="refs-acciones">
+          <button type="button" class="boton-texto" data-ref-link>+ Link de referencia</button>
+          <label class="boton-texto refs-subir">+ Imagen de referencia<input type="file" accept="image/*" data-ref-imagen hidden></label>
+        </div>
+        <div class="refs-nuevo-link" hidden>
+          <input type="url" data-ref-url placeholder="Pegá el link (Instagram, TikTok, Pinterest…)" aria-label="Link de referencia">
+          <button type="button" class="boton boton-chico" data-ref-ok>Agregar</button>
+        </div>
+      </div>
       <details class="ficha-resultados" ${hayMetricas ? 'open' : ''}>
         <summary>Resultados (cuando ya se publicó)</summary>
         <div class="ficha-metricas">${metrica('alcance', 'Alcance')}${metrica('me_gusta', 'Me gusta')}${metrica('comentarios', 'Comentarios')}${metrica('guardados', 'Guardados')}</div>
@@ -74,6 +85,40 @@
     });
     titulo.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
     form.elements.texto.addEventListener('input', (e) => crecer(e.target));
+
+    // Referencias del guion: links o imágenes (se guardan con la publicación)
+    const refs = Array.isArray(v.referencias) ? [...v.referencias] : [];
+    const listaRefs = form.querySelector('.refs-lista');
+    const corto = (url) => String(url).replace(/^https?:\/\/(www\.)?/, '').slice(0, 45) + (String(url).length > 52 ? '…' : '');
+    const dibujarRefs = () => {
+      listaRefs.innerHTML = refs.map((r, n) => r.tipo === 'imagen'
+        ? `<div class="ref ref-imagen"><a href="${U.esc(r.url)}" target="_blank" rel="noopener"><img src="${U.esc(r.url)}" alt="Imagen de referencia"></a>
+            <button type="button" class="boton-icono boton-icono-peligro" data-quitar-ref="${n}" aria-label="Quitar referencia">✕</button></div>`
+        : `<div class="ref ref-link"><a href="${U.esc(r.url)}" target="_blank" rel="noopener">${U.esc(corto(r.url))}</a>
+            <button type="button" class="boton-icono boton-icono-peligro" data-quitar-ref="${n}" aria-label="Quitar referencia">✕</button></div>`).join('');
+    };
+    dibujarRefs();
+    const cajaLink = form.querySelector('.refs-nuevo-link');
+    const inputLink = form.querySelector('[data-ref-url]');
+    const agregarLink = () => {
+      let url = inputLink.value.trim();
+      if (!url) return;
+      if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+      refs.push({ tipo: 'link', url }); inputLink.value = ''; cajaLink.hidden = true; dibujarRefs();
+    };
+    form.querySelector('[data-ref-link]').onclick = () => { cajaLink.hidden = false; inputLink.focus(); };
+    form.querySelector('[data-ref-ok]').onclick = agregarLink;
+    inputLink.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); agregarLink(); } });
+    form.querySelector('[data-ref-imagen]').addEventListener('change', async (e) => {
+      const archivo = e.target.files[0]; if (!archivo) return;
+      const etiqueta = e.target.parentElement; etiqueta.classList.add('cargando');
+      try { refs.push({ tipo: 'imagen', url: await DB.subirFoto(archivo) }); dibujarRefs(); } catch (er) { UI.error(er); }
+      finally { etiqueta.classList.remove('cargando'); e.target.value = ''; }
+    });
+    listaRefs.addEventListener('click', (e) => {
+      const q = e.target.closest('[data-quitar-ref]');
+      if (q) { refs.splice(Number(q.dataset.quitarRef), 1); dibujarRefs(); }
+    });
     if (!fila && window.innerWidth > 760) titulo.focus();
     form.querySelector('[data-cancelar]').onclick = m.cerrar;
     const borrar = form.querySelector('[data-borrar]');
@@ -89,7 +134,7 @@
       const num = (c) => (form.elements[c].value === '' ? null : Number(form.elements[c].value));
       const d = {
         titulo: titulo.value.replace(PREFIJO, '').trim(), estado: val('estado'), fecha: val('fecha'), formato: val('formato'),
-        objetivo: val('objetivo'), pilar_id: num('pilar_id'), canal: val('canal'), texto: val('texto'),
+        objetivo: val('objetivo'), pilar_id: num('pilar_id'), canal: val('canal'), texto: val('texto'), referencias: refs,
         alcance: num('alcance'), me_gusta: num('me_gusta'), comentarios: num('comentarios'), guardados: num('guardados')
       };
       const boton = form.querySelector('[type=submit]'); boton.disabled = true; boton.classList.add('cargando');
@@ -123,13 +168,21 @@
       { fecha: `${anio}-12-25`, nombre: 'Navidad' }
     ];
   }
-  function fechasImportantesHTML(eventos, propias) {
+  // Solo lo que pasa en los próximos 60 días (lo demás va apareciendo solo).
+  // Los cumpleaños de clientas aparecen una semana antes, con botón para saludarla.
+  const DIAS_FECHAS = 60;
+  const DIAS_CUMPLE = 7;
+  function fechasImportantesHTML(eventos, propias, clientes) {
     const anio = Number(U.hoy().slice(0, 4));
+    const enDias = (n) => U.isoDeFecha(new Date(U.fechaDeIso(U.hoy()).getTime() + n * 86400000));
+    const cumples = clientes.map((c) => ({ c, d: N.diasCumple(c.fecha_nacimiento) })).filter((x) => x.d !== null && x.d <= DIAS_CUMPLE)
+      .map(({ c, d }) => ({ fecha: enDias(d), nombre: 'Cumple de ' + c.nombre, tipo: 'Cumpleaños', wa: N.linkWhatsapp(c.telefono) }));
     const todas = [
       ...eventos.filter((e) => e.estado !== 'Cancelado').map((e) => ({ fecha: e.fecha, nombre: e.nombre, tipo: e.tipo === 'Feria' ? 'Feria' : 'Evento' })),
       ...fechasDelAnio(anio).concat(fechasDelAnio(anio + 1)).map((f) => ({ ...f, tipo: 'Fiesta' })),
-      ...propias.map((f) => ({ fecha: f.fecha, nombre: f.nombre, tipo: 'Mía', id: f.id }))
-    ].filter((f) => U.diasHasta(f.fecha) >= 0).sort((a, b) => a.fecha.localeCompare(b.fecha)).slice(0, 6);
+      ...propias.map((f) => ({ fecha: f.fecha, nombre: f.nombre, tipo: 'Mía', id: f.id })),
+      ...cumples
+    ].filter((f) => U.diasHasta(f.fecha) >= 0 && U.diasHasta(f.fecha) <= DIAS_FECHAS).sort((a, b) => a.fecha.localeCompare(b.fecha));
     const falta = (d) => (d === 0 ? 'es hoy' : d === 1 ? 'mañana' : `faltan ${d} días`);
     return `<section class="fechas-importantes">
         <div class="fechas-cab"><h3>Fechas importantes</h3>
@@ -140,9 +193,10 @@
             <span class="fecha-dias">${falta(d)}</span>
             <b>${U.esc(f.nombre)}</b>
             <small>${U.fecha(f.fecha)} · ${f.tipo}</small>
+            ${f.wa ? `<a class="boton-texto fecha-saludo" href="${U.esc(f.wa)}" target="_blank" rel="noopener">Mandarle un saludo</a>` : ''}
             ${f.id ? `<button type="button" class="boton-icono boton-icono-peligro fecha-borrar" data-borrar-fecha="${f.id}" aria-label="Borrar fecha">✕</button>` : ''}
           </div>`;
-        }).join('') || '<p class="muted chico">No hay fechas próximas.</p>'}</div>
+        }).join('') || `<p class="muted chico">No hay fechas en los próximos ${DIAS_FECHAS} días.</p>`}</div>
       </section>`;
   }
 
@@ -154,8 +208,8 @@
     const FILTROS = ['Todo', 'Instagram', 'Canal WA'];
     const pasaFiltro = (p, c) => c === 'Todo' || p.canal === c || p.canal === 'Ambos';
     async function dibujar() {
-      const [pubs, pilares, eventos, propias] = await Promise.all([DB.listar('publicaciones', { orden: 'fecha' }), DB.listar('pilares_contenido'),
-        DB.listar('eventos').catch(() => []), DB.listar('fechas_importantes', { orden: 'fecha' }).catch(() => [])]);
+      const [pubs, pilares, eventos, propias, clientes] = await Promise.all([DB.listar('publicaciones', { orden: 'fecha' }), DB.listar('pilares_contenido'),
+        DB.listar('eventos').catch(() => []), DB.listar('fechas_importantes', { orden: 'fecha' }).catch(() => []), DB.listar('clientes').catch(() => [])]);
       const pil = U.porId(pilares);
       const delMes = pubs.filter((p) => U.mes(p.fecha) === mes);
       const porDia = U.agrupar(delMes.filter((p) => pasaFiltro(p, canal)),(p) => p.fecha.slice(0, 10));
@@ -175,7 +229,7 @@
         </div>`);
       }
       cuerpo.innerHTML = `
-        ${fechasImportantesHTML(eventos, propias)}
+        ${fechasImportantesHTML(eventos, propias, clientes)}
         <div class="cal-cabecera">
           <button type="button" class="boton boton-secundario boton-chico" data-mes="-1" aria-label="Mes anterior">←</button>
           <h2>${U.nombreMes(mes)}</h2>
@@ -560,6 +614,10 @@
         { id: 'pilares', titulo: 'Pilares', render: pestanaPilares },
         { id: 'metricas', titulo: 'Métricas de Instagram', render: pestanaMetricas }
       ], 'marketing');
+      // Debajo del título, siempre a la vista: el objetivo principal de la estrategia
+      DB.obtener('estrategia_mkt', 1).then((est) => {
+        if (est?.objetivo_general && location.hash.startsWith('#/marketing')) App.titulo('Estrategia y contenido', 'Objetivo: ' + est.objetivo_general);
+      }).catch(() => {});
     }
   });
 })();

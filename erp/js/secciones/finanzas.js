@@ -8,12 +8,14 @@
 (function () {
   // Junta ventas + movimientos por mes (lo usa Reportes)
   async function datosMensuales() {
-    const [pedidos, movs] = await Promise.all([DB.listar('pedidos'), DB.listar('movimientos_financieros', { orden: 'fecha' })]);
-    return { pedidos: pedidos.filter(N.pedidoValido), movs };
+    const [pedidos, movs, inscriptos] = await Promise.all([DB.listar('pedidos'), DB.listar('movimientos_financieros', { orden: 'fecha' }),
+      DB.listar('evento_inscriptos').catch(() => [])]);
+    return { pedidos: pedidos.filter(N.pedidoValido), movs, entradas: inscriptos.filter((i) => i.estado_pago === 'Confirmado') };
   }
-  function resumenMes(mes, { pedidos, movs }) {
+  function resumenMes(mes, { pedidos, movs, entradas }) {
     const ventas = U.sumar(pedidos.filter((p) => U.mes(p.fecha) === mes), (p) => p.total);
-    const ingresos = U.sumar(movs.filter((m) => m.tipo === 'ingreso' && U.mes(m.fecha) === mes), (m) => m.monto);
+    const ingresos = U.sumar(movs.filter((m) => m.tipo === 'ingreso' && U.mes(m.fecha) === mes), (m) => m.monto)
+      + U.sumar(entradas.filter((i) => U.mes(i.fecha_inscripcion) === mes), (i) => i.monto);
     const egresos = U.sumar(movs.filter((m) => m.tipo === 'egreso' && U.mes(m.fecha) === mes), (m) => m.monto);
     return { mes, ventas, ingresos, egresos, resultado: ventas + ingresos - egresos };
   }
@@ -54,9 +56,20 @@
     const crud = Seccion.crud({
       contenedor: cuerpo, tabla: 'movimientos_financieros', nombre: 'movimiento', textoNuevo: 'Cargar gasto o ingreso',
       async cargar() {
-        const [movs, eventos, proveedores, campanas, v] = await Promise.all([
+        const [movs, eventos, proveedores, campanas, v, inscriptos] = await Promise.all([
           DB.listar('movimientos_financieros', { orden: 'fecha', asc: false }), DB.listar('eventos', { orden: 'fecha', asc: false }),
-          DB.listar('proveedores', { orden: 'nombre' }), DB.listar('campanas', { orden: 'fecha_inicio', asc: false }), N.cargarVentas()]);
+          DB.listar('proveedores', { orden: 'nombre' }), DB.listar('campanas', { orden: 'fecha_inicio', asc: false }), N.cargarVentas(),
+          DB.listar('evento_inscriptos').catch(() => [])]);
+        // Entradas de eventos cobradas (pago confirmado): un renglón por evento y mes. Se manejan desde Eventos.
+        const nombreEv = U.porId(eventos);
+        const porEvento = U.agrupar(inscriptos.filter((i) => i.estado_pago === 'Confirmado' && enPeriodo(i.fecha_inscripcion)),
+          (i) => i.evento_id + '|' + U.mes(i.fecha_inscripcion));
+        const entradas = Object.values(porEvento).map((g) => ({
+          id: 'e' + g[0].evento_id + U.mes(g[0].fecha_inscripcion), _entrada: g[0].evento_id,
+          fecha: g.map((i) => i.fecha_inscripcion).sort().pop(), tipo: 'ingreso', categoria: 'Entradas de eventos',
+          monto: U.sumar(g, (i) => i.monto), evento_id: g[0].evento_id,
+          descripcion: 'Entradas · ' + (nombreEv[g[0].evento_id]?.nombre || 'Evento'),
+          _detalle: `${g.length} ${g.length === 1 ? 'inscripta' : 'inscriptas'} con pago confirmado` }));
         // Cada venta del período aparece como ingreso (se edita desde Ventas). Las históricas no cuentan.
         const ventas = v.pedidos.filter((p) => N.pedidoValido(p) && !p.historico && enPeriodo(p.fecha)).map((p) => ({
           id: 'v' + p.id, _venta: p.id, fecha: p.fecha, tipo: 'ingreso', categoria: 'Ventas', monto: p.total, medio_pago: p.medio_pago,
@@ -68,13 +81,13 @@
         const anotados = (App.gastosFijosRegistrados ? await App.gastosFijosRegistrados() : []).filter((r) => enPeriodo(r.fecha)).map((r) => ({
           id: 'f' + r.grupo + r.mes, _fijo: true, fecha: r.fecha, tipo: 'anotado', categoria: r.grupo, monto: r.monto,
           descripcion: r.grupo + ' (no se descuenta)', _detalle: r.detalle }));
-        const filas = [...ventas, ...anotados, ...movs.filter((m) => enPeriodo(m.fecha))].sort((a, b) => b.fecha.localeCompare(a.fecha));
+        const filas = [...ventas, ...entradas, ...anotados, ...movs.filter((m) => enPeriodo(m.fecha))].sort((a, b) => b.fecha.localeCompare(a.fecha));
         return { filas, extra: { eventos, proveedores, campanas, ev: U.porId(eventos), prov: U.porId(proveedores), camp: U.porId(campanas) } };
       },
       buscar: (m, x) => [m.descripcion, m._detalle, m.categoria, m.medio_pago, x.ev[m.evento_id]?.nombre, x.prov[m.proveedor_id]?.nombre].join(' '),
       filtros: [
-        { id: 'tipo', etiqueta: 'Tipo', opciones: [{ valor: 'venta', texto: 'Ventas' }, { valor: 'ingreso', texto: 'Otros ingresos' }, { valor: 'egreso', texto: 'Gastos' }, { valor: 'anotado', texto: 'Anotado sin descontar' }],
-          valor: (m) => (m._venta ? 'venta' : m.tipo) },
+        { id: 'tipo', etiqueta: 'Tipo', opciones: [{ valor: 'venta', texto: 'Ventas' }, { valor: 'entrada', texto: 'Entradas de eventos' }, { valor: 'ingreso', texto: 'Otros ingresos' }, { valor: 'egreso', texto: 'Gastos' }, { valor: 'anotado', texto: 'Anotado sin descontar' }],
+          valor: (m) => (m._venta ? 'venta' : m._entrada ? 'entrada' : m.tipo) },
         { id: 'cat', etiqueta: 'Categoría', opciones: (f) => [...new Set(f.map((m) => m.categoria))].sort(), valor: (m) => m.categoria }
       ],
       resumen: (filas) => {
@@ -84,22 +97,22 @@
         const res = ven + ing - egr;
         return `<div class="grilla grilla-4">
           ${UI.numeroDestacado('Ventas', U.pesos(ven), `${filas.filter((m) => m._venta).length} ventas`)}
-          ${UI.numeroDestacado('Otros ingresos', U.pesos(ing))}
+          ${UI.numeroDestacado('Otros ingresos', U.pesos(ing), U.sumar(filas.filter((m) => m._entrada), (m) => m.monto) ? `incluye entradas de eventos: ${U.pesos(U.sumar(filas.filter((m) => m._entrada), (m) => m.monto))}` : '')}
           ${UI.numeroDestacado('Gastos', U.pesos(egr), U.sumar(filas.filter((m) => m._fijo), (m) => m.monto) ? `+ ${U.pesos(U.sumar(filas.filter((m) => m._fijo), (m) => m.monto))} anotado sin descontar` : '')}
           ${UI.numeroDestacado('Resultado', U.pesos(res), 'ventas + ingresos − gastos', res >= 0 ? 'ok' : 'alerta')}
         </div>`;
       },
       columnas: [
         { titulo: 'Fecha', valor: (m) => U.fecha(m.fecha) },
-        { titulo: 'Detalle', valor: (m, x) => `${U.esc(m.descripcion || m.categoria)}<br><small class="muted">${m._venta || m._fijo ? U.esc(m._detalle)
+        { titulo: 'Detalle', valor: (m, x) => `${U.esc(m.descripcion || m.categoria)}<br><small class="muted">${m._venta || m._fijo || m._entrada ? U.esc(m._detalle)
           : [m.categoria, x.prov[m.proveedor_id]?.nombre, x.ev[m.evento_id] ? 'Evento: ' + x.ev[m.evento_id].nombre : null, x.camp[m.campana_id] ? 'Campaña: ' + x.camp[m.campana_id].nombre : null].filter(Boolean).map(U.esc).join(' · ')}</small>` },
-        { titulo: 'Tipo', valor: (m) => m._fijo ? UI.etiqueta('No se descuenta', 'atencion') : m._venta ? UI.etiqueta('Venta', 'info') : m.tipo === 'ingreso' ? UI.etiqueta('Ingreso', 'ok') : UI.etiqueta('Egreso', 'neutro') },
+        { titulo: 'Tipo', valor: (m) => m._fijo ? UI.etiqueta('No se descuenta', 'atencion') : m._venta ? UI.etiqueta('Venta', 'info') : m._entrada ? UI.etiqueta('Entradas', 'ok') : m.tipo === 'ingreso' ? UI.etiqueta('Ingreso', 'ok') : UI.etiqueta('Egreso', 'neutro') },
         { titulo: 'Medio', valor: (m) => U.esc(m.medio_pago || '—') },
         { titulo: 'Monto', clase: 'num', valor: (m) => m._fijo ? `<span class="muted">${U.pesos(m.monto)}</span>` : `<b style="color:${m.tipo === 'ingreso' ? 'var(--ok)' : 'var(--texto)'}">${m.tipo === 'egreso' ? '−' : '+'}${U.pesos(m.monto)}</b>` }
       ],
       // Las ventas se editan y borran desde Ventas
-      interceptar: (m) => { if (m._venta) { App.ir('ventas', 'editar-' + m._venta); return true; } if (m._fijo) { App.ir('finanzas', 'operativos'); return true; } return false; },
-      noBorrar: (m) => (m._fijo ? 'Esto se maneja desde la pestaña Gastos operativos.' : m._venta ? 'Las ventas se borran desde la sección Ventas.' : m.categoria === 'Puesto de feria' ? 'Este gasto viene del costo del puesto: cambialo desde Eventos.' : null),
+      interceptar: (m) => { if (m._venta) { App.ir('ventas', 'editar-' + m._venta); return true; } if (m._entrada) { App.ir('eventos', 'ver-' + m._entrada); return true; } if (m._fijo) { App.ir('finanzas', 'operativos'); return true; } return false; },
+      noBorrar: (m) => (m._fijo ? 'Esto se maneja desde la pestaña Gastos operativos.' : m._entrada ? 'Las entradas se manejan desde Eventos (lista de inscriptos).' : m._venta ? 'Las ventas se borran desde la sección Ventas.' : m.categoria === 'Puesto de feria' ? 'Este gasto viene del costo del puesto: cambialo desde Eventos.' : null),
       campos: (fila, x) => [
         { campo: 'tipo', etiqueta: 'Tipo', tipo: 'select', opciones: [{ valor: 'egreso', texto: 'Egreso (gasto)' }, { valor: 'ingreso', texto: 'Otro ingreso (no ventas)' }], vacio: false, defecto: 'egreso' },
         { campo: 'fecha', etiqueta: 'Fecha', tipo: 'fecha', requerido: true, defecto: U.hoy },

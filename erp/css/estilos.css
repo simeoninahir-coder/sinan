@@ -930,3 +930,21 @@ button { cursor: pointer; }
 .fecha-item.cerca .fecha-dias { color: var(--alerta); }
 .fecha-borrar { position: absolute; top: 4px; right: 4px; }
 @media (max-width: 600px) { .fechas-lista { grid-template-columns: 1fr 1fr; } }
+
+/* ---------------- Referencias del guion (links e imágenes) ---------------- */
+.ficha-refs { margin-top: 8px; }
+.refs-lista { display: flex; flex-wrap: wrap; gap: 8px; }
+.refs-lista:empty { display: none; }
+.ref { position: relative; display: flex; align-items: center; gap: 4px; border: 1px solid var(--gris-linea); background: var(--tarjeta); border-radius: 10px; }
+.ref-link { padding: 4px 4px 4px 10px; font-size: 13.5px; max-width: 100%; }
+.ref-link a { color: var(--azul); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ref-imagen { padding: 4px; }
+.ref-imagen img { display: block; width: 96px; height: 96px; object-fit: cover; border-radius: 7px; }
+.ref-imagen .boton-icono { position: absolute; top: 2px; right: 2px; background: var(--tarjeta); }
+.refs-acciones { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; }
+.refs-subir { cursor: pointer; }
+.refs-subir.cargando { opacity: .5; pointer-events: none; }
+.refs-nuevo-link { display: flex; gap: 8px; margin-top: 8px; }
+.refs-nuevo-link[hidden] { display: none; }
+.refs-nuevo-link input { flex: 1; min-width: 0; }
+.fecha-saludo { align-self: flex-start; margin-top: 4px; font-size: 13px; }
